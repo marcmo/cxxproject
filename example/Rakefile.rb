@@ -1,43 +1,6 @@
 require 'rake/clean'
+require 'cxxproject'
 
-ALL = Rake::FileList.new
-
-ALL_BUILDING_BLOCKS = {}
-class BuildingBlock
-  attr_accessor :name, :base, :dependencies, :libs
-  def initialize
-    super
-    @dependencies = []
-    @libs = []
-  end
-  def to_s
-    inspect
-  end
-end
-
-class SourceBuildingBlock < BuildingBlock
-  attr_accessor :sources, :includes
-  def initialize
-    super
-    @sources = []
-    @includes = ['.']
-    @dependencies = []
-  end
-end
-
-class SourceLibrary < SourceBuildingBlock
-  attr_accessor :defines
-  def initialize
-    super
-    @defines = []
-  end
-end
-
-class Exe < SourceBuildingBlock
-  def initialize
-    super
-  end
-end
 
 class OsxCompiler
   def initialize(output_path)
