@@ -1,4 +1,3 @@
-puts "herel......................."
 require 'cxxproject/utils'
 require 'cxxproject/dependencies'
 require 'cxxproject/compiler'
