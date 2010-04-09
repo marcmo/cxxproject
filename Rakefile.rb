@@ -38,7 +38,7 @@ Spec::Rake::SpecTask.new() do |t|
   t.spec_files = FileList['spec/**/*.rb']
 end
 
-task :default => [:specs]
+task :default => [:install]
 
 desc "install gem globally"
 task :install => :gem do
