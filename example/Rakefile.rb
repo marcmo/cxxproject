@@ -1,7 +1,6 @@
 require 'rake/clean'
 require 'cxxproject'
 
-
 class OsxCompiler
   def initialize(output_path)
     @output_path = output_path
@@ -9,34 +8,17 @@ class OsxCompiler
 
   def include(name)
     CLEAN.include(name)
-    ALL.include(name)
-  end
-
-  def transitive_dependencies(building_block)
-    if !building_block
-      raise "transitive dependencies ... building block must not be nil"
-    end
-    res = [building_block]
-    building_block.dependencies.each do |d|
-      h = ALL_BUILDING_BLOCKS[d]
-      if !h
-        raise "dependency not found #{d}"
-      end
-      new_one = transitive_dependencies(h)
-      res += new_one
-    end
-    return res
+#    ALL.include(name)
   end
 
   def transitive_includes(lib)
-    res = transitive_dependencies(lib).map do |i|
+    res = Dependencies.transitive_dependencies([lib.name]).map do |i|
       i.includes.map { |include| File.join(i.base, include) }
     end
     return res.flatten
   end
   def transitive_libs(from)
-    
-    res = transitive_dependencies(from).delete_if{|i|i.instance_of?(Exe)}.map do |i|
+    res = Dependencies.transitive_dependencies([from.name]).delete_if{|i|i.instance_of?(Exe)}.map do |i|
       "osx/lib#{i.name}.a"
     end
     return res
@@ -86,9 +68,6 @@ class OsxCompiler
     end
 
     dep_paths = exe.dependencies.map {|dep|static_lib_path(dep)}
-    command = dep_paths.inject(command) do |command, l|
-      "#{command} #{l}"
-    end
     include(fullpath)
     deps = objects.dup
     deps += dep_paths
@@ -136,5 +115,5 @@ projects.each do |p|
   end
 end
 
-task :default => ALL.to_a do
+task :default do
 end

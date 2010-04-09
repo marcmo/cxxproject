@@ -9,7 +9,7 @@ task :default => [:package, :roodi]
 PKG_VERSION = '0.1'
 PKG_FILES = FileList[
     'lib/**/*.rb',
-    'Rakefile',
+    'Rakefile.rb',
     'spec/**/*.rb'
 #    'doc/**/*'
   ]
