@@ -81,29 +81,30 @@ class OsxCompiler
   end
 end
 
-def compiler
-  OsxCompiler.new('osx')
-end
+Compiler = OsxCompiler.new('osx')
 
 def build_source_lib(lib)
   objects = lib.sources.map do |s|
-    compiler.create_object_file(lib, s)
+    Compiler.create_object_file(lib, s)
   end
-  compiler.create_source_lib(lib, objects)
+  Compiler.create_source_lib(lib, objects)
 end
 
 def build_exe(exe)
   objects = exe.sources.map do |s|
-    compiler.create_object_file(exe, s)
+    Compiler.create_object_file(exe, File.basename(s))
   end
-  compiler.create_exe(exe, objects)
+  Compiler.create_exe(exe, objects)
 end
 
 all_building_blocks = {}
 projects = Dir.glob('**/project.rb')
 projects.each do |p|
-  require p
-  building_block = define_project
+  loadContext = Class.new
+  loadContext.module_eval(File.read(p))
+  c = loadContext.new
+  raise "no 'define_project' defined in project.rb" unless c.respond_to?(:define_project)
+  building_block = c.define_project 
   building_block.base = File.dirname(p)
   ALL_BUILDING_BLOCKS[building_block.name] = building_block
   if (building_block.instance_of?(SourceLibrary)) then
