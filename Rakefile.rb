@@ -6,7 +6,7 @@ require 'spec/rake/spectask'
 desc "Default Task"
 task :default => [:package, :roodi]
 
-PKG_VERSION = '0.1'
+PKG_VERSION = '0.2'
 PKG_FILES = FileList[
     'lib/**/*.rb',
     'Rakefile.rb',
@@ -42,11 +42,6 @@ task :default => [:specs]
 
 desc "install gem globally"
 task :install => :gem do
-  sh "sudo gem install pkg/#{spec.name}-#{spec.version}.gem"
-end
-
-desc "install2 gem privately"
-task :install2 => :gem do
   sh "gem install pkg/#{spec.name}-#{spec.version}.gem"
 end
 
