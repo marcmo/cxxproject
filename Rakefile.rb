@@ -6,7 +6,7 @@ require 'spec/rake/spectask'
 desc "Default Task"
 task :default => [:package, :roodi]
 
-PKG_VERSION = '0.2'
+PKG_VERSION = '0.3'
 PKG_FILES = FileList[
     'lib/**/*.rb',
     'Rakefile.rb',
