@@ -80,7 +80,7 @@ class OsxCompiler
   def transitive_libs(from)
     res = Dependencies.transitive_dependencies([from.name]).delete_if{|i|i.instance_of?(Exe)}.map do |i|
       if (i.instance_of?(BinaryLibrary))
-        "-l#{i.name}"
+        "-L/opt/local/lib -l#{i.name}"
       else
         "osx/lib#{i.name}.a"
       end
@@ -139,7 +139,7 @@ class OsxCompiler
   def create_exe(exe, objects)
     exename = "#{exe.name}.exe"
     fullpath = File.join(@output_path, exename)
-    command = objects.inject("g++ -o #{fullpath}") do |command, o|
+    command = objects.inject("g++ -all_load -o #{fullpath}") do |command, o|
       "#{command} #{o}"
     end
 
@@ -149,9 +149,7 @@ class OsxCompiler
     deps += dep_paths
     desc "link exe #{exe.name}"
     res = file fullpath => deps do
-      libs = transitive_libs(exe)
-      command = libs.inject(command) { |command, l| "#{command} #{l}" }
-      sh command
+      sh transitive_libs(exe).inject(command) {|command,l|"#{command} #{l}"}
     end
     return res
   end
