@@ -12,4 +12,8 @@ describe Dependencies do
     deps = Dependencies.transitive_dependencies(['4'])
     deps.map {|d|d.name}.should == ['4', '2', '3', '1']
   end
+  it 'should create .d files' do
+    pending
+    1.should == 0
+  end
 end

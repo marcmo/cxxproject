@@ -1,9 +1,15 @@
-first scetch of distributed project descriptions that are joined into a
-rake-file.
+cxxproject
+----------
 
-alternative eclipse-project files could be generated.
+cxxproject is a utility library that enables to specify c++ projects easily.
+
+the base of each cxxproject are a set of projects (each project is described
+by a small project.rb file which specifies which sources are to compile,
+whichs includes to add, which defines to use, ...)
+
+a typically rakefile that uses this system simply collects all project.rb
+files and feeds them into the CxxProject2Rake-helper.
 
 TODO:
-- binary libs loesen
-- resolving of dependencies
-
+- get rid of the static compiler (should be a parameter to CxxProject2Rake)
+- binary libs loesen (nochmal drueberschauen)

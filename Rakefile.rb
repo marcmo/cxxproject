@@ -28,16 +28,13 @@ spec = Gem::Specification.new do |s|
   s.homepage = ''
 end
 
-
-Rake::GemPackageTask.new(spec) do |pkg|
-#  pkg.need_tar = true
- # pkg.need_zip = true
-end
-
 RoodiTask.new
+Rake::GemPackageTask.new(spec) {|pkg|}
+
+task :gem => [:spec, :roodi]
 
 desc "Run all examples"
-Spec::Rake::SpecTask.new('specs') do |t|
+Spec::Rake::SpecTask.new() do |t|
   t.spec_files = FileList['spec/**/*.rb']
 end
 
@@ -48,4 +45,8 @@ task :install => :gem do
   sh "sudo gem install pkg/#{spec.name}-#{spec.version}.gem"
 end
 
+desc "install2 gem privately"
+task :install2 => :gem do
+  sh "gem install pkg/#{spec.name}-#{spec.version}.gem"
+end
 
