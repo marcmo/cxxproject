@@ -85,7 +85,7 @@ Compiler = OsxCompiler.new('osx')
 
 def build_source_lib(lib)
   objects = lib.sources.map do |s|
-    Compiler.create_object_file(lib, s)
+    Compiler.create_object_file(lib, File.basename(s))
   end
   Compiler.create_source_lib(lib, objects)
 end
@@ -104,15 +104,18 @@ projects.each do |p|
   loadContext.module_eval(File.read(p))
   c = loadContext.new
   raise "no 'define_project' defined in project.rb" unless c.respond_to?(:define_project)
-  building_block = c.define_project 
-  building_block.base = File.dirname(p)
-  ALL_BUILDING_BLOCKS[building_block.name] = building_block
-  if (building_block.instance_of?(SourceLibrary)) then
-    build_source_lib(building_block)
-  elsif (building_block.instance_of?(Exe)) then
-    build_exe(building_block)
-  else
-    raise 'unknown building_block'
+  base_dir = File.dirname(p)
+  cd base_dir do
+    building_block = c.define_project 
+    building_block.base = base_dir
+    ALL_BUILDING_BLOCKS[building_block.name] = building_block
+    if (building_block.instance_of?(SourceLibrary)) then
+      build_source_lib(building_block)
+    elsif (building_block.instance_of?(Exe)) then
+      build_exe(building_block)
+    else
+      raise 'unknown building_block'
+    end
   end
 end
 

@@ -43,4 +43,9 @@ end
 
 task :default => [:specs]
 
+desc "install gem globally"
+task :install => :gem do
+  sh "sudo gem install pkg/#{spec.name}-#{spec.version}.gem"
+end
+
 
