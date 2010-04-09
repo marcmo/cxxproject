@@ -4,8 +4,6 @@ rake-file.
 alternative eclipse-project files could be generated.
 
 TODO:
-- transitive_includes
-- transitive_libs
 - binary libs loesen
 - resolving of dependencies
 
