@@ -12,13 +12,15 @@ ALL = FileList.new
 
 class BuildingBlock
   attr_accessor :name, :base, :dependencies
+
   def initialize(name)
     @name = name
     @dependencies = []
     ALL_BUILDING_BLOCKS[@name] = self
   end
+
   def to_s
-    inspect
+    "#{name} => #{self.class} with base: #{base}"
   end
 end
 
@@ -80,7 +82,15 @@ class CxxProject2Rake
   def initialize(projects,compiler)
     @compiler = compiler
     register_projects(projects)
-    convert_to_rake
+
+    desc "shows your defined projects"
+    task :project_info do
+      ALL_BUILDING_BLOCKS.each_value do |bb|
+        puts bb
+      end
+    end
+
+    convert_to_rake()
   end
 
   def register_projects(projects)
@@ -91,7 +101,6 @@ class CxxProject2Rake
       raise "no 'define_project' defined in project.rb" unless c.respond_to?(:define_project)
       cd File.dirname(project_file) do | base_dir |
         project = c.define_project
-        ALL_BUILDING_BLOCKS[project.name] = project
         project.base = base_dir
         project.to_s
       end

@@ -23,7 +23,7 @@ class Compiler
   def transitive_libs(from)
     res = Dependencies.transitive_dependencies([from.name]).delete_if{|i|i.instance_of?(Exe)}.map do |i|
       if (i.instance_of?(BinaryLibrary))
-        "-L/usr/local/lib -l#{i.name}"
+        "-L/opt/local/lib -l#{i.name}"
       else
         "osx/lib#{i.name}.a"
       end
@@ -73,7 +73,7 @@ class Compiler
       raise "could not find buildingblock with name '#{l}'"
     end
     if (lib.instance_of?(BinaryLibrary))
-      "/usr/local/lib/lib#{lib.name}.a"
+      "/opt/local/lib/lib#{lib.name}.a"
     else
       static_lib_path(lib.name)
     end
