@@ -26,6 +26,7 @@ spec = Gem::Specification.new do |s|
   s.author = ''
   s.email = ''
   s.homepage = ''
+  s.has_rdoc = true
 end
 
 RoodiTask.new
