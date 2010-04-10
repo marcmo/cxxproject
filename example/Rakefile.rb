@@ -13,8 +13,10 @@ task :default => :all_examples
 def run_rakefiles(c)
   Dir.glob('**/Rakefile.rb').each do |p|
     dir = File.dirname(p)
-    cd(dir,:verbose => false)  do
-      sh "#{c}"
+    if (dir != ".")
+      FileUtils.cd(dir,:verbose => false)  do
+        sh "#{c}"
+      end
     end
   end
 end
