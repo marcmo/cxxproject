@@ -93,14 +93,18 @@ class CxxProject2Rake
     @compiler = compiler
     register_projects(projects)
 
+    define_project_info_task
+
+    convert_to_rake()
+  end
+
+  def define_project_info_task
     desc "shows your defined projects"
     task :project_info do
       ALL_BUILDING_BLOCKS.each_value do |bb|
         puts bb
       end
     end
-
-    convert_to_rake()
   end
 
   def register_projects(projects)
@@ -116,6 +120,7 @@ class CxxProject2Rake
       end
     end
   end
+
   def convert_to_rake
     ALL_BUILDING_BLOCKS.values.each do |building_block|
       if (building_block.instance_of?(SourceLibrary)) then
