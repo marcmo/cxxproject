@@ -23,9 +23,10 @@ class Compiler
   def transitive_libs(from)
     res = Dependencies.transitive_dependencies([from.name]).delete_if{|i|i.instance_of?(Exe)}.map do |i|
       if (i.instance_of?(BinaryLibrary))
-        "-L/opt/local/lib -l#{i.name}"
+        path = find_lib_path(i.name)
+        "-L#{path} -l#{i.name}"
       else
-        "osx/lib#{i.name}.a"
+        "#{@output_path}/lib#{i.name}.a"
       end
     end
     return res
@@ -59,7 +60,7 @@ class Compiler
     end
     register(fullpath)
     deps = objects.dup
-    deps += lib.dependencies.map {|dep|get_path_for_lib(dep)}
+    deps += lib.dependencies.inject([]) {|acc,dep| acc += get_path_for_lib(dep)}
     desc "link lib #{lib.name}"
     res = file fullpath => deps do
       sh command
@@ -67,15 +68,31 @@ class Compiler
     return res
   end
 
-  def get_path_for_lib(l)
-    lib = ALL_BUILDING_BLOCKS[l]
+  def find_lib_path(d)
+    libEndings = ["a","dylib"]
+    paths = ["/usr/local/lib/lib","/usr/lib/lib","/opt/local/lib"]
+    possibilities = libEndings.collect{|x| paths.inject([]){|acc,e| acc+["#{e}#{d}.#{x}"]}}.flatten
+    i = possibilities.index{|x|File.exists?(x)}
+    if i
+      [possibilities[i]]
+    else
+      []
+    end
+  end
+
+  def get_path_for_lib(d)
+    lib = ALL_BUILDING_BLOCKS[d]
     if !lib
-      raise "could not find buildingblock with name '#{l}'"
+      raise "could not find buildingblock with name '#{d}'"
     end
     if (lib.instance_of?(BinaryLibrary))
-      "/opt/local/lib/lib#{lib.name}.a"
+      lib_path = find_lib_path(d)
+      if lib_path.empty?
+        raise "lib not found: #{d}"
+      end
+      []
     else
-      static_lib_path(lib.name)
+      [static_lib_path(lib.name)]
     end
   end
 
