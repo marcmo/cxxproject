@@ -59,7 +59,7 @@ class Compiler
     end
     register(fullpath)
     deps = objects.dup
-    deps += lib.dependencies.inject([]) {|acc,dep| acc += get_path_for_lib(dep)}
+    deps += lib.dependencies.map {|dep|get_path_for_lib(dep)}
     desc "link lib #{lib.name}"
     res = file fullpath => deps do
       sh command
@@ -67,34 +67,15 @@ class Compiler
     return res
   end
 
-  def find_lib_path(d)
-    libEndings = ["a","dylib"]
-    paths = ["/usr/local/lib/lib","/usr/lib/lib"]
-    possibilities = libEndings.collect{|x| paths.inject([]){|acc,e| acc+["#{e}#{d}.#{x}"]}}.flatten
-    i = possibilities.index{|x|File.exists?(x)}
-    if i
-      [possibilities[i]]
-    else
-      []
-    end
-  end
-
-  def get_path_for_lib(d)
-    lib = ALL_BUILDING_BLOCKS[d]
+  def get_path_for_lib(l)
+    lib = ALL_BUILDING_BLOCKS[l]
     if !lib
-      raise "could not find buildingblock with name '#{d}'"
+      raise "could not find buildingblock with name '#{l}'"
     end
     if (lib.instance_of?(BinaryLibrary))
-      lib_path = find_lib_path(d)
-      # task lib_path do
-      #   puts "checking if we have file #{path}"
-      # end
-      if lib_path.empty?
-        raise "lib not found: #{d}"
-      end
-      []
+      "/usr/local/lib/lib#{lib.name}.a"
     else
-      [static_lib_path(lib.name)]
+      static_lib_path(lib.name)
     end
   end
 
