@@ -1,4 +1,3 @@
-
 module OS
   def OS.windows?
     (RUBY_PLATFORM =~ /cygwin|mswin|mingw|bccwin|wince|emx/) != nil
