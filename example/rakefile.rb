@@ -1,4 +1,3 @@
-
 desc 'clean all examples'
 task :clean_all do
   run_rakefiles("rake clean")
