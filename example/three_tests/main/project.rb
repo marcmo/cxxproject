@@ -1,6 +1,6 @@
 def define_project()
   cppunit = BinaryLibrary.new('cppunit')
-  cppunit.includes = ['/opt/local/include']
+  cppunit.includes = ['/usr/local/include']
   lib = SourceLibrary.new('main')
   lib.sources = ['main.cpp']
   lib.dependencies = ['cppunit']
