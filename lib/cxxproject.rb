@@ -99,7 +99,7 @@ class CxxProject2Rake
       loadContext.module_eval(File.read(project_file))
       c = loadContext.new
       raise "no 'define_project' defined in project.rb" unless c.respond_to?(:define_project)
-      cd File.dirname(project_file) do | base_dir |
+      FileUtils.cd(File.dirname(project_file),:verbose => false) do | base_dir |
         project = c.define_project
         project.base = base_dir
         project.to_s
