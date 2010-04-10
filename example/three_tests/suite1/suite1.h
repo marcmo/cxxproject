@@ -1,10 +1,10 @@
-#ifndef test1_h_
-#define test1_h_
+#ifndef suite1_h_
+#define suite1_h_
 
 #include <cppunit/TestCase.h>
 #include <cppunit/extensions/HelperMacros.h>
 
-class Test1 : public CppUnit::TestFixture {
+class Suite1 : public CppUnit::TestFixture {
 
 public:
 
@@ -19,7 +19,7 @@ public:
     CPPUNIT_ASSERT_MESSAGE( "hat geklappt", true );
   }
 
-  CPPUNIT_TEST_SUITE( Test1 );
+  CPPUNIT_TEST_SUITE( Suite1 );
   CPPUNIT_TEST( test1 );
   CPPUNIT_TEST_SUITE_END();
 
