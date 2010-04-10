@@ -40,6 +40,16 @@ class SourceBuildingBlock < LibraryBuildingBlock
     @sources = []
     @dependencies = []
   end
+  def to_s
+    s = "#{super} sources: "
+    @sources.each_with_index do |source, i|
+      if i != 0
+        s = s + ', '
+      end
+      s = s + source
+    end
+    s
+  end
 end
 
 class SourceLibrary < SourceBuildingBlock
