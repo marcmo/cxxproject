@@ -32,19 +32,53 @@ class Compiler
     return res
   end
 
+  def include_string(d)
+    includes = transitive_includes(d)
+    includes.inject('') { | res, i | "#{res} -I#{i} " }
+  end
+
   def create_object_file(lib, relative_source)
     source = File.join(lib.base, relative_source)
     out = File.join(@output_path, "#{source}.o")
     outputdir = File.dirname(out)
     directory outputdir
     register(out)
-    desc "compiling #{source}"
-    res = file out => [source, outputdir] do |t|
-      includes = transitive_includes(lib)
-      include_string = includes.inject('') { | res, i | "#{res} -I#{i} " }
-      sh "g++ -c #{source} #{include_string} -o #{t.name}"
+    depfile = "#{out}.dependencies"
+    depfileTask = file depfile => source do
+      calc_dependencies(depfile,"",include_string(lib),source)
     end
-    return res
+    desc "compiling #{source}"
+    outfileTask = file out => depfile do |t|
+      sh "g++ -c #{source} #{include_string(lib)} -o #{t.name}"
+    end
+    outfileTask.enhance([create_apply_task(depfile,depfileTask,outfileTask)])
+    depfileTask.enhance([outputdir])
+    return outfileTask
+  end
+
+  def create_apply_task(depfile,depfileTask,outfileTask)
+    task "#{depfile}.apply" => depfile do |task|
+      deps = YAML.load_file(depfile)
+      if (deps)
+        outfileTask.enhance(deps)
+        # p "enhancing depfileTask with #{deps}"
+        depfileTask.enhance(deps[1..-1])
+      end
+    end
+  end
+
+  def calc_dependencies(depFile, define_string, include_string, source)
+    command = "g++ -MM #{define_string} #{include_string} #{source}"
+    puts command
+    deps = `#{command}`
+    if deps.length == 0
+      raise 'cannot calc dependencies'
+    end
+    deps = deps.gsub(/\\\n/,'').split()[1..-1]
+    p "write file #{depFile}"
+    File.open(depFile, 'wb') do |f|
+      f.write(deps.to_yaml)
+    end
   end
 
   def static_lib_path(name)
