@@ -137,7 +137,7 @@ class Compiler
       "#{command} #{o}"
     end
 
-    dep_paths = exe.dependencies.map {|dep|get_path_for_lib(dep)}
+    dep_paths = exe.dependencies.map {|dep|get_path_for_lib(dep)}.flatten
     register(fullpath)
     deps = objects.dup
     deps += dep_paths

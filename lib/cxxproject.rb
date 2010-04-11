@@ -1,10 +1,12 @@
 require 'rubygems'
+require 'yaml'
 require 'rake/clean'
 require 'cxxproject/utils'
 require 'cxxproject/dependencies'
 require 'cxxproject/compiler'
 require 'cxxproject/gcccompiler'
 require 'cxxproject/osxcompiler'
+require 'cxxproject/configuration'
 
 ALL_BUILDING_BLOCKS = {}
 
