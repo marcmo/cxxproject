@@ -14,10 +14,6 @@ class BuildingBlock
     ALL_BUILDING_BLOCKS[@name] = self
   end
 
-  def to_s
-    "#{name} => #{self.class} with base: #{base}"
-  end
-
   def set_dependencies(deps)
     @dependencies = deps.map do |dep|
       if dep.instance_of?(String)
