@@ -45,7 +45,7 @@ class CxxProject2Rake
       c = loadContext.new
       raise "no 'define_project' defined in project.rb" unless c.respond_to?(:define_project)
       cd(File.dirname(project_file),:verbose => false) do | base_dir |
-        configuration = Configuration.new(File.absolute_path(base_dir))
+        configuration = Configuration.new(File.expand_path(base_dir))
         project = c.define_project(configuration)
         project.base = base_dir
         project.to_s

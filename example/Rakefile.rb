@@ -22,7 +22,7 @@ task :default => :execute
 def run_rakefiles()
   Dir.glob('**/Rakefile.rb').each do |p|
     dir = File.dirname(p)
-    if (dir != ".")
+    if (dir != "." && File.directory?(dir))
       cd(dir,:verbose => false)  do
         yield
       end
