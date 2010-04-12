@@ -61,7 +61,6 @@ class Compiler
       deps = YAML.load_file(depfile)
       if (deps)
         outfileTask.enhance(deps)
-        # p "enhancing depfileTask with #{deps}"
         depfileTask.enhance(deps[1..-1])
       end
     end
