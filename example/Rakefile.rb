@@ -11,11 +11,9 @@ end
 desc "run all exes - task"
 task :runexes do
   run_rakefiles do
+    load('Rakefile.rb')
     if Rake::Task.task_defined?(:run)
-      Rake::Task.invoke(:run)
-    else
-      p "no run task exists in #{`pwd`}, only those tasks exist:"
-      p Rake::Task.tasks.collect {|t| t.name}
+      Rake::Task[:run].invoke
     end
   end
 end
