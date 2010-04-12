@@ -1,3 +1,5 @@
+require 'pp'
+
 def build_source_lib(lib,compiler)
   objects = lib.sources.map do |s|
     compiler.create_object_file(lib, File.basename(s))
@@ -31,7 +33,7 @@ class CxxProject2Rake
     desc "shows your defined projects"
     task :project_info do
       ALL_BUILDING_BLOCKS.each_value do |bb|
-        puts bb
+        pp bb
       end
     end
   end
