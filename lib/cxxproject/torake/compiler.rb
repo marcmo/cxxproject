@@ -126,11 +126,7 @@ class Compiler
   end
 
   def get_path_for_lib(d)
-    if (d.instance_of?(BinaryLibrary))
-      lib = d
-    else
-      lib = ALL_BUILDING_BLOCKS[d]
-    end
+    lib = ALL_BUILDING_BLOCKS[d]
     if !lib
       raise "could not find buildingblock with name '#{d}'"
     end
