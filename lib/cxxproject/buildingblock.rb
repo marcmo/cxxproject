@@ -2,6 +2,7 @@
 ALL_BUILDING_BLOCKS = {}
 
 
+
 class BuildingBlock
   attr_accessor :name, :base
   attr_reader :config, :dependencies
@@ -16,8 +17,15 @@ class BuildingBlock
   def to_s
     "#{name} => #{self.class} with base: #{base}"
   end
-  def set_dependencies(d)
-    @dependencies = d
+
+  def set_dependencies(deps)
+    @dependencies = deps.map do |dep|
+      if dep.instance_of?(String)
+        dep
+      else
+        dep.name
+      end
+    end
     self
   end
 end
