@@ -1,20 +1,20 @@
+# dependency calculator for building blocks
+# should be used like: Dependencies.transitive_dependencies(building_block)
 class Dependencies
 
   attr_reader :all_libs
+
+  def self.transitive_dependencies(lib)
+    return Dependencies.new(lib).all_libs
+  end
+
+private
 
   def initialize(lib_strings)
     @all_libs = []
     lib_strings.each do |lib_string|
       add(lib_string)
     end
-  end
-
-  def self.transitive_dependencies(lib)
-    return Dependencies.new(lib).all_libs
-  end
-
-  def self.tr_libs(libs)
-    return LibHelper.new(libs).all_libs
   end
 
   def add_unique(lib)
@@ -32,8 +32,5 @@ class Dependencies
       add(dep)
     end
   end
-
-
-
 
 end

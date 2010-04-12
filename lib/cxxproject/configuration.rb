@@ -1,7 +1,12 @@
 require 'facets'
 
+# Configuration provides hierarchical configuration data for each building block
+# it searches for .cxxproject-file starting at the path of a project.rb file and 
+# stopping at the filesystems root
 class Configuration
   attr_reader :configs
+
+  # initialize the hashes with a base_dir
   def initialize(base_dir)
     @configs = []
     Dir.ascend(base_dir) do |dir|
@@ -21,9 +26,12 @@ class Configuration
     end
   end
 
+  # get the configvalue for key
   def get_value(key)
     return @values[key]
   end
+
+  # simpe string rep
   def to_s
     res = "Configuration:"
     res += @values.to_s

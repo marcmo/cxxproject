@@ -1,3 +1,8 @@
+# stores all rake tasks
+ALL = FileList.new
+
+# A class which encapsulates the generation of c/cpp artifacts like object-files, libraries and so on
+# perhaps this should be reworked to toolchain with compiler, linker, ...
 class Compiler
   def initialize(output_path)
     @output_path = output_path
