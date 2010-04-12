@@ -23,7 +23,12 @@ private
   end
 
   def add(lib)
-    bb = ALL_BUILDING_BLOCKS[lib]
+    if (lib.instance_of?(BinaryLibrary))
+      bb = lib
+      raise "lib should already be a building block" unless ALL_BUILDING_BLOCKS[lib.name] == bb
+    else
+      bb = ALL_BUILDING_BLOCKS[lib]
+    end
     if !bb
       raise "dependency not found #{lib}"
     end
