@@ -1,0 +1,3 @@
+---
+  :lib_paths: ['~/.homebrew/lib', '/opt/local/lib']
+  :lib_endings: ['a', 'dylib']

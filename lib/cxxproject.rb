@@ -14,10 +14,12 @@ ALL = FileList.new
 
 class BuildingBlock
   attr_accessor :name, :base, :dependencies
+  attr_reader :config
 
-  def initialize(name)
+  def initialize(config, name)
     @name = name
     @dependencies = []
+    @config = config
     ALL_BUILDING_BLOCKS[@name] = self
   end
 
@@ -28,7 +30,7 @@ end
 
 class LibraryBuildingBlock < BuildingBlock
   attr_accessor :includes
-  def initialize(name)
+  def initialize(config, name)
     super
     @includes = ['.']
   end
@@ -37,8 +39,8 @@ end
 class SourceBuildingBlock < LibraryBuildingBlock
   attr_accessor :sources
 
-  def initialize(name)
-    super(name)
+  def initialize(config, name)
+    super
     @sources = []
     @dependencies = []
   end
@@ -56,20 +58,20 @@ end
 
 class SourceLibrary < SourceBuildingBlock
   attr_accessor :defines
-  def initialize(name)
-    super(name)
+  def initialize(config, name)
+    super
     @defines = []
   end
 end
 
 class Exe < SourceBuildingBlock
-  def initialize(name)
-    super(name)
+  def initialize(config, name)
+    super
   end
 end
 
 class BinaryLibrary < LibraryBuildingBlock
-  def initialize(name)
+  def initialize(config, name)
     super
     @includes = ['']
   end
@@ -116,7 +118,8 @@ class CxxProject2Rake
       c = loadContext.new
       raise "no 'define_project' defined in project.rb" unless c.respond_to?(:define_project)
       cd(File.dirname(project_file),:verbose => false) do | base_dir |
-        project = c.define_project
+        configuration = Configuration.new(File.absolute_path(base_dir))
+        project = c.define_project(configuration)
         project.base = base_dir
         project.to_s
       end

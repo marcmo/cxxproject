@@ -1,6 +1,6 @@
-def define_project()
-  BinaryLibrary.new('z')
-  lib = SourceLibrary.new('2')
+def define_project(config)
+  BinaryLibrary.new(config, 'z')
+  lib = SourceLibrary.new(config, '2')
   lib.sources = FileList.new.include("**/*.cpp")
   lib.dependencies = ['1','z']
   if OS.linux?

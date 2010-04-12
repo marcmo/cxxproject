@@ -1,5 +1,5 @@
-def define_project()
-  lib = SourceLibrary.new('1')
+def define_project(config)
+  lib = SourceLibrary.new(config, '1')
   lib.sources = ['lib1.cpp']
   return lib
 end

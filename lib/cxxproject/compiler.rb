@@ -23,7 +23,7 @@ class Compiler
   def transitive_libs(from)
     res = Dependencies.transitive_dependencies([from.name]).delete_if{|i|i.instance_of?(Exe)}.map do |i|
       if (i.instance_of?(BinaryLibrary))
-        path = binary_lib_path(i.name)
+        path = binary_lib_path(i)
         "-L#{File.dirname(path)} -l#{i.name}"
       else
         "#{@output_path}/lib#{i.name}.a"
@@ -68,13 +68,11 @@ class Compiler
 
   def calc_dependencies(depFile, define_string, include_string, source)
     command = "g++ -MM #{define_string} #{include_string} #{source}"
-    puts command
     deps = `#{command}`
     if deps.length == 0
       raise 'cannot calc dependencies'
     end
     deps = deps.gsub(/\\\n/,'').split()[1..-1]
-    p "write file #{depFile}"
     File.open(depFile, 'wb') do |f|
       f.write(deps.to_yaml)
     end
@@ -87,10 +85,7 @@ class Compiler
     end
     register(fullpath)
     deps = objects.dup
-    deps += lib.dependencies.inject([]) do |acc,dep| 
-      p = get_path_for_lib(dep)
-      acc << p
-    end
+    deps += lib.dependencies.map {|dep|get_path_for_lib(dep)}.flatten
     desc "link lib #{lib.name}"
     res = file fullpath => deps do
       sh command
@@ -98,15 +93,24 @@ class Compiler
     return res
   end
 
-  def binary_lib_path(d)
-    libEndings = ["a","dylib"]
-    paths = ["/usr/local/lib/lib","/usr/lib/lib","/opt/local/lib"]
-    possibilities = libEndings.inject([]){|res, x| paths.inject(res) { |res, e| res << "#{e}#{d}.#{x}" } }
+  def binary_lib_path(lib)
+    lib_endings = lib.config.get_value(:lib_endings)
+    if !lib_endings
+      puts "no :lib_endings defined ... using default"
+      lib_endings = ["a","dylib"]
+    end
+
+    lib_paths = lib.config.get_value(:lib_paths)
+    if !lib_paths
+      puts "no :lib_paths defined .. using default"
+      lib_paths = ["/usr/local/lib","/usr/lib","/opt/local/lib"]
+    end
+    possibilities = lib_endings.inject([]) { |res, ending| lib_paths.inject(res) { |res, lib_path| res << File.join(lib_path, "lib#{lib.name}.#{ending}") } }
     i = possibilities.index{ |x| File.exists?(x)}
     if i
       possibilities[i]
     else
-      raise "could not find libpath for #{d}"
+      raise "could not find libpath for #{lib} in #{lib_paths}"
     end
   end
 
@@ -122,7 +126,7 @@ class Compiler
       raise "could not find buildingblock with name '#{d}'"
     end
     if (lib.instance_of?(BinaryLibrary))
-      binary_lib_path(d)
+      binary_lib_path(lib)
     else
       static_lib_path(lib.name)
     end
