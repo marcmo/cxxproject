@@ -20,3 +20,4 @@ TODO
 + binarylibsearchpath in 2rake verwenden
 + introduce CxxProject-module as namesspace
 + do some rdoc
++ factor out linux specific code (os-specific code)

@@ -129,6 +129,9 @@ class Compiler
     end
   end
 
+  LibPrefix='-Wl,--whole-archive'
+  LibPostfix='-Wl,--no-whole-archive'
+
   def create_exe(exe, objects)
     exename = "#{exe.name}.exe"
     fullpath = File.join(@output_path, exename)
@@ -142,7 +145,10 @@ class Compiler
     deps += dep_paths
     desc "link exe #{exe.name}"
     res = file fullpath => deps do
-      sh transitive_libs(exe).inject(command) {|command,l|"#{command} #{l}"}
+      command += " #{LibPrefix} "
+      command = transitive_libs(exe).inject(command) {|command,l|"#{command} #{l}"}
+      command += " #{LibPostfix}"
+      sh command
     end
     return res
   end
