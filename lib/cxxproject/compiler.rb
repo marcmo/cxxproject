@@ -23,8 +23,8 @@ class Compiler
   def transitive_libs(from)
     res = Dependencies.transitive_dependencies([from.name]).delete_if{|i|i.instance_of?(Exe)}.map do |i|
       if (i.instance_of?(BinaryLibrary))
-        path = find_lib_path(i.name)
-        "-L#{path} -l#{i.name}"
+        path = binary_lib_path(i.name)
+        "-L#{File.dirname(path)} -l#{i.name}"
       else
         "#{@output_path}/lib#{i.name}.a"
       end
@@ -80,12 +80,6 @@ class Compiler
     end
   end
 
-  def static_lib_path(name)
-    libname = "lib#{name}.a"
-    fullpath = File.join(@output_path, libname)
-    return fullpath
-  end
-
   def create_source_lib(lib, objects)
     fullpath = static_lib_path(lib.name)
     command = objects.inject("ar -r #{fullpath}") do |command, o|
@@ -93,7 +87,10 @@ class Compiler
     end
     register(fullpath)
     deps = objects.dup
-    deps += lib.dependencies.inject([]) {|acc,dep| acc += get_path_for_lib(dep)}
+    deps += lib.dependencies.inject([]) do |acc,dep| 
+      p = get_path_for_lib(dep)
+      acc << p
+    end
     desc "link lib #{lib.name}"
     res = file fullpath => deps do
       sh command
@@ -101,16 +98,22 @@ class Compiler
     return res
   end
 
-  def find_lib_path(d)
+  def binary_lib_path(d)
     libEndings = ["a","dylib"]
     paths = ["/usr/local/lib/lib","/usr/lib/lib","/opt/local/lib"]
-    possibilities = libEndings.collect{|x| paths.inject([]){|acc,e| acc+["#{e}#{d}.#{x}"]}}.flatten
-    i = possibilities.index{|x|File.exists?(x)}
+    possibilities = libEndings.inject([]){|res, x| paths.inject(res) { |res, e| res << "#{e}#{d}.#{x}" } }
+    i = possibilities.index{ |x| File.exists?(x)}
     if i
-      [possibilities[i]]
+      possibilities[i]
     else
-      []
+      raise "could not find libpath for #{d}"
     end
+  end
+
+  def static_lib_path(name)
+    libname = "lib#{name}.a"
+    fullpath = File.join(@output_path, libname)
+    return fullpath
   end
 
   def get_path_for_lib(d)
@@ -119,13 +122,9 @@ class Compiler
       raise "could not find buildingblock with name '#{d}'"
     end
     if (lib.instance_of?(BinaryLibrary))
-      lib_path = find_lib_path(d)
-      if lib_path.empty?
-        raise "lib not found: #{d}"
-      end
-      []
+      binary_lib_path(d)
     else
-      [static_lib_path(lib.name)]
+      static_lib_path(lib.name)
     end
   end
 

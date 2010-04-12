@@ -1,33 +1,31 @@
-desc 'clean all examples'
-task :clean_all do
+desc 'clean examples'
+task :clean do
   run_rakefiles{ sh "rake clobber" }
 end
 
-desc 'build all examples'
-task :all_examples do
+desc 'build examples'
+task :all do
   run_rakefiles { sh "rake" }
 end
 
-desc "run all exes - task"
-task :runexes do
-  run_rakefiles do
-    load('Rakefile.rb')
-    if Rake::Task.task_defined?(:run)
-      Rake::Task[:run].invoke
+desc "run executables"
+task :execute => [:all] do
+  Dir['**/*.exe'].each do |f|
+    sh f do |ok, res|
+      puts "#{f} => #{ok}"
     end
   end
 end
-task :default => :all_examples
+
+task :default => :execute
 
 def run_rakefiles()
   Dir.glob('**/Rakefile.rb').each do |p|
     dir = File.dirname(p)
     if (dir != ".")
-      FileUtils.cd(dir,:verbose => false)  do
+      cd(dir,:verbose => false)  do
         yield
       end
     end
   end
 end
-
-task :clean => :clean_all
