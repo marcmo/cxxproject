@@ -29,9 +29,6 @@ libs: cppunit
 
 todo
 ----
-+ config fuer cxxproject machen (hierarchisch ab rakefile nach oben bis zum home ...
-+ config files koennen binarylibsearchpath beinhalten ...
-+ binarylibsearchpath in 2rake verwenden
 + introduce CxxProject-module as namesspace
 + do some rdoc
 + factor out linux specific code (os-specific code)

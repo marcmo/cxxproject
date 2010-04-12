@@ -17,7 +17,11 @@ class Compiler
   def transitive_includes(lib)
     res = Dependencies.transitive_dependencies([lib.name]).map do |i|
       if (i.instance_of?(BinaryLibrary))
-        i.includes
+        if i.includes
+          i.includes
+        else
+          lib.config.get_value(:binary_paths).map{ |path| File.join(path, 'include') }
+        end
       else
         i.includes.map { |include| File.join(i.base, include) }
       end
@@ -105,12 +109,12 @@ class Compiler
       lib_endings = ["a","dylib"]
     end
 
-    lib_paths = lib.config.get_value(:lib_paths)
+    lib_paths = lib.config.get_value(:binary_paths)
     if !lib_paths
       puts "no :lib_paths defined .. using default"
-      lib_paths = ["/usr/local/lib","/usr/lib","/opt/local/lib"]
+      lib_paths = ["/usr/local","/usr","/opt/local"]
     end
-    possibilities = lib_endings.inject([]) { |res, ending| lib_paths.inject(res) { |res, lib_path| res << File.join(lib_path, "lib#{lib.name}.#{ending}") } }
+    possibilities = lib_endings.inject([]) { |res, ending| lib_paths.inject(res) { |res, lib_path| res << File.join(lib_path, 'lib', "lib#{lib.name}.#{ending}") } }
     i = possibilities.index{ |x| File.exists?(x)}
     if i
       possibilities[i]

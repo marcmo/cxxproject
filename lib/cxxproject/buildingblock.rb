@@ -78,6 +78,6 @@ end
 class BinaryLibrary < LibraryBuildingBlock
   def initialize(config, name)
     super
-    @includes = ['']
+    @includes = nil
   end
 end
