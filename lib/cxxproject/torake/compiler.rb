@@ -153,9 +153,9 @@ class Compiler
     deps += dep_paths
     desc "link exe #{exe.name}"
     res = file fullpath => deps do
-      command += " #{LibPrefix} "
+      command += " #{LibPrefix} " if OS.linux?
       command = transitive_libs(exe).inject(command) {|command,l|"#{command} #{l}"}
-      command += " #{LibPostfix}"
+      command += " #{LibPostfix}" if OS.linux?
       sh command
     end
     return res

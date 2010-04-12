@@ -22,6 +22,11 @@ there are three kinds of tests:
  - roodi
  - the exa,ples should work with rake clean all
 
+prerequisites
+-------------
+gems: rspec, roodi, facets
+libs: cppunit
+
 todo
 ----
 + config fuer cxxproject machen (hierarchisch ab rakefile nach oben bis zum home ...

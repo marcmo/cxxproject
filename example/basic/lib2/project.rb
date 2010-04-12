@@ -1,7 +1,9 @@
 def define_project(config)
-  deps = ['1',BinaryLibrary.new(config, 'z')]
+  BinaryLibrary.new(config, 'z')
+  deps = ['1', 'z']
   if OS.linux?
-    deps << BinaryLibrary.new(config, 'dl')
+    BinaryLibrary.new(config, 'dl')
+    deps << 'dl'
   end
   SourceLibrary.new(config, '2').
     set_sources(FileList.new.include("**/*.cpp")).
