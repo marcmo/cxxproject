@@ -1,12 +1,10 @@
 def define_project(config)
   BinaryLibrary.new(config, 'z')
-  lib = SourceLibrary.new(config, '2')
-  lib.sources = FileList.new.include("**/*.cpp")
-  lib.dependencies = ['1','z']
+  deps = ['1', 'z']
   if OS.linux?
-    p 'adding linux dynamic linker lib'
-    BinaryLibrary.new('dl')
-    lib.dependencies << 'dl'
+    deps << 'dl'
   end
-  return lib
+  SourceLibrary.new(config, '2')
+    .set_sources(FileList.new.include("**/*.cpp"))
+    .set_dependencies(deps)
 end

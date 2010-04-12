@@ -1,8 +1,7 @@
 def define_project(config)
-  cppunit = BinaryLibrary.new(config, 'cppunit')
-  cppunit.includes = ['/usr/local/include']
-  lib = SourceLibrary.new(config, 'main')
-  lib.sources = ['main.cpp']
-  lib.dependencies = ['cppunit']
-  return lib
+  BinaryLibrary.new(config, 'cppunit')
+    .set_includes(['/usr/local/include'])
+  SourceLibrary.new(config, 'main')
+    .set_sources(['main.cpp'])
+    .set_dependencies(['cppunit'])
 end

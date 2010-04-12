@@ -1,6 +1,5 @@
 def define_project(config)
-  res = Exe.new(config, 'basic')
-  res.dependencies = ['2']
-  res.sources = FileList.new('**/*.cpp')
-  return res
+  Exe.new(config, 'basic')
+    .set_sources(FileList.new('**/*.cpp'))
+    .set_dependencies(['2'])
 end

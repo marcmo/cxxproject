@@ -13,8 +13,8 @@ ALL_BUILDING_BLOCKS = {}
 ALL = FileList.new
 
 class BuildingBlock
-  attr_accessor :name, :base, :dependencies
-  attr_reader :config
+  attr_accessor :name, :base
+  attr_reader :config, :dependencies
 
   def initialize(config, name)
     @name = name
@@ -26,18 +26,25 @@ class BuildingBlock
   def to_s
     "#{name} => #{self.class} with base: #{base}"
   end
+  def set_dependencies(d)
+    @dependencies = d
+    self
+  end
 end
 
 class LibraryBuildingBlock < BuildingBlock
-  attr_accessor :includes
+  attr_reader :includes
   def initialize(config, name)
     super
     @includes = ['.']
   end
+  def set_includes(i)
+    @includes = i
+  end
 end
 
 class SourceBuildingBlock < LibraryBuildingBlock
-  attr_accessor :sources
+  attr_reader :sources
 
   def initialize(config, name)
     super
@@ -54,10 +61,14 @@ class SourceBuildingBlock < LibraryBuildingBlock
     end
     s
   end
+  def set_sources(s)
+    @sources = s
+    self
+  end
 end
 
 class SourceLibrary < SourceBuildingBlock
-  attr_accessor :defines
+  attr_reader :defines
   def initialize(config, name)
     super
     @defines = []

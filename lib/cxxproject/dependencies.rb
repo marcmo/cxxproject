@@ -13,8 +13,6 @@ class Dependencies
     return Dependencies.new(lib).all_libs
   end
 
-
-
   def self.tr_libs(libs)
     return LibHelper.new(libs).all_libs
   end
