@@ -32,8 +32,3 @@ libs: cppunit
 * rake install should install the freshly built gem (if you need sudo, please install the package by hand via rake package; sudo gem install pkg/...)
 * cd examples; rake (should compile all examples and let the executables run)
 
-## todo
-
-* introduce CxxProject-module as namesspace
-* do some rdoc
-* factor out linux specific code (os-specific code)
