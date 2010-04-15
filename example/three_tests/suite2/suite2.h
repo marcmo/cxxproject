@@ -16,7 +16,7 @@ public:
   }
 
   void test2() {
-    CPPUNIT_ASSERT_MESSAGE( "hat nicht geklappt", false );
+    CPPUNIT_ASSERT_MESSAGE( "hat auch geklappt", true );
   }
 
   CPPUNIT_TEST_SUITE( Suite2 );

@@ -30,10 +30,10 @@ class LibraryBuildingBlock < BuildingBlock
   attr_reader :includes
   def initialize(config, name)
     super
-    @includes = ['.']
   end
   def set_includes(i)
     @includes = i
+    self
   end
 end
 
@@ -62,10 +62,8 @@ class SourceBuildingBlock < LibraryBuildingBlock
 end
 
 class SourceLibrary < SourceBuildingBlock
-  attr_reader :defines
   def initialize(config, name)
     super
-    @defines = []
   end
 end
 

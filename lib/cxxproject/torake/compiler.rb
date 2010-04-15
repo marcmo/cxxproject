@@ -6,26 +6,39 @@ ALL = FileList.new
 class Compiler
   def initialize(output_path)
     @output_path = output_path
+    @includes = []
     CLOBBER.include(output_path)
+    @defines = []
   end
-
+  def set_includes(includes)
+    @includes = includes
+    self
+  end
+  def set_defines(defines)
+    @defines = defines
+    self
+  end
   def register(name)
     CLEAN.include(name)
     ALL.include(name)
   end
 
   def transitive_includes(lib)
-    res = Dependencies.transitive_dependencies([lib.name]).map do |i|
+    res = Dependencies.transitive_dependencies([lib.name]).inject([]) do |res, i|
       if (i.instance_of?(BinaryLibrary))
         if i.includes
-          i.includes
+          res << i.includes
         else
-          lib.config.get_value(:binary_paths).map{ |path| File.join(path, 'include') }
+          res << lib.config.get_value(:binary_paths).map{ |path| File.join(path, 'include') }
         end
       else
-        i.includes.map { |include| File.join(i.base, include) }
+        if i.includes
+          res << i.includes.map { |include| File.join(i.base, include) }
+        end
       end
+      res
     end
+    res += @includes
     return res.flatten.delete_if{|i|i.size == 0}
   end
 
@@ -46,19 +59,40 @@ class Compiler
     includes.inject('') { | res, i | "#{res} -I#{i} " }
   end
 
-  def create_object_file(lib, relative_source)
+  def get_defines
+    @defines.map{ |i| "-D#{i}"}.join(' ')
+  end
+  def type_to_path(type)
+    return "#{type.to_s}s"
+  end
+
+  def type_to_ending(type)
+    case type
+      when :object
+        return 'o'
+      else
+        raise "Unknown type: #{type}"
+    end
+  end
+
+  def output_filename(source, type, base)
+    File.join(@output_path, type_to_path(type), "#{source.remove_from_start(base)}.#{type_to_ending(type)}")
+  end
+
+  def create_object_file(lib, relative_source, base)
+    defines = get_defines
     source = File.join(lib.base, relative_source)
-    out = File.join(@output_path, "#{source}.o")
+    out = output_filename(source, :object, base)
     outputdir = File.dirname(out)
     directory outputdir
     register(out)
     depfile = "#{out}.dependencies"
     depfileTask = file depfile => source do
-      calc_dependencies(depfile,"",include_string(lib),source)
+      calc_dependencies(depfile, defines ,include_string(lib),source)
     end
     desc "compiling #{source}"
     outfileTask = file out => depfile do |t|
-      sh "g++ -c #{source} #{include_string(lib)} -o #{t.name}"
+      sh "g++ -c #{source} #{include_string(lib)} #{defines} -o #{t.name}"
     end
     outfileTask.enhance([create_apply_task(depfile,depfileTask,outfileTask)])
     depfileTask.enhance([outputdir])
