@@ -23,13 +23,17 @@ class Compiler
     ALL.include(name)
   end
 
+  def get_paths(lib)
+    paths = lib.config.get_value(:binary_paths) || ["/usr/local", "/usr", "/opt/local"]
+  end
+
   def transitive_includes(lib)
     res = Dependencies.transitive_dependencies([lib.name]).inject([]) do |res, i|
       if (i.instance_of?(BinaryLibrary))
         if i.includes
           res << i.includes
         else
-          res << lib.config.get_value(:binary_paths).map{ |path| File.join(path, 'include') }
+          res << get_paths(lib).map{ |path| File.join(path, 'include') }
         end
       else
         if i.includes
@@ -136,19 +140,17 @@ class Compiler
     return res
   end
 
-  def binary_lib_path(lib)
+  def get_libendings(lib)
     lib_endings = lib.config.get_value(:lib_endings)
     if !lib_endings
       puts "no :lib_endings defined ... using default"
       lib_endings = ["a","dylib"]
     end
+    return lib_endings
+  end
 
-    lib_paths = lib.config.get_value(:binary_paths)
-    if !lib_paths
-      puts "no :lib_paths defined .. using default"
-      lib_paths = ["/usr/local","/usr","/opt/local"]
-    end
-    possibilities = lib_endings.inject([]) { |res, ending| lib_paths.inject(res) { |res, lib_path| res << File.join(lib_path, 'lib', "lib#{lib.name}.#{ending}") } }
+  def binary_lib_path(lib)
+    possibilities = get_libendings(lib).inject([]) { |res, ending| get_paths(lib).inject(res) { |res, lib_path| res << File.join(lib_path, 'lib', "lib#{lib.name}.#{ending}") } }
     i = possibilities.index{ |x| File.exists?(x)}
     if i
       possibilities[i]
