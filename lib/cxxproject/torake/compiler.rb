@@ -23,8 +23,12 @@ class Compiler
     ALL.include(name)
   end
 
+  def get_path_defaults
+    return ["/usr/local", "/usr", "/opt/local"]
+  end
+
   def get_paths(lib)
-    paths = lib.config.get_value(:binary_paths) || ["/usr/local", "/usr", "/opt/local"]
+    paths = lib.config.get_value(:binary_paths) || get_path_defaults
   end
 
   def transitive_includes(lib)
@@ -140,13 +144,12 @@ class Compiler
     return res
   end
 
+  def get_libendings_defaults
+    return ["a","dylib"]
+  end
+
   def get_libendings(lib)
-    lib_endings = lib.config.get_value(:lib_endings)
-    if !lib_endings
-      puts "no :lib_endings defined ... using default"
-      lib_endings = ["a","dylib"]
-    end
-    return lib_endings
+    return lib.config.get_value(:lib_endings) || get_libendings_defaults
   end
 
   def binary_lib_path(lib)
