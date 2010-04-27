@@ -31,13 +31,13 @@ class CxxProject2Rake
   end
 
   def register_projects(projects)
-    cd(@base) do |b|
+    cd(@base,:verbose => false) do |b|
       projects.each do |project_file|
         loadContext = Class.new
         loadContext.module_eval(File.read(project_file))
         c = loadContext.new
         raise "no 'define_project' defined in project.rb" unless c.respond_to?(:define_project)
-        cd(File.dirname(project_file)) do | base_dir |
+        cd(File.dirname(project_file),:verbose => false) do | base_dir |
           configuration = Configuration.new(File.expand_path(base_dir))
           project = c.define_project(configuration)
           project.base = File.join(@base, base_dir)
