@@ -14,6 +14,7 @@ class String
 end
 
 
+require 'cxxproject/alternative'
 require 'cxxproject/utils'
 require 'cxxproject/dependencies'
 require 'cxxproject/configuration'

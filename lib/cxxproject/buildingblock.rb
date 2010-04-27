@@ -32,6 +32,9 @@ class LibraryBuildingBlock < BuildingBlock
     super
   end
   def set_includes(i)
+    pwd = `pwd`
+    puts "set_includes in dir: #{pwd}"
+    i.each { |f| raise "include folder does not exist #{f}" unless File.exist?(f)}
     @includes = i
     self
   end
@@ -56,6 +59,7 @@ class SourceBuildingBlock < LibraryBuildingBlock
     s
   end
   def set_sources(s)
+    s.each { |f| raise "source file does not exist #{f}" unless File.exist?(f)}
     @sources = s
     self
   end

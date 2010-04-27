@@ -9,6 +9,11 @@ class Compiler
     @includes = []
     CLOBBER.include(output_path)
     @defines = []
+    @flags = []
+  end
+  def set_flags(flags)
+    @flags = flags
+    self
   end
   def set_includes(includes)
     @includes = includes
@@ -67,6 +72,9 @@ class Compiler
     includes.inject('') { | res, i | "#{res} -I#{i} " }
   end
 
+  def get_flags
+    @flags.map{ |f| "-#{f}"}.join(' ')
+  end
   def get_defines
     @defines.map{ |i| "-D#{i}"}.join(' ')
   end
@@ -100,7 +108,7 @@ class Compiler
     end
     desc "compiling #{source}"
     outfileTask = file out => depfile do |t|
-      sh "g++ -c #{source} #{include_string(lib)} #{defines} -o #{t.name}"
+      sh "g++ -c #{source} #{include_string(lib)} #{defines} #{get_flags} -o #{t.name}"
     end
     outfileTask.enhance([create_apply_task(depfile,depfileTask,outfileTask)])
     depfileTask.enhance([outputdir])
@@ -189,7 +197,6 @@ class Compiler
     command = objects.inject("g++ -all_load -o #{fullpath}") do |command, o|
       "#{command} #{o}"
     end
-
     dep_paths = exe.dependencies.map {|dep|get_path_for_lib(dep)}.flatten
     register(fullpath)
     deps = objects.dup
@@ -201,7 +208,16 @@ class Compiler
       command += " #{LibPostfix}" if OS.linux?
       sh command
     end
+    create_run_task(fullpath)
     return res
+  end
+  
+  def create_run_task(p)
+    puts "++++++++ create task #{p}"
+    desc "run executable"
+    task :run => p do
+      sh "#{p}"
+    end
   end
 
 end
