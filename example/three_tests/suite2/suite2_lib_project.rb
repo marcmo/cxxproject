@@ -1,4 +1,4 @@
-def define_project(config)
-  SourceLibrary.new(config, 'suite2_lib').
+def define_project()
+  SourceLibrary.new('suite2_lib').
     set_sources(FileList.new('**/*.cpp'))
 end

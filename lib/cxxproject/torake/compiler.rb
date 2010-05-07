@@ -33,7 +33,9 @@ class Compiler
   end
 
   def get_paths(lib)
-    paths = lib.config.get_value(:binary_paths) || get_path_defaults
+    # TODO: do we need the config here?
+    # paths = lib.config.get_value(:binary_paths) || get_path_defaults
+    paths = get_path_defaults
   end
 
   def transitive_includes(lib)
@@ -156,7 +158,9 @@ class Compiler
   end
 
   def get_libendings(lib)
-    return lib.config.get_value(:lib_endings) || get_libendings_defaults
+    # TODO: do we need the config here?
+    # return lib.config.get_value(:lib_endings) || get_libendings_defaults
+    return get_libendings_defaults
   end
 
   def binary_lib_path(lib)

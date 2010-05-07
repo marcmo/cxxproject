@@ -1,6 +1,6 @@
-def define_project(config)
+def define_project()
   files = FileList['**/*.cpp']
-  SourceLibrary.new(config, 'io').
+  SourceLibrary.new('io').
     set_sources(files)
 end
         

@@ -5,12 +5,11 @@ ALL_BUILDING_BLOCKS = {}
 
 class BuildingBlock
   attr_accessor :name, :base
-  attr_reader :config, :dependencies
+  attr_reader :dependencies
 
-  def initialize(config, name)
+  def initialize(name)
     @name = name
     @dependencies = []
-    @config = config
     ALL_BUILDING_BLOCKS[@name] = self
   end
 
@@ -28,7 +27,7 @@ end
 
 class LibraryBuildingBlock < BuildingBlock
   attr_reader :includes
-  def initialize(config, name)
+  def initialize(name)
     super
   end
   def set_includes(i)
@@ -41,7 +40,7 @@ end
 class SourceBuildingBlock < LibraryBuildingBlock
   attr_reader :sources
 
-  def initialize(config, name)
+  def initialize(name)
     super
     @sources = []
     @dependencies = []
@@ -64,19 +63,19 @@ class SourceBuildingBlock < LibraryBuildingBlock
 end
 
 class SourceLibrary < SourceBuildingBlock
-  def initialize(config, name)
+  def initialize(name)
     super
   end
 end
 
 class Exe < SourceBuildingBlock
-  def initialize(config, name)
+  def initialize(name)
     super
   end
 end
 
 class BinaryLibrary < LibraryBuildingBlock
-  def initialize(config, name)
+  def initialize(name)
     super
     @includes = nil
   end

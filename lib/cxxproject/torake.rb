@@ -17,18 +17,6 @@ class CxxProject2Rake
     convert_to_rake()
   end
 
-  def self.simpleProject(compiler, base='./')
-    p = CxxProject2Rake.new()
-    p.compiler = compiler
-    p.base = base
-    base_dir = './'
-    configuration = Configuration.new(File.expand_path(base_dir))
-    project = yield(configuration)
-    project.base = File.join(p.base, base_dir)
-    p.define_project_info_task()
-    p.convert_to_rake()
-  end
-
   def define_project_info_task
     desc "shows your defined projects"
     task :project_info do
@@ -39,18 +27,35 @@ class CxxProject2Rake
     end
   end
 
+  def register_projects_new(project_file)
+    cd(@base,:verbose => false) do |b|
+      # projects.each do |project_file|
+        loadContext = EvalContext.new
+        cd(File.dirname(project_file),:verbose => false) do | base_dir |
+          loadContext.eval_project(File.read(project_file))
+          project = loadContext.myblock.call()
+          project.base = File.join(@base, base_dir)
+          project.to_s
+        end
+      # end
+    end
+  end
   def register_projects(projects)
     cd(@base,:verbose => false) do |b|
       projects.each do |project_file|
         loadContext = Class.new
         loadContext.module_eval(File.read(project_file))
         c = loadContext.new
-        raise "no 'define_project' defined in project.rb" unless c.respond_to?(:define_project)
-        cd(File.dirname(project_file),:verbose => false) do | base_dir |
-          configuration = Configuration.new(File.expand_path(base_dir))
-          project = c.define_project(configuration)
-          project.base = File.join(@base, base_dir)
-          project.to_s
+        if c.respond_to?(:define_project)
+          raise "no 'define_project' defined in project.rb" unless c.respond_to?(:define_project)
+          cd(File.dirname(project_file),:verbose => false) do | base_dir |
+            configuration = Configuration.new(File.expand_path(base_dir))
+            project = c.define_project()
+            project.base = File.join(@base, base_dir)
+            project.to_s
+          end
+        else
+          register_projects_new(project_file)
         end
       end
     end
@@ -84,5 +89,32 @@ class CxxProject2Rake
     end
     task :default => ALL.to_a do
     end
+  end
+end
+
+
+class EvalContext
+
+  attr_accessor :name, :myblock
+
+  def cxx_configuration(name, &block)
+    @myblock = block
+    @name = name
+  end
+
+  def eval_project(project_text)
+    instance_eval(project_text)
+  end
+  
+  def configuration(*args, &block)
+    name = args[0]
+    raise "no name given" unless name.is_a?(String) && !name.strip.empty?
+    instance_eval(&block)
+  end
+
+  def exe(*args)
+    name = args[0]
+    hash = args[1]
+    exe = Exe.new(name).set_sources(hash[:sources]).set_includes(hash[:includes]).set_dependencies(hash[:dependencies])
   end
 end

@@ -1,4 +1,4 @@
-def define_project(config)
-  SourceLibrary.new(config, 'lang').
+def define_project()
+  SourceLibrary.new('lang').
     set_sources(FileList['**/*.cpp'])
 end
