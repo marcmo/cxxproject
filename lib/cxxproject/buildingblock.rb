@@ -32,8 +32,6 @@ class LibraryBuildingBlock < BuildingBlock
     super
   end
   def set_includes(i)
-    pwd = `pwd`
-    puts "set_includes in dir: #{pwd}"
     i.each { |f| raise "include folder does not exist #{f}" unless File.exist?(f)}
     @includes = i
     self

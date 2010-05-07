@@ -106,7 +106,6 @@ class Compiler
     depfileTask = file depfile => source do
       calc_dependencies(depfile, defines ,include_string(lib),source)
     end
-    desc "compiling #{source}"
     outfileTask = file out => depfile do |t|
       sh "g++ -c #{source} #{include_string(lib)} #{defines} #{get_flags} -o #{t.name}"
     end
@@ -145,7 +144,7 @@ class Compiler
     register(fullpath)
     deps = objects.dup
     deps += lib.dependencies.map {|dep|get_path_for_lib(dep)}.flatten
-    desc "link lib #{lib.name}"
+    # desc "link lib #{lib.name}"
     res = file fullpath => deps do
       sh command
     end
@@ -201,7 +200,9 @@ class Compiler
     register(fullpath)
     deps = objects.dup
     deps += dep_paths
-    desc "link exe #{exe.name}"
+    executableName = File.basename(exe.name)
+    desc "link executable #{executableName}"
+    task executableName.to_sym => fullpath
     res = file fullpath => deps do
       command += " #{LibPrefix} " if OS.linux?
       command = transitive_libs(exe).inject(command) {|command,l|"#{command} #{l}"}
@@ -213,7 +214,6 @@ class Compiler
   end
   
   def create_run_task(p)
-    puts "++++++++ create task #{p}"
     desc "run executable"
     task :run => p do
       sh "#{p}"

@@ -6,18 +6,27 @@ require 'pp'
 # CxxProject2Rake.new(Dir.glob('**/project.rb'), OsxCompiler.new('build'))
 class CxxProject2Rake
 
-  attr_accessor :compiler
+  attr_accessor :compiler, :base
+
   def initialize(projects, compiler, base='./')
     @compiler = compiler
     @base = base
-
     projects = projects.map { |p| p.remove_from_start(base) }
-
     register_projects(projects)
-
     define_project_info_task()
-
     convert_to_rake()
+  end
+
+  def self.simpleProject(compiler, base='./')
+    p = CxxProject2Rake.new()
+    p.compiler = compiler
+    p.base = base
+    base_dir = './'
+    configuration = Configuration.new(File.expand_path(base_dir))
+    project = yield(configuration)
+    project.base = File.join(p.base, base_dir)
+    p.define_project_info_task()
+    p.convert_to_rake()
   end
 
   def define_project_info_task
@@ -46,7 +55,6 @@ class CxxProject2Rake
       end
     end
   end
-
 
   def build_source_lib(lib,compiler)
     objects = lib.sources.map do |s|
