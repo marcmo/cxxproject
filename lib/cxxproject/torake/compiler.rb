@@ -169,7 +169,7 @@ class Compiler
     if i
       possibilities[i]
     else
-      raise "could not find libpath for #{lib} in #{lib_paths}"
+      raise "could not find libpath for #{lib.name}"
     end
   end
 
