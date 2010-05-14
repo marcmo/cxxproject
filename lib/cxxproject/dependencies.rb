@@ -13,16 +13,16 @@ private
   def initialize(lib_strings)
     @all_libs = []
     lib_strings.each do |lib_string|
-      add(lib_string)
+      add_dependent_lib(lib_string)
     end
   end
 
-  def add_unique(lib)
+  def push_to_end(lib)
     @all_libs.delete(lib)
     @all_libs.push(lib)
   end
 
-  def add(lib)
+  def add_dependent_lib(lib)
     if (lib.instance_of?(BinaryLibrary))
       bb = lib
       raise "lib should already be a building block" unless ALL_BUILDING_BLOCKS[lib.name] == bb
@@ -32,9 +32,9 @@ private
     if !bb
       raise "dependency not found #{lib}"
     end
-    add_unique(bb)
+    push_to_end(bb)
     bb.dependencies.each do |dep|
-      add(dep)
+      add_dependent_lib(dep)
     end
   end
 

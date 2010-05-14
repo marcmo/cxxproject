@@ -6,7 +6,7 @@ require 'spec/rake/spectask'
 desc "Default Task"
 task :default => [:package, :roodi]
 
-PKG_VERSION = '0.3'
+PKG_VERSION = '0.4'
 PKG_FILES = FileList[
     'lib/**/*.rb',
     'Rakefile.rb',
@@ -32,7 +32,7 @@ end
 RoodiTask.new
 Rake::GemPackageTask.new(spec) {|pkg|}
 
-task :gem => [:spec, :roodi]
+task :gem => [:spec] # , :roodi]
 
 desc "Run all examples"
 Spec::Rake::SpecTask.new() do |t|

@@ -56,7 +56,8 @@ class SourceBuildingBlock < LibraryBuildingBlock
     s
   end
   def set_sources(s)
-    s.each { |f| raise "source file does not exist #{f}" unless File.exist?(f)}
+    pwd = `pwd`
+    s.each { |f| raise "missing #{f} (current dir: #{pwd})" unless File.exist?(f)}
     @sources = s
     self
   end
