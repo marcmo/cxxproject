@@ -1,5 +1,5 @@
-def define_project()
-  Exe.new('dependency_test').
-    set_sources(FileList['**/*.cpp']).
-    set_dependencies([BinaryLibrary.new('cppunit')])
+cxx_configuration "dependency_test" do
+  exe "dependency_test",
+    :sources => FileList['**/*.cpp'],
+    :dependencies => [BinaryLibrary.new('cppunit')]
 end

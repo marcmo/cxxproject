@@ -1,4 +1,4 @@
-def define_project()
-  SourceLibrary.new('lang').
-    set_sources(FileList['**/*.cpp'])
+cxx_configuration "lang" do
+  source_lib "lang",
+    :sources => FileList['**/*.cpp']
 end

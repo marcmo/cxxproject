@@ -1,6 +1,6 @@
-def define_project()
+cxx_configuration "" do
   files = FileList['**/*.cpp']
-  SourceLibrary.new('io').
-    set_sources(files)
+  source_lib "io",
+    :sources => files
 end
         

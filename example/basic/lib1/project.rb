@@ -1,4 +1,5 @@
-def define_project()
-  SourceLibrary.new('1').
-    set_sources(['lib1.cpp']).set_includes(['.'])
+cxx_configuration "1" do
+  source_lib "1",
+    :sources => ['lib1.cpp'],
+    :includes => ['.']
 end

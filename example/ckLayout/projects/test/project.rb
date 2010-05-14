@@ -1,6 +1,6 @@
-def define_project()
-  Exe.new('test').
-    set_sources(FileList.new('**/*.cpp')).
-    set_dependencies(['lang', 'io'])
+cxx_configuration "test" do
+  exe "test",
+    :sources => FileList.new('**/*.cpp'),
+    :dependencies => ['lang', 'io']
 end
           

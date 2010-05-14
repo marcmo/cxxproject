@@ -1,4 +1,4 @@
-def define_project()
-  Exe.new('dependency_test').
-    set_sources(FileList['**/*.cpp'])
+cxx_configuration "dependency_test" do
+  exe 'dependency_test',
+    :sources => FileList['**/*.cpp']
 end

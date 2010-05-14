@@ -1,4 +1,4 @@
-def define_project()
-  Exe.new('suite1').
-    set_dependencies(['suite1_lib', 'main'])
+cxx_configuration "suite1" do
+  exe "suite1",
+    :dependencies => ['suite1_lib', 'main']
 end

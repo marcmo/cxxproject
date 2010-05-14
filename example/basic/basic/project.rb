@@ -1,5 +1,5 @@
-def define_project()
-  Exe.new('basic').
-    set_sources(FileList.new('**/*.cpp')).
-    set_dependencies(['2'])
+cxx_configuration "basic" do
+  exe "basic",
+    :sources => FileList.new('**/*.cpp'),
+    :dependencies => ['2']
 end

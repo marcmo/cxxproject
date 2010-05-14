@@ -1,4 +1,4 @@
-def define_project()
-  SourceLibrary.new('suite1_lib').
-    set_sources(FileList.new('**/*.cpp'))
+cxx_configuration "suite1_lib" do
+  source_lib "suite1_lib",
+    :sources => FileList.new('**/*.cpp')
 end

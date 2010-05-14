@@ -1,8 +1,8 @@
-def define_project()
+cxx_configuration "2" do
   deps = ['1', BinaryLibrary.new('z')]
   deps << BinaryLibrary.new('dl') if OS.linux?
-  SourceLibrary.new('2').
-    set_sources(FileList['**/*.cpp']).
-    set_dependencies(deps).
-    set_includes(['.'])
+  source_lib "2",
+    :sources => FileList['**/*.cpp'],
+    :dependencies => deps,
+    :includes => ['.']
 end
