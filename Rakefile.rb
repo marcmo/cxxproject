@@ -1,6 +1,9 @@
 require 'rake/gempackagetask'
-require 'roodi'
-require 'roodi_task'
+begin
+  require 'roodi' 
+  require 'roodi_task'
+rescue LoadError
+end
 require 'spec/rake/spectask'
 
 desc "Default Task"
@@ -29,7 +32,7 @@ spec = Gem::Specification.new do |s|
   s.has_rdoc = true
 end
 
-RoodiTask.new
+RoodiTask.new if self.class.const_defined?(:RoodiTask)
 Rake::GemPackageTask.new(spec) {|pkg|}
 
 task :gem => [:spec] # , :roodi]
