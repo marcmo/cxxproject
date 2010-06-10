@@ -2,12 +2,12 @@ require 'rake/gempackagetask'
 begin
   require 'roodi' 
   require 'roodi_task'
+  require 'spec/rake/spectask'
 rescue LoadError
 end
-require 'spec/rake/spectask'
 
 desc "Default Task"
-task :default => [:package, :roodi]
+task :default => [:install]
 
 PKG_VERSION = '0.4'
 PKG_FILES = FileList[
@@ -16,7 +16,7 @@ PKG_FILES = FileList[
     'spec/**/*.rb'
 #    'doc/**/*'
   ]
-
+	
 spec = Gem::Specification.new do |s|
   s.name = 'cxxproject'
   s.version = PKG_VERSION
@@ -31,21 +31,23 @@ spec = Gem::Specification.new do |s|
   s.homepage = ''
   s.has_rdoc = true
 end
-
-RoodiTask.new if self.class.const_defined?(:RoodiTask)
 Rake::GemPackageTask.new(spec) {|pkg|}
 
-task :gem => [:spec] # , :roodi]
-
-desc "Run all examples"
-Spec::Rake::SpecTask.new() do |t|
-  t.spec_files = FileList['spec/**/*.rb']
+if self.class.const_defined?(:RoodiTask) then
+	RoodiTask.new
+	task :gem => [:roodi]
 end
 
-task :default => [:install]
+if self.class.const_defined?(:SpecTask) then
+	desc "Run all examples"
+	Spec::Rake::SpecTask.new() do |t|
+	  t.spec_files = FileList['spec/**/*.rb']
+	end
+	task :gem => [:spec]
+end
 
 desc "install gem globally"
-task :install => :gem do
+task :install => [:gem] do
   sh "gem install pkg/#{spec.name}-#{spec.version}.gem"
 end
 
