@@ -3,7 +3,7 @@ begin
   require 'roodi' 
   require 'roodi_task'
   require 'spec/rake/spectask'
-rescue LoadError
+rescue LoadError # don't bail out when people do not have roodi installed!
 end
 
 desc "Default Task"
