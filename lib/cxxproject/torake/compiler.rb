@@ -10,9 +10,14 @@ class Compiler
     CLOBBER.include(output_path)
     @defines = []
     @flags = []
+    @linker_flags = []
   end
   def set_flags(flags)
     @flags = flags
+    self
+  end
+  def set_linker_flags(flags)
+    @linker_flags = flags
     self
   end
   def set_includes(includes)
@@ -76,6 +81,9 @@ class Compiler
 
   def get_flags
     @flags.map{ |f| "-#{f}"}.join(' ')
+  end
+  def get_linker_flags
+    @linker_flags.map{ |f| "-#{f}"}.join(' ')
   end
   def get_defines
     @defines.map{ |i| "-D#{i}"}.join(' ')
@@ -197,7 +205,7 @@ class Compiler
   def create_exe(exe, objects)
     exename = "#{exe.name}.exe"
     fullpath = File.join(@output_path, exename)
-    command = objects.inject("g++ -all_load -o #{fullpath}") do |command, o|
+    command = objects.inject("g++ -all_load #{get_linker_flags} -o #{fullpath}") do |command, o|
       "#{command} #{o}"
     end
     dep_paths = exe.dependencies.map {|dep|get_path_for_lib(dep)}.flatten

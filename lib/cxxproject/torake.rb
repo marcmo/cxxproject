@@ -13,7 +13,6 @@ class CxxProject2Rake
     @compiler = compiler
     @base = base
     projects = projects.map { |p| p.remove_from_start(base) }
-    projects = projects.map { |p| p.remove_from_start(base) }
     register_projects(projects)
     define_project_info_task()
     convert_to_rake()
