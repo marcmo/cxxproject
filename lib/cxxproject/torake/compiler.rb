@@ -34,7 +34,7 @@ class Compiler
   end
 
   def get_path_defaults
-    return ["/usr/local", "/usr", "/opt/local"]
+    return ["/usr/local", "/usr", "/opt/local", "C:/cygwin", "C:/tool/cygwin"]
   end
 
   def get_paths(lib)
