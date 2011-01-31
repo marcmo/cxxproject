@@ -53,7 +53,7 @@ class Compiler
         end
       else
         if i.includes
-          res << i.includes.map { |include| File.join(i.base, include) }
+          res << i.includes.map { |include| Pathname.new(File.join(i.base, include)).cleanpath }
         end
       end
       res
@@ -76,6 +76,7 @@ class Compiler
 
   def include_string(d)
     includes = transitive_includes(d)
+    puts "------------> #{includes}"
     includes.inject('') { | res, i | "#{res} -I#{i} " }
   end
 
@@ -148,13 +149,15 @@ class Compiler
 
   def create_source_lib(lib, objects)
     fullpath = static_lib_path(lib.name)
+    puts "create source lib:#{fullpath}"
     command = objects.inject("ar -r #{fullpath}") do |command, o|
       "#{command} #{o}"
     end
+    puts "command will be: #{command}"
     register(fullpath)
     deps = objects.dup
     deps += lib.dependencies.map {|dep|get_path_for_lib(dep)}.flatten
-    # desc "link lib #{lib.name}"
+    desc "link lib #{lib.name}"
     res = file fullpath => deps do
       sh command
     end
