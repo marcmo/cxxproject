@@ -1,5 +1,7 @@
+require 'logger'
 require 'pp'
 require 'pathname'
+
 
 # class which converts cxx-projects to rake-tasks
 # can be used in a rakefile like:
@@ -9,12 +11,14 @@ class CxxProject2Rake
 
   attr_accessor :compiler, :base
 
-  def initialize(projects, compiler, base='./')
-    puts "starting..."
+  def initialize(projects, compiler, base='./', logLevel=Logger::ERROR)
+    @log = Logger.new(STDOUT)
+    @log.level = logLevel
+    @log.debug "starting..."
     @compiler = compiler
     @base = base
     projects = projects.map { |p| p.remove_from_start(base) }
-    puts "projects: #{projects}"
+    @log.debug "projects: #{projects}"
     register_projects(projects)
     define_project_info_task()
     convert_to_rake()
@@ -33,11 +37,11 @@ class CxxProject2Rake
   def register_projects(projects)
     cd(@base,:verbose => false) do |b|
       projects.each do |project_file|
-        puts "register project #{project_file}" 
+        @log.debug "register project #{project_file}" 
         dirname = File.dirname(project_file)
-        puts "dirname for project was: #{dirname}"
+        @log.debug "dirname for project was: #{dirname}"
         cd(dirname,:verbose => false) do | base_dir |
-          puts "current dir: #{`pwd`}"
+          @log.debug "current dir: #{`pwd`}"
           loadContext = EvalContext.new
           loadContext.eval_project(File.read(File.basename(project_file)))
           raise "project config invalid for #{project_file}" unless loadContext.name
@@ -50,7 +54,7 @@ class CxxProject2Rake
   end
 
   def build_source_lib(lib,compiler)
-    puts "building source lib"
+    @log.debug "building source lib"
     objects = lib.sources.map do |s|
       compiler.create_object_file(lib, s, @base)
     end
@@ -66,9 +70,9 @@ class CxxProject2Rake
 
 
   def convert_to_rake
-    puts "convert to rake"
+    @log.debug "convert to rake"
     ALL_BUILDING_BLOCKS.values.each do |building_block|
-      puts "convert to rake2: #{building_block}"
+      @log.debug "convert to rake2: #{building_block}"
       if (building_block.instance_of?(SourceLibrary)) then
         build_source_lib(building_block,@compiler)
       elsif (building_block.instance_of?(Exe)) then

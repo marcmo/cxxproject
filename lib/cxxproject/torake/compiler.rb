@@ -1,3 +1,4 @@
+require 'logger'
 # stores all rake tasks
 ALL = FileList.new
 
@@ -5,6 +6,8 @@ ALL = FileList.new
 # perhaps this should be reworked to toolchain with compiler, linker, ...
 class Compiler
   def initialize(output_path)
+    @log = Logger.new(STDOUT)
+    @log.level = Logger::INFO
     @output_path = output_path
     @includes = []
     CLOBBER.include(output_path)
@@ -76,7 +79,7 @@ class Compiler
 
   def include_string(d)
     includes = transitive_includes(d)
-    puts "------------> #{includes}"
+    @log.debug "------------> #{includes}"
     includes.inject('') { | res, i | "#{res} -I#{i} " }
   end
 
@@ -149,16 +152,17 @@ class Compiler
 
   def create_source_lib(lib, objects)
     fullpath = static_lib_path(lib.name)
-    puts "create source lib:#{fullpath}"
+    @log.info "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - create source lib:#{fullpath}"
     command = objects.inject("ar -r #{fullpath}") do |command, o|
       "#{command} #{o}"
     end
-    puts "command will be: #{command}"
+    @log.debug "command will be: #{command}"
     register(fullpath)
     deps = objects.dup
     deps += lib.dependencies.map {|dep|get_path_for_lib(dep)}.flatten
     desc "link lib #{lib.name}"
     res = file fullpath => deps do
+      @log.info "\n- - - - - - - - - - - - - - - - - - - - \nlink #{lib.name}\n- - - - - - - - - - - - - - - - - - - - "
       sh command
     end
     return res
