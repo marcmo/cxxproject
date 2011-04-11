@@ -21,7 +21,7 @@ class CxxProject2Rake
     @log.debug "projects: #{projects}"
     register_projects(projects)
     define_project_info_task()
-    convert_to_rake()
+    convert_to_rake(projects)
   end
 
   def define_project_info_task
@@ -61,22 +61,23 @@ class CxxProject2Rake
     compiler.create_source_lib(lib, objects)
   end
 
-  def build_exe(exe,compiler)
+  def build_exe(exe,compiler,projects)
     objects = exe.sources.map do |s|
       compiler.create_object_file(exe, s, @base)
     end
-    compiler.create_exe(exe, objects)
+    pp "build_exe;;;..........projects:#{projects.inspect}"
+    compiler.create_exe(exe, objects,projects)
   end
 
 
-  def convert_to_rake
+  def convert_to_rake(projects)
     @log.debug "convert to rake"
     ALL_BUILDING_BLOCKS.values.each do |building_block|
       @log.debug "convert to rake2: #{building_block}"
       if (building_block.instance_of?(SourceLibrary)) then
         build_source_lib(building_block,@compiler)
       elsif (building_block.instance_of?(Exe)) then
-        build_exe(building_block,@compiler)
+        build_exe(building_block,@compiler,projects)
       elsif (building_block.instance_of?(BinaryLibrary)) then
       else
         raise 'unknown building_block'

@@ -123,7 +123,8 @@ class Compiler
     outfileTask = file out => depfile do |t|
       sh "g++ -c #{source} #{include_string(lib)} #{defines} #{get_flags} -o #{t.name}"
     end
-    outfileTask.enhance([create_apply_task(depfile,depfileTask,outfileTask)])
+    applyTask = create_apply_task(depfile,depfileTask,outfileTask)
+    outfileTask.enhance([applyTask])
     depfileTask.enhance([outputdir])
     return outfileTask
   end
@@ -197,7 +198,7 @@ class Compiler
   def get_path_for_lib(d)
     lib = ALL_BUILDING_BLOCKS[d]
     if !lib
-      raise "could not find buildingblock with name '#{d}'"
+      raise "could not find library with name '#{d}'"
     end
     if (lib.instance_of?(BinaryLibrary))
       binary_lib_path(lib)
@@ -209,7 +210,7 @@ class Compiler
   LibPrefix='-Wl,--whole-archive'
   LibPostfix='-Wl,--no-whole-archive'
 
-  def create_exe(exe, objects)
+  def create_exe(exe, objects,projects)
     exename = "#{exe.name}.exe"
     fullpath = File.join(@output_path, exename)
     command = objects.inject("g++ -all_load #{get_linker_flags} -o #{fullpath}") do |command, o|
@@ -222,19 +223,19 @@ class Compiler
     executableName = File.basename(exe.name)
     desc "link executable #{executableName}"
     task executableName.to_sym => fullpath
-    res = file fullpath => deps do
+    res = file fullpath => deps + projects do
       command += " #{LibPrefix} " if OS.linux?
       command = transitive_libs(exe).inject(command) {|command,l|"#{command} #{l}"}
       command += " #{LibPostfix}" if OS.linux?
       sh command
     end
-    create_run_task(fullpath)
+    create_run_task(fullpath,projects)
     return res
   end
   
-  def create_run_task(p)
+  def create_run_task(p,projects)
     desc "run executable"
-    task :run => p do
+    task :run => projects << p do
       sh "#{p}"
     end
   end
