@@ -1,3 +1,5 @@
+require 'logger'
+require 'benchmark'
 # stores all rake tasks
 ALL = FileList.new
 
@@ -5,12 +7,18 @@ ALL = FileList.new
 # perhaps this should be reworked to toolchain with compiler, linker, ...
 class Compiler
   def initialize(output_path)
+    @log = Logger.new(STDOUT)
+    @log.level = Logger::INFO
     @output_path = output_path
     @includes = []
     CLOBBER.include(output_path)
     @defines = []
     @flags = []
     @linker_flags = []
+    @benchmark = 0
+  end
+  def set_loglevel(level)
+    @log.level = level
   end
   def set_flags(flags)
     @flags = flags
@@ -53,7 +61,7 @@ class Compiler
         end
       else
         if i.includes
-          res << i.includes.map { |include| File.join(i.base, include) }
+          res << i.includes.map { |include| Pathname.new(File.join(i.base, include)).cleanpath }
         end
       end
       res
@@ -76,6 +84,7 @@ class Compiler
 
   def include_string(d)
     includes = transitive_includes(d)
+    @log.debug "------------> #{includes}"
     includes.inject('') { | res, i | "#{res} -I#{i} " }
   end
 
@@ -119,7 +128,8 @@ class Compiler
     outfileTask = file out => depfile do |t|
       sh "g++ -c #{source} #{include_string(lib)} #{defines} #{get_flags} -o #{t.name}"
     end
-    outfileTask.enhance([create_apply_task(depfile,depfileTask,outfileTask)])
+    applyTask = create_apply_task(depfile,depfileTask,outfileTask)
+    outfileTask.enhance([applyTask])
     depfileTask.enhance([outputdir])
     return outfileTask
   end
@@ -135,8 +145,14 @@ class Compiler
   end
 
   def calc_dependencies(depFile, define_string, include_string, source)
+    @log.info "calc_dependencies for #{depFile}"
     command = "g++ -MM #{define_string} #{include_string} #{source}"
-    deps = `#{command}`
+    deps = nil
+    @benchmark = @benchmark + Benchmark.realtime do
+      deps = `#{command}`
+    end
+    @log.debug "overall dependency calculation so far took: " + sprintf("%.5f", @benchmark) + " second(s)."
+    @log.debug "deps were: #{deps}, writing out to yaml file #{depFile}"
     if deps.length == 0
       raise 'cannot calc dependencies'
     end
@@ -148,14 +164,17 @@ class Compiler
 
   def create_source_lib(lib, objects)
     fullpath = static_lib_path(lib.name)
+    @log.info "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - create source lib:#{fullpath}"
     command = objects.inject("ar -r #{fullpath}") do |command, o|
       "#{command} #{o}"
     end
+    @log.debug "command will be: #{command}"
     register(fullpath)
     deps = objects.dup
     deps += lib.dependencies.map {|dep|get_path_for_lib(dep)}.flatten
-    # desc "link lib #{lib.name}"
+    desc "link lib #{lib.name}"
     res = file fullpath => deps do
+      @log.info "\n- - - - - - - - - - - - - - - - - - - - \nlink #{lib.name}\n- - - - - - - - - - - - - - - - - - - - "
       sh command
     end
     return res
@@ -190,7 +209,7 @@ class Compiler
   def get_path_for_lib(d)
     lib = ALL_BUILDING_BLOCKS[d]
     if !lib
-      raise "could not find buildingblock with name '#{d}'"
+      raise "could not find library with name '#{d}'"
     end
     if (lib.instance_of?(BinaryLibrary))
       binary_lib_path(lib)
@@ -202,7 +221,7 @@ class Compiler
   LibPrefix='-Wl,--whole-archive'
   LibPostfix='-Wl,--no-whole-archive'
 
-  def create_exe(exe, objects)
+  def create_exe(exe, objects,projects)
     exename = "#{exe.name}.exe"
     fullpath = File.join(@output_path, exename)
     command = objects.inject("g++ -all_load #{get_linker_flags} -o #{fullpath}") do |command, o|
@@ -215,19 +234,19 @@ class Compiler
     executableName = File.basename(exe.name)
     desc "link executable #{executableName}"
     task executableName.to_sym => fullpath
-    res = file fullpath => deps do
+    res = file fullpath => deps + projects do
       command += " #{LibPrefix} " if OS.linux?
       command = transitive_libs(exe).inject(command) {|command,l|"#{command} #{l}"}
       command += " #{LibPostfix}" if OS.linux?
       sh command
     end
-    create_run_task(fullpath)
+    create_run_task(fullpath,projects)
     return res
   end
   
-  def create_run_task(p)
+  def create_run_task(p,projects)
     desc "run executable"
-    task :run => p do
+    task :run => projects << p do
       sh "#{p}"
     end
   end

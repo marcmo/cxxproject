@@ -1,5 +1,7 @@
+require 'logger'
 require 'pp'
 require 'pathname'
+
 
 # class which converts cxx-projects to rake-tasks
 # can be used in a rakefile like:
@@ -9,13 +11,18 @@ class CxxProject2Rake
 
   attr_accessor :compiler, :base
 
-  def initialize(projects, compiler, base='./')
+  def initialize(projects, compiler, base='./', logLevel=Logger::ERROR)
+    @log = Logger.new(STDOUT)
+    @log.level = logLevel
+    @log.debug "starting..."
     @compiler = compiler
+    @compiler.set_loglevel(logLevel);
     @base = base
     projects = projects.map { |p| p.remove_from_start(base) }
+    @log.debug "projects: #{projects}"
     register_projects(projects)
     define_project_info_task()
-    convert_to_rake()
+    convert_to_rake(projects)
   end
 
   def define_project_info_task
@@ -31,9 +38,11 @@ class CxxProject2Rake
   def register_projects(projects)
     cd(@base,:verbose => false) do |b|
       projects.each do |project_file|
-        # puts "register project #{project_file}" 
+        @log.debug "register project #{project_file}" 
         dirname = File.dirname(project_file)
+        @log.debug "dirname for project was: #{dirname}"
         cd(dirname,:verbose => false) do | base_dir |
+          @log.debug "current dir: #{`pwd`}"
           loadContext = EvalContext.new
           loadContext.eval_project(File.read(File.basename(project_file)))
           raise "project config invalid for #{project_file}" unless loadContext.name
@@ -46,26 +55,30 @@ class CxxProject2Rake
   end
 
   def build_source_lib(lib,compiler)
+    @log.debug "building source lib"
     objects = lib.sources.map do |s|
       compiler.create_object_file(lib, s, @base)
     end
     compiler.create_source_lib(lib, objects)
   end
 
-  def build_exe(exe,compiler)
+  def build_exe(exe,compiler,projects)
     objects = exe.sources.map do |s|
       compiler.create_object_file(exe, s, @base)
     end
-    compiler.create_exe(exe, objects)
+    pp "build_exe;;;..........projects:#{projects.inspect}"
+    compiler.create_exe(exe, objects,projects)
   end
 
 
-  def convert_to_rake
+  def convert_to_rake(projects)
+    @log.debug "convert to rake"
     ALL_BUILDING_BLOCKS.values.each do |building_block|
+      @log.debug "convert to rake2: #{building_block}"
       if (building_block.instance_of?(SourceLibrary)) then
         build_source_lib(building_block,@compiler)
       elsif (building_block.instance_of?(Exe)) then
-        build_exe(building_block,@compiler)
+        build_exe(building_block,@compiler,projects)
       elsif (building_block.instance_of?(BinaryLibrary)) then
       else
         raise 'unknown building_block'
