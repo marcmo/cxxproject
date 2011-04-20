@@ -66,7 +66,6 @@ class CxxProject2Rake
     objects = exe.sources.map do |s|
       compiler.create_object_file(exe, s, @base)
     end
-    pp "build_exe;;;..........projects:#{projects.inspect}"
     compiler.create_exe(exe, objects,projects)
   end
 
