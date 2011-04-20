@@ -1,14 +1,3 @@
-# TODO:
-# command hook pre post build
-# build webserver resources
-# clean von subprojekten?? (dirs)
-# .cpp.o .c.o statt .o
-# wann der prefix postfix??? --> oliver
-
-#  def get_path_defaults
-#    return ["/usr/local", "/usr", "/opt/local", "C:/cygwin", "C:/tool/cygwin"]
-#  end
-
 require 'yaml'
 require 'cxxproject/toolchain/settings'
 
@@ -25,7 +14,7 @@ class TaskMaker
   	end
   end
   
-  def register(name)
+  def addToCleanTask(name)
     CLEAN.include(name)
   end
 
@@ -71,7 +60,6 @@ class TaskMaker
     end
   end
 
-  # source must be relative to settings.projectDir - todo:really? 
   def create_object_file_task(source, settings)
   	type = settings.getSourceType(source)
   	if type.nil?
@@ -80,13 +68,14 @@ class TaskMaker
   	
   	source = makeFilename(source,settings.config.getProjectDir)
   	object = settings.getObjectName(source)
+
     outputdir = settings.getOutputDir()
     directory outputdir
-    register(outputdir)
-    #register outputdirFull todo in build lib!  ??
-    
+
     depfile = "#{object}.d"
-    register(depfile)
+
+    addToCleanTask(depfile)
+    addToCleanTask(object)
     
     depfileTask = file depfile => source do
       calcSourceDeps(depfile, source, settings, type)
@@ -110,25 +99,37 @@ class TaskMaker
   end
 
 
-  def create_makefile_task(settings)
-    makefileTask = task settings.makefile do |t|
-      sh "#{settings.toolchainSettings[:MAKE][:COMMAND]} " + # make
-      	 "#{settings.toolchainSettings[:MAKE][:MAKE_FLAGS]} " + # ??
-      	 "#{settings.toolchainSettings[:MAKE][:FLAGS]} " + # -j
-      	 "#{settings.toolchainSettings[:MAKE][:FILE_FLAG]} " + # -f
-      	 "#{settings.makefile}" # x/makfile
+  def create_makefile_tasks(settings,type)
+  	mktask = task settings.config.name+"Makefile"+type.to_s
+    settings.makefiles[type].each do |m|
+	    t = task m do |x|
+		      sh "#{settings.toolchainSettings[:MAKE][:COMMAND]} " + # make
+		      	 "#{settings.toolchainSettings[:MAKE][:MAKE_FLAGS]} " + # ??
+		      	 "#{settings.toolchainSettings[:MAKE][:FLAGS]} " + # -j
+		      	 "#{settings.toolchainSettings[:MAKE][:DIR_FLAG]} " + # -C
+		      	 "#{File.dirname(m)} " + # x/y
+		      	 "#{settings.toolchainSettings[:MAKE][:FILE_FLAG]} " + # -f
+		      	 "#{m}" # x/y/makfile
+	    end
+        mktask.enhance([t])
     end
-    return makefileTask
+    return mktask
   end
 
-  def create_makefile_clean_task(settings)
-    makefileCleanTask = task settings.makefile+"clean" do |t|
-      sh "#{settings.toolchainSettings[:MAKE][:COMMAND]} " + # make
-      	 "#{settings.toolchainSettings[:MAKE][:CLEAN]} " + # clean
-      	 "#{settings.toolchainSettings[:MAKE][:FILE_FLAG]} " + # -f
-      	 "#{settings.makefile}" # x/makfile
-    end
-    return makefileCleanTask
+  def create_makefile_clean_tasks(settings)
+  	mktask = task settings.config.name+"MakefileClean"
+  	(settings.makefiles[:BEGIN]+settings.makefiles[:MID]+settings.makefiles[:END]).each do |m|
+	    t = task m+"Clean" do |x|
+	      sh "#{settings.toolchainSettings[:MAKE][:COMMAND]} " + # make
+	      	 "#{settings.toolchainSettings[:MAKE][:CLEAN]} " + # clean
+	      	 "#{settings.toolchainSettings[:MAKE][:DIR_FLAG]} " + # -C
+	      	 "#{File.dirname(m)} " + # x/y
+	      	 "#{settings.toolchainSettings[:MAKE][:FILE_FLAG]} " + # -f
+	      	 "#{m}" # x/makfile
+	    end
+	    mktask.enhance([t])
+	end
+    return mktask
   end
 
 
@@ -137,16 +138,9 @@ class TaskMaker
   	t = create_archive_task_internal(settings) if settings.type == :Library
   	
   	if (t)
-	 	
-	 	projDepsTask = multitask settings.name+"___PROJECTDEPS___" do |x|
-	 	end
-	 	
-		# makefile
-	    if (settings.makefile != "")
-	    	projDepsTask.enhance([create_makefile_task(settings)])
-	    	@makefileCleaner.enhance([create_makefile_clean_task(settings)])
-	    end    	
-	  	
+  		addToCleanTask settings.getOutputDir()
+
+	 	projDepsTask = multitask settings.name+"___PROJECTDEPS___"
 	  	if deps
 		    deps.each do |d|
 		    	projDepsTask.enhance([create_project_task(d)])
@@ -154,13 +148,22 @@ class TaskMaker
 		end
 		
 		t.enhance([projDepsTask])		    
+
+		# makefile clean
+    	@makefileCleaner.enhance([create_makefile_clean_tasks(settings)])
+
+	 	
+		# makefile END
+		mkEnd = create_makefile_tasks(settings,:END)
+		mkEnd.enhance([t])
+	  	return mkEnd
 	end
-    
-    return t    	
+	# todo: error if t == nil ??
   end
   
 
   def create_object_file_tasks(settings)
+  
   	objecttasks = []
   	settings.sources.each do |s|
   		objecttask = create_object_file_task(s,settings)
@@ -170,13 +173,24 @@ class TaskMaker
   		end
   		objecttasks << objecttask
   	end
-  	objecttasks
+  	
+  	# makefile begin
+	mkBegin = create_makefile_tasks(settings,:BEGIN)
+  	objecttasks.each do |t|
+  		t.enhance([mkBegin])
+  	end
+
+  	# makefile mid
+	mkMid = create_makefile_tasks(settings,:MID)
+	mkMid.enhance(objecttasks)
+	
+  	mkMid
   end
 
 	
   def create_archive_task_internal(settings)
   	archive = settings.getArchiveName()
-    register(archive)
+    addToCleanTask(archive)
 
     otasks = create_object_file_tasks(settings)
     mtask = multitask archive+"MULTI" => otasks  do |t|
@@ -196,7 +210,7 @@ class TaskMaker
 	
   def create_exe_task_internal(settings)
     executable = settings.getExecutableName()
-    register(executable)
+    addToCleanTask(executable)
   
     userLibs = settings.userLibs.map! {|k| "#{settings.toolchainSettings[:LINKER][:USER_LIB_FLAG]}#{k}" }.join(" ")
     libs = settings.libs.map! {|k| "#{settings.toolchainSettings[:LINKER][:LIB_FLAG]}#{k}" }.join(" ")
@@ -229,6 +243,8 @@ class TaskMaker
       	 "#{libs} " +
       	 "#{settings.toolchainSettings[:LINKER][:LIB_POSTFIX_FLAGS]} " # "-Wl,--no-whole-archive "
     end
+    
+    res.enhance([script])
 
     return res
   end

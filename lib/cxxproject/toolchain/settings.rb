@@ -28,8 +28,9 @@ end
 class ProjectSettings
   attr_reader :projectDir, :outputDir, :name, :type
   attr_accessor :includeDirs, :libDirs, :libs, :libPaths, :userLibs 
-  attr_accessor :sources, :objects, :makefile, :linkerScript, :libsWithPath
+  attr_accessor :sources, :objects, :linkerScript, :libsWithPath
   attr_accessor :toolchainSettings
+  attr_accessor :makefiles
   attr_reader :includeDirsString, :definesString
   attr_accessor :deps
   
@@ -42,7 +43,7 @@ class ProjectSettings
   	@outputDir = outputDir
   	@includeDirs = []
   	@sources = []
-  	@makefile = ""
+  	@makefiles = {:BEGIN => [], :MID => [], :END => []}
   	@type = type # can be :Library, :Executable, :Empty
 
 	# to be filled during building rake tasks
