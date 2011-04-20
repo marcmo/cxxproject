@@ -16,6 +16,7 @@ class CxxProject2Rake
     @log.level = logLevel
     @log.debug "starting..."
     @compiler = compiler
+    @compiler.set_loglevel(logLevel);
     @base = base
     projects = projects.map { |p| p.remove_from_start(base) }
     @log.debug "projects: #{projects}"

@@ -1,4 +1,5 @@
 require 'logger'
+require 'benchmark'
 # stores all rake tasks
 ALL = FileList.new
 
@@ -14,6 +15,10 @@ class Compiler
     @defines = []
     @flags = []
     @linker_flags = []
+    @benchmark = 0
+  end
+  def set_loglevel(level)
+    @log.level = level
   end
   def set_flags(flags)
     @flags = flags
@@ -140,8 +145,14 @@ class Compiler
   end
 
   def calc_dependencies(depFile, define_string, include_string, source)
+    @log.info "calc_dependencies for #{depFile}"
     command = "g++ -MM #{define_string} #{include_string} #{source}"
-    deps = `#{command}`
+    deps = nil
+    @benchmark = @benchmark + Benchmark.realtime do
+      deps = `#{command}`
+    end
+    @log.debug "overall dependency calculation so far took: " + sprintf("%.5f", @benchmark) + " second(s)."
+    @log.debug "deps were: #{deps}, writing out to yaml file #{depFile}"
     if deps.length == 0
       raise 'cannot calc dependencies'
     end
