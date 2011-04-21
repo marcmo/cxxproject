@@ -55,6 +55,7 @@ module Rake
 	    	begin
 	        	FileUtils.rm([@name]) # todo: is that the best way? gcc can return errors even if files are built...
 	        rescue
+	          warn "file deletion did not work"
 	        end
 	     	$logger.error("#{@name} not built/cleaned correctly")
 	    	@failure = true
