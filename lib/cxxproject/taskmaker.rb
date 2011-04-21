@@ -1,5 +1,6 @@
 require 'yaml'
 require 'cxxproject/toolchain/settings'
+require 'cxxproject/rake_ext'
 
 class TaskMaker
   attr_reader :makefileCleaner
@@ -57,10 +58,11 @@ class TaskMaker
 
     addToCleanTask(depfile)
     addToCleanTask(object)
-
+	
     depfileTask = file depfile => source do
       calcSourceDeps(depfile, source, settings, type)
     end
+    depfileTask.showInGraph = true
 
     depfileTask.enhance(tasksBeforeDepfile) unless tasksBeforeDepfile.nil?
 
@@ -73,10 +75,13 @@ class TaskMaker
     "#{settings.toolchainSettings[:COMPILER][type][:OBJECT_FILE_FLAG]} " + # -o
     "#{object} " # debug/src/abc.o
 
-    outfileTask = file object => depfile do |t|
+    outfileTask = file object => depfileTask do |t|
       sh cmd
     end
+    outfileTask.showInGraph = true
+    
     outfileTask.enhance([create_apply_task(depfile,depfileTask,outfileTask,settings)])
+    
     depfileTask.enhance([outputdir])
     return outfileTask
   end
@@ -95,6 +100,7 @@ class TaskMaker
         "#{m}" # x/y/makfile
       end
       task << t
+      t.showInGraph = true
     end
     return tasks if tasks.length > 0
     return nil
@@ -124,12 +130,11 @@ class TaskMaker
     t = create_archive_task_internal(settings) if settings.type == :Library
 
     if (t)
+      t.showInGraph = true
       addToCleanTask settings.getOutputDir()
 
       # makefile begin
       mkBegin = create_makefile_tasks(settings,:BEGIN)
-
-      mtask = multitask settings.config.name+"MULTI"
 
       # objects
       objecttasks = []
@@ -150,22 +155,20 @@ class TaskMaker
             # build all objects before makefiles mid
             mfTask.enhance([oTask])
           end
-          mtask.enhance([mfTask])
+          t.enhance([mfTask])
         end
       else
         objecttasks.each do |oTask|
-          mtask.enhance([oTask])
+          t.enhance([oTask])
         end
       end
 
 
       if deps
         deps.each do |d|
-          mtask.enhance([create_project_task(d)])
+          t.enhance([create_project_task(d)])
         end
       end
-
-      t.enhance([mtask])
 
       # makefile clean
       @makefileCleaner.enhance(create_makefile_clean_tasks(settings))
@@ -176,7 +179,12 @@ class TaskMaker
         mkEnd.each do |mfTask|
           mfTask.enhance([t])
         end
-        return mkEnd
+        if mkEnd.length==1
+        	return mkEnd
+        else # we need a dummy task
+        	allMkEnd = task settings.config.name+"_Wrapper" => mkEnd
+        	return allMkEnd
+        end
       end
     end
     t
@@ -188,7 +196,7 @@ class TaskMaker
     archive = settings.getArchiveName()
     addToCleanTask(archive)
 
-    res = file archive do
+    res = multifiletask archive do
       sh "#{settings.toolchainSettings[:ARCHIVER][:COMMAND]} " + # ar
       "#{settings.toolchainSettings[:ARCHIVER][:ARCHIVE_FLAGS]} " + # -r
       "#{settings.toolchainSettings[:ARCHIVER][:FLAGS]} " + # ??
@@ -196,6 +204,7 @@ class TaskMaker
       "#{settings.sources.map{|s| settings.getObjectName(s)}.join(" ")}" # debug/src/abc.o debug/src/xy.o
     end
 
+	res.showInGraph = true
     return res
   end
 
@@ -212,7 +221,7 @@ class TaskMaker
 
     script = settings.linkerScript != "" ? "#{settings.toolchainSettings[:LINKER][:SCRIPT]} #{settings.linkerScript}" : "" # -T xy/xy.dld
 
-    res = file executable do
+    res = multifiletask executable do
       sh "#{settings.toolchainSettings[:LINKER][:COMMAND]} " + # g++
       "#{settings.toolchainSettings[:LINKER][:MUST_FLAGS]} " + # ??
       "#{settings.toolchainSettings[:LINKER][:FLAGS]} " + # --all_load
@@ -236,6 +245,7 @@ class TaskMaker
 
     res.enhance([script]) if script != ""
 
+	res.showInGraph = true
     return res
   end
 
