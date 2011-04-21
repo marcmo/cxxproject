@@ -1,6 +1,7 @@
 require 'logger'
 require 'pp'
 require 'pathname'
+require 'cxxproject/rake_ext'
 
 
 # class which converts cxx-projects to rake-tasks
@@ -59,14 +60,16 @@ class CxxProject2Rake
     objects = lib.sources.map do |s|
       compiler.create_object_file(lib, s, @base)
     end
-    compiler.create_source_lib(lib, objects)
+    t = multitask "multitask_#{lib}" => objects
+    compiler.create_source_lib(lib, t)
   end
 
   def build_exe(exe,compiler,projects)
     objects = exe.sources.map do |s|
       compiler.create_object_file(exe, s, @base)
     end
-    compiler.create_exe(exe, objects,projects)
+    t = multitask "multitask_#{exe}"  => objects
+    compiler.create_exe(exe, t,projects)
   end
 
 

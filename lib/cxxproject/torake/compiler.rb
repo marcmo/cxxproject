@@ -120,7 +120,6 @@ class Compiler
     out = output_filename(source, :object, base)
     outputdir = File.dirname(out)
     directory outputdir
-    register(out)
     depfile = "#{out}.dependencies"
     depfileTask = file depfile => source do
       calc_dependencies(depfile, defines ,include_string(lib),source)
@@ -165,12 +164,12 @@ class Compiler
   def create_source_lib(lib, objects)
     fullpath = static_lib_path(lib.name)
     @log.info "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - create source lib:#{fullpath}"
-    command = objects.inject("ar -r #{fullpath}") do |command, o|
+    command = objects.prerequisites.inject("ar -r #{fullpath}") do |command, o|
       "#{command} #{o}"
     end
     @log.debug "command will be: #{command}"
     register(fullpath)
-    deps = objects.dup
+    deps = [objects].dup
     deps += lib.dependencies.map {|dep|get_path_for_lib(dep)}.flatten
     desc "link lib #{lib.name}"
     res = file fullpath => deps do
@@ -224,12 +223,12 @@ class Compiler
   def create_exe(exe, objects,projects)
     exename = "#{exe.name}.exe"
     fullpath = File.join(@output_path, exename)
-    command = objects.inject("g++ -all_load #{get_linker_flags} -o #{fullpath}") do |command, o|
+    command = objects.prerequisites.inject("g++ -all_load #{get_linker_flags} -o #{fullpath}") do |command, o|
       "#{command} #{o}"
     end
     dep_paths = exe.dependencies.map {|dep|get_path_for_lib(dep)}.flatten
     register(fullpath)
-    deps = objects.dup
+    deps = [objects].dup
     deps += dep_paths
     executableName = File.basename(exe.name)
     desc "link executable #{executableName}"
