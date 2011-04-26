@@ -61,7 +61,7 @@ class Compiler
         end
       else
         if i.includes
-          res << i.includes.map { |include| Pathname.new(File.join(i.base, include)).cleanpath }
+          res << i.includes.map { |include| Pathname.new(File.join(i.base, include)).cleanpath.to_s }
         end
       end
       res
@@ -122,7 +122,7 @@ class Compiler
     directory outputdir
     depfile = "#{out}.dependencies"
     depfileTask = file depfile => source do
-      calc_dependencies(depfile, defines ,include_string(lib),source)
+      calc_dependencies(depfile, defines, include_string(lib),source)
     end
     outfileTask = file out => depfile do |t|
       sh "g++ -c #{source} #{include_string(lib)} #{defines} #{get_flags} -o #{t.name}"
