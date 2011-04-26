@@ -1,9 +1,9 @@
 require 'cxxproject/toolchain/base'
 
 module Cxxproject
-module Toolchain
+  module Toolchain
 
-DiabChain = Provider.add("Diab")
+    DiabChain = Provider.add("Diab")
 
-end
+  end
 end

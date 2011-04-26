@@ -22,11 +22,11 @@ class TaskMaker
     if deps.length == 0
       raise "cannot calc dependencies of #{sourceFull}"
     end
-    
+
     deps = deps.gsub(/\\\n/,'').split()[1..-1]
-    
+
     Rake.application["#{depfile}.apply"].deps = deps.clone() # = no need re-read the deps file
-    
+
     deps.map!{|d| File.relFromTo(d,::Dir.pwd,settings.config.getProjectDir)}
     FileUtils.mkpath File.dirname(depfile)
     File.open(depfile, 'wb') do |f|
@@ -36,16 +36,16 @@ class TaskMaker
 
 
   def create_apply_task(depfile,depfileTask,outfileTask,settings)
-      task "#{depfile}.apply" => depfile do |task|
+    task "#{depfile}.apply" => depfile do |task|
       deps = task.deps
       if not deps
-      	deps = YAML.load_file(depfile) 
-      	deps.map!{|d| File.relFromTo(d,settings.config.getProjectDir)}
+        deps = YAML.load_file(depfile)
+        deps.map!{|d| File.relFromTo(d,settings.config.getProjectDir)}
       end
-	  if (deps)
+      if (deps)
         outfileTask.enhance(deps) # needed if makefiles change sth after depTask
         depfileTask.enhance(deps[1..-1])
-	  end
+      end
     end
   end
 
@@ -65,7 +65,7 @@ class TaskMaker
 
     addToCleanTask(depfile)
     addToCleanTask(object)
-	
+
     depfileTask = file depfile => source do
       calcSourceDeps(depfile, source, settings, type)
     end
@@ -86,14 +86,14 @@ class TaskMaker
       sh cmd
     end
     outfileTask.showInGraph = true
-    
+
     outfileTask.enhance([create_apply_task(depfile,depfileTask,outfileTask,settings)])
-    
+
     depfileTask.enhance([outputdir])
-    
+
     outfileTask.enhance(settings.configFiles)
     depfileTask.enhance(settings.configFiles)
-    
+
     return outfileTask
   end
 
@@ -103,12 +103,13 @@ class TaskMaker
     settings.makefiles[type].each do |m|
       t = task m do |x|
         sh "#{settings.toolchainSettings[:MAKE][:COMMAND]} " + # make
+        "#{m[:TARGET]} " + # all
         "#{settings.toolchainSettings[:MAKE][:MAKE_FLAGS]} " + # ??
         "#{settings.toolchainSettings[:MAKE][:FLAGS]} " + # -j
         "#{settings.toolchainSettings[:MAKE][:DIR_FLAG]} " + # -C
-        "#{File.dirname(m)} " + # x/y
+        "#{File.dirname(m[:FILENAME])} " + # x/y
         "#{settings.toolchainSettings[:MAKE][:FILE_FLAG]} " + # -f
-        "#{m}" # x/y/makfile
+        "#{m[:FILENAME]}" # x/y/makfile
       end
       task << t
       t.showInGraph = true
@@ -125,9 +126,9 @@ class TaskMaker
         sh "#{settings.toolchainSettings[:MAKE][:COMMAND]} " + # make
         "#{settings.toolchainSettings[:MAKE][:CLEAN]} " + # clean
         "#{settings.toolchainSettings[:MAKE][:DIR_FLAG]} " + # -C
-        "#{File.dirname(m)} " + # x/y
+        "#{File.dirname(m[:FILENAME])} " + # x/y
         "#{settings.toolchainSettings[:MAKE][:FILE_FLAG]} " + # -f
-        "#{m}" # x/makfile
+        "#{m[:FILENAME]}" # x/makfile
       end
       task << t
     end
@@ -156,7 +157,7 @@ class TaskMaker
 
       # objects
       multi = multitask settings.name + " MultiTask"
-      multi.showInGraph = true 
+      multi.showInGraph = true
       settings.sources.each do |s|
         objecttask = create_object_file_task(s,settings,mkBegin)
         if objecttask.nil?
@@ -188,10 +189,10 @@ class TaskMaker
           mfTask.enhance([t])
         end
         if mkEnd.length==1
-        	return mkEnd
+          return mkEnd
         else # we need a dummy task
-        	allMkEnd = task settings.config.name+"_Wrapper" => mkEnd
-        	return allMkEnd
+          allMkEnd = task settings.config.name+"_Wrapper" => mkEnd
+          return allMkEnd
         end
       end
     end
@@ -212,7 +213,7 @@ class TaskMaker
       "#{settings.sources.map{|s| settings.getObjectName(s)}.join(" ")}" # debug/src/abc.o debug/src/xy.o
     end
 
-	res.showInGraph = true
+    res.showInGraph = true
     return res
   end
 
@@ -253,7 +254,7 @@ class TaskMaker
 
     res.enhance([script]) if script != ""
 
-	res.showInGraph = true
+    res.showInGraph = true
     return res
   end
 
