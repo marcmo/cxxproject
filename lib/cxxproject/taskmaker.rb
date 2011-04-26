@@ -22,8 +22,12 @@ class TaskMaker
     if deps.length == 0
       raise "cannot calc dependencies of #{sourceFull}"
     end
+    
     deps = deps.gsub(/\\\n/,'').split()[1..-1]
-    deps.map!{|d| makeFilename(d,::Dir.pwd,settings.config.getProjectDir)}
+    
+    Rake.application["#{depfile}.apply"].deps = deps.clone() # = no need re-read the deps file
+    
+    deps.map!{|d| File.relFromTo(d,::Dir.pwd,settings.config.getProjectDir)}
     FileUtils.mkpath File.dirname(depfile)
     File.open(depfile, 'wb') do |f|
       f.write(deps.to_yaml)
@@ -32,13 +36,16 @@ class TaskMaker
 
 
   def create_apply_task(depfile,depfileTask,outfileTask,settings)
-    task "#{depfile}.apply" => depfile do |task|
-      deps = YAML.load_file(depfile)
-      if (deps)
-        deps.map!{|d| makeFilename(d,settings.config.getProjectDir)}
+      task "#{depfile}.apply" => depfile do |task|
+      deps = task.deps
+      if not deps
+      	deps = YAML.load_file(depfile) 
+      	deps.map!{|d| File.relFromTo(d,settings.config.getProjectDir)}
+      end
+	  if (deps)
         outfileTask.enhance(deps) # needed if makefiles change sth after depTask
         depfileTask.enhance(deps[1..-1])
-      end
+	  end
     end
   end
 
@@ -48,7 +55,7 @@ class TaskMaker
       return nil
     end
 
-    source = makeFilename(source,settings.config.getProjectDir)
+    source = File.relFromTo(source,settings.config.getProjectDir)
     object = settings.getObjectName(source)
 
     outputdir = settings.getOutputDir()
@@ -83,6 +90,10 @@ class TaskMaker
     outfileTask.enhance([create_apply_task(depfile,depfileTask,outfileTask,settings)])
     
     depfileTask.enhance([outputdir])
+    
+    outfileTask.enhance(settings.configFiles)
+    depfileTask.enhance(settings.configFiles)
+    
     return outfileTask
   end
 
@@ -132,42 +143,39 @@ class TaskMaker
     if (t)
       t.showInGraph = true
       addToCleanTask settings.getOutputDir()
+      t.enhance(settings.configFiles)
+
+      if deps
+        deps.each do |d|
+          t.enhance([create_project_task(d)])
+        end
+      end
 
       # makefile begin
       mkBegin = create_makefile_tasks(settings,:BEGIN)
 
       # objects
-      objecttasks = []
+      multi = multitask settings.name + " MultiTask"
+      multi.showInGraph = true 
       settings.sources.each do |s|
         objecttask = create_object_file_task(s,settings,mkBegin)
         if objecttask.nil?
           # todo: log error
           next
         end
-        objecttasks << objecttask
+        multi.enhance([objecttask])
       end
 
       # makefile mid
       mkMid = create_makefile_tasks(settings,:MID)
       if mkMid != nil
         mkMid.each do |mfTask|
-          objecttasks.each do |oTask|
-            # build all objects before makefiles mid
-            mfTask.enhance([oTask])
-          end
+          # build all objects before makefiles mid
+          mfTask.enhance([multi])
           t.enhance([mfTask])
         end
       else
-        objecttasks.each do |oTask|
-          t.enhance([oTask])
-        end
-      end
-
-
-      if deps
-        deps.each do |d|
-          t.enhance([create_project_task(d)])
-        end
+        t.enhance([multi])
       end
 
       # makefile clean
@@ -196,7 +204,7 @@ class TaskMaker
     archive = settings.getArchiveName()
     addToCleanTask(archive)
 
-    res = multifiletask archive do
+    res = file archive do
       sh "#{settings.toolchainSettings[:ARCHIVER][:COMMAND]} " + # ar
       "#{settings.toolchainSettings[:ARCHIVER][:ARCHIVE_FLAGS]} " + # -r
       "#{settings.toolchainSettings[:ARCHIVER][:FLAGS]} " + # ??
@@ -221,7 +229,7 @@ class TaskMaker
 
     script = settings.linkerScript != "" ? "#{settings.toolchainSettings[:LINKER][:SCRIPT]} #{settings.linkerScript}" : "" # -T xy/xy.dld
 
-    res = multifiletask executable do
+    res = file executable do
       sh "#{settings.toolchainSettings[:LINKER][:COMMAND]} " + # g++
       "#{settings.toolchainSettings[:LINKER][:MUST_FLAGS]} " + # ??
       "#{settings.toolchainSettings[:LINKER][:FLAGS]} " + # --all_load

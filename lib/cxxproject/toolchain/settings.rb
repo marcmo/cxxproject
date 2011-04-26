@@ -4,27 +4,6 @@ $toolchainSettings = {}
 require 'cxxproject/toolchain/gcc'
 require 'cxxproject/toolchain/diab'
 
-# projectDir relToThisDir vice versa when reading dep files!
-def makeFilename(filename,projectDir,relToThisDir = nil)
-	if relToThisDir.nil?
-		relToThisDir = Dir.pwd
-	end
-
-	fpath = Pathname.new(filename)
-	res = filename
-	
-	if not fpath.absolute?
-		res = File.expand_path(projectDir+"/"+filename)
-	end
-	
-	begin
-		res = Pathname.new(res).relative_path_from(Pathname.new(relToThisDir)).to_s
-	rescue # not the same dir (well, Pathname is case sensitive on Windows as well...)
-		res
-	end		
-end
-
-
 class ProjectSettings
   attr_reader :projectDir, :outputDir, :name, :type
   attr_accessor :includeDirs, :libDirs, :libs, :libPaths, :userLibs 
@@ -33,6 +12,7 @@ class ProjectSettings
   attr_accessor :makefiles
   attr_reader :includeDirsString, :definesString
   attr_accessor :deps
+  attr_accessor :configFiles
   
   # projectDir must be absolute
   # outputDir relative to projectDir or absolute
@@ -59,6 +39,8 @@ class ProjectSettings
   	@linkerScript = ""
   	
   	@toolchainSettings = nil # must be set before raking
+  	
+  	@configFiles = [] # dependency to these config files
   end
 
   def prepareBuild
@@ -74,8 +56,8 @@ class ProjectSettings
   end
   
   def getObjectName(source)
-  	s = makeFilename(source,::Dir.pwd,projectDir)
-    makeFilename(getOutputDir + "/" + s + ".o",projectDir)
+  	s = File.relFromTo(source,::Dir.pwd,projectDir)
+    File.relFromTo(getOutputDir + "/" + s + ".o",projectDir)
   end
 
   def getSourceType(source)
@@ -87,15 +69,15 @@ class ProjectSettings
   end
   
   def getArchiveName()
-  	makeFilename(projectDir + "/" + outputDir + "/lib" + name + ".a",projectDir)
+  	File.relFromTo(projectDir + "/" + outputDir + "/lib" + name + ".a",projectDir)
   end
   
   def getExecutableName()
-  	makeFilename(projectDir + "/" + outputDir + "/" + name + @toolchainSettings[:LINKER][:OUTPUT_ENDING],projectDir)
+  	File.relFromTo(projectDir + "/" + outputDir + "/" + name + @toolchainSettings[:LINKER][:OUTPUT_ENDING],projectDir)
   end  
 
   def getOutputDir()
-  	makeFilename(projectDir + "/" + outputDir,projectDir)
+  	File.relFromTo(projectDir + "/" + outputDir,projectDir)
   end  
 
   	

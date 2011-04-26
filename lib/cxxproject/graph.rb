@@ -26,7 +26,9 @@ class GraphWriter
 	private
 	
 	def makeDotName(pr)
-		if pr.name.length > 3 and pr.name[0..2] == "../"
+	    if pr.name.include? "MultiTask"
+	    	toname = pr.name
+		elsif pr.name.length > 3 and pr.name[0..2] == "../"
 			toName = pr.name[3..-1]
 		else
 			toName = @startupProjectSettings.config.name + "/" + pr.name

@@ -2,19 +2,6 @@ require 'rake'
 
 module Rake
 	
-	#############
-	# - MultiTask with Files		
-	#############
-	class MultiFileTask < FileTask
-		# copied from MultiTask	
-	    def invoke_prerequisites(args, invocation_chain)
-	      threads = @prerequisites.collect { |p|
-	        Thread.new(p) { |r| application[r].invoke_with_call_chain(args, invocation_chain) }
-	      }
-	      threads.each { |t| t.join }
-	    end
-	end
-
 	$queue = Queue.new
 	$queue << "" << "" << ""
 
@@ -25,6 +12,8 @@ module Rake
 	#############
 	class Task
 	  attr_accessor :failure
+	  attr_accessor :deps
+	  
 	  execute_org = self.instance_method(:execute)
 	  initialize_org = self.instance_method(:initialize)
 	  
@@ -33,6 +22,7 @@ module Rake
 	  define_method(:initialize) do |task_name, app|
 	  	initialize_org.bind(self).call(task_name, app)
 	  	@showInGraph = false
+	  	@deps = nil
 	  end
 	  
 	  define_method(:execute) do |arg|
@@ -67,7 +57,3 @@ module Rake
 	end
 	
 end
-
-def multifiletask(args, &block)
-  Rake::MultiFileTask.define_task(args, &block)
-end	
