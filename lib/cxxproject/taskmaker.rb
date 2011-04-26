@@ -49,7 +49,7 @@ class TaskMaker
     end
   end
 
-  def create_object_file_task(source, settings, tasksBeforeDepfile = nil)
+  def create_object_file_task(source, settings)
     type = settings.getSourceType(source)
     if type.nil?
       return nil
@@ -70,8 +70,6 @@ class TaskMaker
       calcSourceDeps(depfile, source, settings, type)
     end
     depfileTask.showInGraph = true
-
-    depfileTask.enhance(tasksBeforeDepfile) unless tasksBeforeDepfile.nil?
 
     cmd = "#{settings.toolchainSettings[:COMPILER][type][:COMMAND]} " + # g++
     "#{settings.toolchainSettings[:COMPILER][type][:COMPILE_FLAGS]} " + # -c
@@ -101,7 +99,7 @@ class TaskMaker
   def create_makefile_tasks(settings,type)
     tasks = []
     settings.makefiles[type].each do |m|
-      t = task m do |x|
+      t = task m[:FILENAME] +" Build" do |x|
         sh "#{settings.toolchainSettings[:MAKE][:COMMAND]} " + # make
         "#{m[:TARGET]} " + # all
         "#{settings.toolchainSettings[:MAKE][:MAKE_FLAGS]} " + # ??
@@ -109,9 +107,9 @@ class TaskMaker
         "#{settings.toolchainSettings[:MAKE][:DIR_FLAG]} " + # -C
         "#{File.dirname(m[:FILENAME])} " + # x/y
         "#{settings.toolchainSettings[:MAKE][:FILE_FLAG]} " + # -f
-        "#{m[:FILENAME]}" # x/y/makfile
+        "#{File.basename(m[:FILENAME])}" # x/y/makfile
       end
-      task << t
+      tasks << t
       t.showInGraph = true
     end
     return tasks if tasks.length > 0
@@ -122,82 +120,79 @@ class TaskMaker
   def create_makefile_clean_tasks(settings)
     tasks = []
     (settings.makefiles[:BEGIN]+settings.makefiles[:MID]+settings.makefiles[:END]).each do |m|
-      t = task m+"Clean" do |x|
+      t = task m[:FILENAME]+" Clean" do |x|
         sh "#{settings.toolchainSettings[:MAKE][:COMMAND]} " + # make
         "#{settings.toolchainSettings[:MAKE][:CLEAN]} " + # clean
         "#{settings.toolchainSettings[:MAKE][:DIR_FLAG]} " + # -C
         "#{File.dirname(m[:FILENAME])} " + # x/y
         "#{settings.toolchainSettings[:MAKE][:FILE_FLAG]} " + # -f
-        "#{m[:FILENAME]}" # x/makfile
+        "#{File.basename(m[:FILENAME])}" # x/y/makfile
       end
-      task << t
+      tasks << t
     end
     return tasks if tasks.length > 0
     return nil
   end
 
 
+  # sequence of prerequisites is important, do not use drake!
   def create_project_task(settings, deps = nil)
     t = create_exe_task_internal(settings) if settings.type == :Executable
     t = create_archive_task_internal(settings) if settings.type == :Library
+    t = task settings.name+" Custom" unless t
 
-    if (t)
-      t.showInGraph = true
-      addToCleanTask settings.getOutputDir()
-      t.enhance(settings.configFiles)
+    t.showInGraph = true
+    addToCleanTask settings.getOutputDir()
+    t.enhance(settings.configFiles)
 
-      if deps
-        deps.each do |d|
-          t.enhance([create_project_task(d)])
-        end
-      end
+    outputdir = settings.getOutputDir()
+    directory outputdir
+    t.enhance([outputdir])
 
-      # makefile begin
-      mkBegin = create_makefile_tasks(settings,:BEGIN)
+    # makefile clean
+    @makefileCleaner.enhance(create_makefile_clean_tasks(settings))
 
-      # objects
-      multi = multitask settings.name + " MultiTask"
-      multi.showInGraph = true
-      settings.sources.each do |s|
-        objecttask = create_object_file_task(s,settings,mkBegin)
-        if objecttask.nil?
-          # todo: log error
-          next
-        end
-        multi.enhance([objecttask])
-      end
-
-      # makefile mid
-      mkMid = create_makefile_tasks(settings,:MID)
-      if mkMid != nil
-        mkMid.each do |mfTask|
-          # build all objects before makefiles mid
-          mfTask.enhance([multi])
-          t.enhance([mfTask])
-        end
-      else
-        t.enhance([multi])
-      end
-
-      # makefile clean
-      @makefileCleaner.enhance(create_makefile_clean_tasks(settings))
-
-      # makefile END
-      mkEnd = create_makefile_tasks(settings,:END)
-      if mkEnd != nil
-        mkEnd.each do |mfTask|
-          mfTask.enhance([t])
-        end
-        if mkEnd.length==1
-          return mkEnd
-        else # we need a dummy task
-          allMkEnd = task settings.config.name+"_Wrapper" => mkEnd
-          return allMkEnd
-        end
+    if deps
+      deps.each do |d|
+        t.enhance([create_project_task(d)])
       end
     end
-    t
-    # todo: error if t == nil ??
+
+    # makefile begin
+    mkBegin = create_makefile_tasks(settings,:BEGIN)
+    t.enhance(mkBegin) if mkBegin
+
+    # objects
+    multi = multitask settings.name + " Parallel"
+    multi.showInGraph = true
+    settings.sources.each do |s|
+      objecttask = create_object_file_task(s,settings,mkBegin)
+      if objecttask.nil?
+        # todo: log error
+        next
+      end
+      multi.enhance([objecttask])
+    end
+    t.enhance([mulit]) if multi.prerequisites.length > 0
+
+    # makefile mid
+    mkMid = create_makefile_tasks(settings,:MID)
+    t.enhance(mkMid) if mkMid
+
+    # makefile end
+    mkEnd = create_makefile_tasks(settings,:END)
+    if mkEnd != nil
+      mkEnd.each do |mfTask|
+        mfTask.enhance([t])
+      end
+      if mkEnd.length==1
+        return mkEnd[0]
+      else # we need a dummy task
+        allMkEnd = task settings.config.name+" Make After Link" => mkEnd
+        return allMkEnd
+      end
+    end
+    return t
   end
 
 
@@ -229,6 +224,7 @@ class TaskMaker
     libsWithPath = settings.libsWithPath.join(" ")
 
     script = settings.linkerScript != "" ? "#{settings.toolchainSettings[:LINKER][:SCRIPT]} #{settings.linkerScript}" : "" # -T xy/xy.dld
+    mapfile = settings.getMapfileName != "" ?  "#{settings.toolchainSettings[:LINKER][:MAP_FILE_FLAG]} > #{settings.getMapfileName}" : "" # -Wl,-m6 > xy.map
 
     res = file executable do
       sh "#{settings.toolchainSettings[:LINKER][:COMMAND]} " + # g++
@@ -241,10 +237,11 @@ class TaskMaker
       "#{settings.sources.map{|s| settings.getObjectName(s)}.join(" ")} " + # debug/src/abc.o
 
       "#{script} " +
+      
+      "#{mapfile} " +
 
       "#{libPaths} " +
 
-      # todo: wieder rein?
       "#{settings.toolchainSettings[:LINKER][:LIB_PREFIX_FLAGS]} " + # "-Wl,--whole-archive "
       "#{libsWithPath} " +
       "#{userLibs} " +

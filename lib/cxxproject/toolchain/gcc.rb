@@ -15,7 +15,6 @@ module Cxxproject
 
     GCCChain[:COMPILER][:C] = GCCChain[:COMPILER][:CPP]
     GCCChain[:COMPILER][:C][:COMMAND] = "gcc"
-    GCCChain[:COMPILER][:ASM] = GCCChain[:COMPILER][:C]
 
     GCCChain[:COMPILER][:ASM] = GCCChain[:COMPILER][:C]
 
@@ -24,7 +23,7 @@ module Cxxproject
 
     GCCChain[:LINKER][:COMMAND] = "g++"
     GCCChain[:LINKER][:SCRIPT] = "-T"
-    GCCChain[:LINKER][:USER_LIB_FLAG] = "-I:"
+    GCCChain[:LINKER][:USER_LIB_FLAG] = "-l:"
     GCCChain[:LINKER][:EXE_FLAG] = "-o"
     GCCChain[:LINKER][:LIB_FLAG] = "-l"
     GCCChain[:LINKER][:LIB_PATH_FLAG] = "-L"

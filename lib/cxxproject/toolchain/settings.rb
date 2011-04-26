@@ -76,6 +76,10 @@ class ProjectSettings
     File.relFromTo(projectDir + "/" + outputDir + "/" + name + @toolchainSettings[:LINKER][:OUTPUT_ENDING],projectDir)
   end
 
+  def getMapfileName()
+    File.relFromTo(projectDir + "/" + outputDir + "/" + name + ".map", projectDir)
+  end
+
   def getOutputDir()
     File.relFromTo(projectDir + "/" + outputDir,projectDir)
   end

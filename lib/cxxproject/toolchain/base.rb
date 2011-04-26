@@ -57,6 +57,7 @@ module Cxxproject
           :LIB_PREFIX_FLAGS => "", # "-Wl,--whole-archive",
           :LIB_POSTFIX_FLAGS => "", # "-Wl,--no-whole-archive",
           :FLAGS => "",
+          :MAP_FILE_FLAG => "",
           :OUTPUT_ENDING => ".exe", # or .elf
         },
 
