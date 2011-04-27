@@ -73,7 +73,7 @@ module Cxxproject
       }
 
       def self.add(name)
-        chain = @@default.clone()
+        chain = Marshal.load(Marshal.dump(@@default))
         @@settings[name] = chain
         chain
       end
