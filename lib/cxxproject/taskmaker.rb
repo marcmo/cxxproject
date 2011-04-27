@@ -166,14 +166,14 @@ class TaskMaker
     multi = multitask settings.name + " Parallel"
     multi.showInGraph = true
     settings.sources.each do |s|
-      objecttask = create_object_file_task(s,settings,mkBegin)
+      objecttask = create_object_file_task(s,settings)
       if objecttask.nil?
         # todo: log error
         next
       end
       multi.enhance([objecttask])
     end
-    t.enhance([mulit]) if multi.prerequisites.length > 0
+    t.enhance([multi]) if multi.prerequisites.length > 0
 
     # makefile mid
     mkMid = create_makefile_tasks(settings,:MID)
