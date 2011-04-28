@@ -16,7 +16,6 @@ module Rake
   	
   end
   
-
   #############
   # - Limit parallel tasks
   #############
@@ -57,22 +56,17 @@ module Rake
   #############
   class Task
     attr_accessor :failure # specified if that task has failed
-    attr_accessor :only_no_linking_if_failure # if an archive cannot be build, go on but omit linking
     attr_accessor :deps # used to store deps by depfile task for the apply task (no re-read of depsfile)
-	attr_accessor :linkTask # set to true for all tasks which need the linker
-	 
+    attr_accessor :showInGraph
+    
     execute_org = self.instance_method(:execute)
     initialize_org = self.instance_method(:initialize)
     timestamp_org = self.instance_method(:timestamp)
-
-    attr_accessor :showInGraph
 
     define_method(:initialize) do |task_name, app|
       initialize_org.bind(self).call(task_name, app)
       @showInGraph = false
       @deps = nil
-      @tstamp = nil
-      @only_no_linking_if_failure = false
     end
 
     define_method(:execute) do |arg|
@@ -80,9 +74,7 @@ module Rake
       @prerequisites.each { |n|
         prereq = application[n, @scope]
         if prereq.failure
-        	if not prereq.only_no_linking_if_failure or @linkTask  
-          		@failure = true
-          	end
+       		@failure = true
         end
       }
       break if @failure # if yes, this task cannot be run

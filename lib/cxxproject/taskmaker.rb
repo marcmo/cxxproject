@@ -15,17 +15,7 @@ class TaskMaker
     CLEAN.include(name)
   end
 
-  def calcSourceDeps(depfile, source, settings, type)
-    command = "g++ -MM #{settings.definesString[type]} #{settings.includeDirsString[type]} #{source}"
-
-    puts command
-    Thread.current[:stdout].syncFlush if Thread.current[:stdout] # nicer output if command raises an exception
-    deps = `#{command}`
-
-    if deps.length == 0
-      raise "cannot calc dependencies of #{source}"
-    end
-
+  def writeDepfile(deps, depfile, settings)
     deps = deps.gsub(/\\\n/,'').split()[1..-1]
     Rake.application["#{depfile}.apply"].deps = deps.clone() # = no need to re-read the deps file
 
@@ -36,27 +26,23 @@ class TaskMaker
     end
   end
 
-
   def create_apply_task(depfile,outfileTask,settings)
     task "#{depfile}.apply" do |task|
-
       deps = task.deps
       if not deps and File.exists? depfile
       	begin
         	deps = YAML.load_file(depfile)
         	deps.map!{|d| File.relFromTo(d,settings.config.getProjectDir)} if deps
         rescue
-        	deps = nil
+        	deps = nil # may happen if depfile was not converted the last time
         end
       end
       if (deps)
-        outfileTask.enhance(deps) # needed if makefiles change sth after depTask
-        #depfileTask.enhance(deps[1..-1]) # todo: ist das überhaupt richtig?
+        outfileTask.enhance(deps)
       else
-        outfileTask.class
-        def needed?
+        def outfileTask.needed? 
           true
-        end
+	    end
       end
     end
 
@@ -90,66 +76,47 @@ class TaskMaker
     addToCleanTask(object)
 
     outfileTask = file object do
-      begin
-        sh cmd
-
-        if settings.toolchainSettings[:DEP_BY_GCC] == false
-          deps = ""
-          File.open(depfile, "r") do |infile|
-            while (line = infile.gets)
-              deps << line
-            end
+      sh cmd
+      if settings.toolchainSettings[:DEP_BY_GCC] == false
+        deps = ""
+        File.open(depfile, "r") do |infile|
+          while (line = infile.gets)
+            deps << line
           end
-
-          deps = deps.gsub(/\\\n/,'').split()[1..-1]
-          deps.map!{|d| File.relFromTo(d,::Dir.pwd,settings.config.getProjectDir)}
-          FileUtils.mkpath File.dirname(depfile)
-          File.open(depfile, 'wb') do |f|
-            f.write(deps.to_yaml)
-          end
-
         end
-
-      rescue
-        begin
-          puts "DELETE: #{depfile}"
-          FileUtils.rm(depfile) if File.exists?(depfile)
-        rescue Exception => ex
-          puts "Error: Could not delete #{depfile}: #{ex.message}"
-        end
-        raise
+        writeDepfile(deps, depfile, settings)
       end
     end
-
-
     outfileTask.showInGraph = true
     outfileTask.enhance(settings.configFiles)
-
+    outfileTask.enhance([outputdir])
+    
     if not File.exists? depfile
-      outfileTask.class
-      def needed?
+      def outfileTask.needed? 
         true
       end
     end
 
-    if settings.toolchainSettings[:DEP_BY_GCC] == true # g++ -MM has to be called
+    applyTask = create_apply_task(depfile,outfileTask,settings)
 
+    if settings.toolchainSettings[:DEP_BY_GCC] == true
       depfileTask = file depfile => source do
-        calcSourceDeps(depfile, source, settings, type)
+	    command = "g++ -MM #{settings.definesString[type]} #{settings.includeDirsString[type]} #{source}"
+	    puts command
+	    Thread.current[:stdout].syncFlush if Thread.current[:stdout] # nicer output if command raises an exception
+	    deps = `#{command}`
+	    raise "cannot calc dependencies of #{source}" if deps.length == 0
+		writeDepfile(deps, depfile, settings)        
       end
       depfileTask.showInGraph = true
-
-      outfileTask.enhance([depfileTask])
       depfileTask.enhance([outputdir])
       depfileTask.enhance(settings.configFiles)
 
-    else
-      outfileTask.enhance([outputdir])
+      outfileTask.enhance([depfileTask])
+	  applyTask.enhance([depfile])
     end
 
-    applyTask = create_apply_task(depfile,outfileTask,settings)
-    applyTask.enhance([depfile]) if settings.toolchainSettings[:DEP_BY_GCC]
-    outfileTask.enhance([applyTask])
+    outfileTask.enhance([applyTask]) # must be after outfileTask.enhance([depfileTask])
 
     return outfileTask
   end
@@ -168,12 +135,13 @@ class TaskMaker
         "#{settings.toolchainSettings[:MAKE][:FILE_FLAG]} " + # -f
         "#{File.basename(m[:FILENAME])}" # x/y/makfile
       end
-
+      def t.timestamp 
+        Rake::EARLY # makefiles do not trigger other tasks to run (at least directly...)
+      end
       tasks << t
       t.showInGraph = true
     end
-    return tasks if tasks.length > 0
-    return nil
+    tasks
   end
 
 
@@ -190,13 +158,21 @@ class TaskMaker
       end
       tasks << t
     end
-    return tasks if tasks.length > 0
-    return nil
+    tasks
   end
 
 
   # sequence of prerequisites is important, do not use drake!
   def create_project_task(settings, deps = nil)
+  	
+  	rootTask = task "Root task based on "+settings.name
+    if deps
+      deps.each do |d|
+        rootTask.enhance([create_project_task(d)])
+      end
+      @depSum = deps.length + 1
+    end
+  
     t = create_exe_task_internal(settings) if settings.type == :Executable
     t = create_archive_task_internal(settings) if settings.type == :Library
     t = task settings.name+" Custom" unless t
@@ -209,12 +185,6 @@ class TaskMaker
     directory outputdir
     t.enhance([outputdir])
 
-    if deps
-      deps.each do |d|
-        t.enhance([create_project_task(d)])
-      end
-      @depSum = deps.length + 1
-    end
 
 
     outputTaskname = task settings.name+ " OUTPUTTASKNAME" do
@@ -228,8 +198,7 @@ class TaskMaker
     @makefileCleaner.enhance(create_makefile_clean_tasks(settings))
 
     # makefile begin
-    mkBegin = create_makefile_tasks(settings,:BEGIN)
-    t.enhance(mkBegin) if mkBegin
+    t.enhance(create_makefile_tasks(settings,:BEGIN))
 
     # objects
     multi = multitask settings.name + " Parallel"
@@ -245,23 +214,24 @@ class TaskMaker
     t.enhance([multi]) if multi.prerequisites.length > 0
 
     # makefile mid
-    mkMid = create_makefile_tasks(settings,:MID)
-    t.enhance(mkMid) if mkMid
+    t.enhance(create_makefile_tasks(settings,:MID))
 
     # makefile end
     mkEnd = create_makefile_tasks(settings,:END)
-    if mkEnd != nil
-      mkEnd.each do |mfTask|
-        mfTask.enhance([t])
-      end
-      if mkEnd.length==1
-        return mkEnd[0]
-      else # we need a dummy task
-        allMkEnd = task settings.config.name+" Make After Link" => mkEnd
-        return allMkEnd
-      end
+    if mkEnd.length > 0
+	    mkEnd.each do |mfTask|
+	      mfTask.enhance([t])
+	    end
+	    if mkEnd.length==1
+	      rootTask.enhance(mkEnd[0])
+	    else # we need a dummy task
+	      allMkEnd = task settings.config.name+" Make After Link" => mkEnd
+	      rootTask.enhance([allMkEnd])
+	    end
+	else
+    	rootTask.enhance([t])
     end
-    return t
+    return rootTask
   end
 
 
@@ -318,9 +288,9 @@ class TaskMaker
       "#{settings.toolchainSettings[:LINKER][:LIB_POSTFIX_FLAGS]} " # "-Wl,--no-whole-archive "
     end
 
-    res.enhance([script]) if script != ""
+    res.enhance(settings.libsWithPath) # todo test: are that tasks???
+    res.enhance([script])
 
-    res.linkTask = true
     res.showInGraph = true
     return res
   end
