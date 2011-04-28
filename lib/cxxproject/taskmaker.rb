@@ -15,14 +15,15 @@ class TaskMaker
     CLEAN.include(name)
   end
 
-  def calcSourceDeps(depfile, sourceFull, settings, type)
-    command = "g++ -MM #{settings.definesString[type]} #{settings.includeDirsString[type]} #{sourceFull}"
+  def calcSourceDeps(depfile, source, settings, type)
+    command = "g++ -MM #{settings.definesString[type]} #{settings.includeDirsString[type]} #{source}"
 
-    p command
+    puts command
+    Thread.current[:stdout].syncFlush if Thread.current[:stdout] # nicer output if command raises an exception
     deps = `#{command}`
 
     if deps.length == 0
-      raise "cannot calc dependencies of #{sourceFull}"
+      raise "cannot calc dependencies of #{source}"
     end
 
     deps = deps.gsub(/\\\n/,'').split()[1..-1]
