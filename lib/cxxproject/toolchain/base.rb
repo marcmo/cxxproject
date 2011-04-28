@@ -70,7 +70,9 @@ module Cxxproject
           :DIR_FLAG => "-C",
           :TEST_FLAG => "-q",
           :CLEAN => "clean"
-        }
+        },
+        
+        :DEP_BY_GCC => true
       }
 
       def self.add(name, basedOn = nil)

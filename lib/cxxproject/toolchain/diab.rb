@@ -37,6 +37,8 @@ module Cxxproject
     DiabChainDebug[:LINKER][:FLAGS] = "-ulink_date_time -uResetConfigurationHalfWord -Wl,-Xstop-on-redeclaration -Wl,-Xstop-on-warning -tPPCE200Z6VEN:simple -Wl,-Xremove-unused-sections -Wl,-Xunused-sections-list"
     DiabChainDebug[:LINKER][:OUTPUT_ENDING] = ".elf"
 
+	DiabChainDebug[:DEP_BY_GCC] = false
+
     DiabChainRelease = Provider.add("Diab_Release", "Diab_Debug")
     DiabChainRelease[:COMPILER][:C][:FLAGS] = "-tPPCE200Z6VEN:simple -XO -Xsize-opt -Xsmall-const=0 -Xenum-is-best -Xsection-split -Xforce-declarations -Xmake-dependency=6"
 	DiabChainRelease[:COMPILER][:CPP][:FLAGS] = "-tPPCE200Z6VEN:simple -XO -Xsize-opt -Xsmall-const=0 -Xenum-is-best -Xrtti-off -Xexceptions-off -Xsection-split -Xmake-dependency=6"

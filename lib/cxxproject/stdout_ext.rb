@@ -1,22 +1,24 @@
 STDOUT.sync = true
 STDERR.sync = true
-$stdoutMutex = Mutex.new
+
 module ThreadOut
   
-  $stdoutMutex = Mutex.new
   def self.write(stuff)
-  	if Thread.current[:nostdout]
-  	  return
-  	end
-  
-  	$stdoutMutex.synchronize { 
-  		STDOUT.write stuff
-  	}
-  end
+    if Thread.current[:stdout] then
+      Thread.current[:stdout].write stuff 
+    else
+      STDOUT.write stuff
+    end
+  end  
 
   def self.puts(stuff)
-  	self.write(stuff)
-  end
+    if Thread.current[:stdout] then
+      Thread.current[:stdout].puts stuff 
+    else
+      STDOUT.puts stuff
+    end
+  end  
+
 end
 
 $stdout = ThreadOut

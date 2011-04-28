@@ -7,7 +7,7 @@ class TaskMaker
 
   def initialize()
     @makefileCleaner = task "makefileCleaner"
-    @depSum = 0
+    @depSum = 1
     @depCounter = 0
   end
 
@@ -17,6 +17,7 @@ class TaskMaker
 
   def calcSourceDeps(depfile, sourceFull, settings, type)
     command = "g++ -MM #{settings.definesString[type]} #{settings.includeDirsString[type]} #{sourceFull}"
+
     p command
     deps = `#{command}`
 
@@ -25,7 +26,6 @@ class TaskMaker
     end
 
     deps = deps.gsub(/\\\n/,'').split()[1..-1]
-
     Rake.application["#{depfile}.apply"].deps = deps.clone() # = no need to re-read the deps file
 
     deps.map!{|d| File.relFromTo(d,::Dir.pwd,settings.config.getProjectDir)}
@@ -36,19 +36,31 @@ class TaskMaker
   end
 
 
-  def create_apply_task(depfile,depfileTask,outfileTask,settings)
-    task "#{depfile}.apply" => depfile do |task|
+  def create_apply_task(depfile,outfileTask,settings)
+    task "#{depfile}.apply" do |task|
+
       deps = task.deps
-      if not deps
-        deps = YAML.load_file(depfile)
-        deps.map!{|d| File.relFromTo(d,settings.config.getProjectDir)}
+      if not deps and File.exists? depfile
+      	begin
+        	deps = YAML.load_file(depfile)
+        	deps.map!{|d| File.relFromTo(d,settings.config.getProjectDir)} if deps
+        rescue
+        	deps = nil
+        end
       end
       if (deps)
         outfileTask.enhance(deps) # needed if makefiles change sth after depTask
-        depfileTask.enhance(deps[1..-1])
+        #depfileTask.enhance(deps[1..-1]) # todo: ist das überhaupt richtig?
+      else
+        outfileTask.class
+        def needed?
+          true
+        end
       end
     end
+
   end
+
 
   def create_object_file_task(source, settings)
     type = settings.getSourceType(source)
@@ -59,18 +71,10 @@ class TaskMaker
     source = File.relFromTo(source,settings.config.getProjectDir)
     object = settings.getObjectName(source)
 
-    outputdir = settings.getOutputDir()
-    directory outputdir
+    outputdir = File.dirname(object)
+    directory  outputdir
 
-    depfile = "#{object}.d"
-
-    addToCleanTask(depfile)
-    addToCleanTask(object)
-
-    depfileTask = file depfile => source do
-      calcSourceDeps(depfile, source, settings, type)
-    end
-    depfileTask.showInGraph = true
+    depfile = settings.getDepfileName(object)
 
     cmd = "#{settings.toolchainSettings[:COMPILER][type][:COMMAND]} " + # g++
     "#{settings.toolchainSettings[:COMPILER][type][:COMPILE_FLAGS]} " + # -c
@@ -81,17 +85,70 @@ class TaskMaker
     "#{settings.toolchainSettings[:COMPILER][type][:OBJECT_FILE_FLAG]} " + # -o
     "#{object} " # debug/src/abc.o
 
-    outfileTask = file object => depfileTask do |t|
-      sh cmd
+    addToCleanTask(depfile)
+    addToCleanTask(object)
+
+    outfileTask = file object do
+      begin
+        sh cmd
+
+        if settings.toolchainSettings[:DEP_BY_GCC] == false
+          deps = ""
+          File.open(depfile, "r") do |infile|
+            while (line = infile.gets)
+              deps << line
+            end
+          end
+
+          deps = deps.gsub(/\\\n/,'').split()[1..-1]
+          deps.map!{|d| File.relFromTo(d,::Dir.pwd,settings.config.getProjectDir)}
+          FileUtils.mkpath File.dirname(depfile)
+          File.open(depfile, 'wb') do |f|
+            f.write(deps.to_yaml)
+          end
+
+        end
+
+      rescue
+        begin
+          puts "DELETE: #{depfile}"
+          FileUtils.rm(depfile) if File.exists?(depfile)
+        rescue Exception => ex
+          puts "Error: Could not delete #{depfile}: #{ex.message}"
+        end
+        raise
+      end
     end
+
+
     outfileTask.showInGraph = true
-
-    outfileTask.enhance([create_apply_task(depfile,depfileTask,outfileTask,settings)])
-
-    depfileTask.enhance([outputdir])
-
     outfileTask.enhance(settings.configFiles)
-    depfileTask.enhance(settings.configFiles)
+
+    if not File.exists? depfile
+      outfileTask.class
+      def needed?
+        true
+      end
+    end
+
+    if settings.toolchainSettings[:DEP_BY_GCC] == true # g++ -MM has to be called
+
+      depfileTask = file depfile => source do
+        calcSourceDeps(depfile, source, settings, type)
+      end
+      depfileTask.showInGraph = true
+
+      outfileTask.enhance([depfileTask])
+      depfileTask.enhance([outputdir])
+      depfileTask.enhance(settings.configFiles)
+
+    else
+      outfileTask.enhance([outputdir])
+    end
+
+    applyTask = create_apply_task(depfile,outfileTask,settings)
+    applyTask.enhance([depfile]) if settings.toolchainSettings[:DEP_BY_GCC]
+    outfileTask.enhance([applyTask])
 
     return outfileTask
   end
@@ -101,18 +158,16 @@ class TaskMaker
     tasks = []
     settings.makefiles[type].each do |m|
       t = task m[:FILENAME] +" Build" do |x|
-      
         sh "#{settings.toolchainSettings[:MAKE][:COMMAND]} " + # make
-		  "#{m[:TARGET]} " + # all
-		  "#{settings.toolchainSettings[:MAKE][:MAKE_FLAGS]} " + # ??
-		  "#{settings.toolchainSettings[:MAKE][:FLAGS]} " + # -j
-		  "#{settings.toolchainSettings[:MAKE][:DIR_FLAG]} " + # -C
-		  "#{File.dirname(m[:FILENAME])} " + # x/y
-		  "#{settings.toolchainSettings[:MAKE][:FILE_FLAG]} " + # -f
-		  "#{File.basename(m[:FILENAME])}" # x/y/makfile
-        
-      end  
-        
+        "#{m[:TARGET]} " + # all
+        "#{settings.toolchainSettings[:MAKE][:MAKE_FLAGS]} " + # ??
+        "#{settings.toolchainSettings[:MAKE][:FLAGS]} " + # -j
+        "#{settings.toolchainSettings[:MAKE][:DIR_FLAG]} " + # -C
+        "#{File.dirname(m[:FILENAME])} " + # x/y
+        "#{settings.toolchainSettings[:MAKE][:FILE_FLAG]} " + # -f
+        "#{File.basename(m[:FILENAME])}" # x/y/makfile
+      end
+
       tasks << t
       t.showInGraph = true
     end
@@ -159,15 +214,15 @@ class TaskMaker
       end
       @depSum = deps.length + 1
     end
-    
 
-	outputTaskname = task settings.name+ " OUTPUTTASKNAME" do
-		@depCounter = @depCounter + 1
-		puts "**** Building: #{settings.name} (#{@depCounter} of #{@depSum}) ****"
-	end
-	 
-   	t.enhance([outputTaskname])
-    
+
+    outputTaskname = task settings.name+ " OUTPUTTASKNAME" do
+      @depCounter = @depCounter + 1
+      puts "**** Building: #{settings.name} (#{@depCounter} of #{@depSum}) ****"
+    end
+
+    t.enhance([outputTaskname])
+
     # makefile clean
     @makefileCleaner.enhance(create_makefile_clean_tasks(settings))
 
@@ -250,7 +305,7 @@ class TaskMaker
       "#{settings.sources.map{|s| settings.getObjectName(s)}.join(" ")} " + # debug/src/abc.o
 
       "#{script} " +
-      
+
       "#{mapfile} " +
 
       "#{libPaths} " +
@@ -264,7 +319,7 @@ class TaskMaker
 
     res.enhance([script]) if script != ""
 
-	res.linkTask = true
+    res.linkTask = true
     res.showInGraph = true
     return res
   end

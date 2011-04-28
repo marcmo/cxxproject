@@ -2,6 +2,21 @@ require 'rake'
 
 module Rake
 
+  class SyncStringIO < StringIO
+  	def initialize(mutex)
+  		super()
+  		@mutex = mutex
+  	end
+  	
+  	def syncFlush
+  		if string.length > 0
+  			@mutex.synchronize { STDOUT.write string; truncate(0); rewind}
+  		end       
+  	end
+  	
+  end
+  
+
   #############
   # - Limit parallel tasks
   #############
@@ -20,9 +35,13 @@ module Rake
         threads << Thread.new(jobqueue) { |jq|
         	while true do
 	            p = nil
-        		m.synchronize() { p = jq.shift }
+        		m.synchronize { p = jq.shift }
         		break unless p
+        		
+        		s = SyncStringIO.new(m)
+        		Thread.current[:stdout] = s
         		application[p].invoke_with_call_chain(args, invocation_chain)
+        		s.syncFlush
         	end
         }
       }
@@ -80,6 +99,7 @@ module Rake
         end
         @failure = true
       end
+      Thread.current[:stdout].syncFlush if Thread.current[:stdout]
     end
     
     define_method(:timestamp) do

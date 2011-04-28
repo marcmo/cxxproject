@@ -60,6 +60,10 @@ class ProjectSettings
     File.relFromTo(getOutputDir + "/" + s + ".o",projectDir)
   end
 
+  def getDepfileName(object)
+    object.chomp(File.extname(object)) + ".d"
+  end
+
   def getSourceType(source)
     ex = File.extname(source)
     [:CPP, :C, :ASM].each do |t|
