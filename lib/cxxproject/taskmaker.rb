@@ -6,8 +6,9 @@ class TaskMaker
   attr_reader :makefileCleaner
 
   def initialize()
-    @makefileCleaner = task "makefileCleaner" do |t|
-    end
+    @makefileCleaner = task "makefileCleaner"
+    @depSum = 0
+    @depCounter = 0
   end
 
   def addToCleanTask(name)
@@ -25,7 +26,7 @@ class TaskMaker
 
     deps = deps.gsub(/\\\n/,'').split()[1..-1]
 
-    Rake.application["#{depfile}.apply"].deps = deps.clone() # = no need re-read the deps file
+    Rake.application["#{depfile}.apply"].deps = deps.clone() # = no need to re-read the deps file
 
     deps.map!{|d| File.relFromTo(d,::Dir.pwd,settings.config.getProjectDir)}
     FileUtils.mkpath File.dirname(depfile)
@@ -100,15 +101,18 @@ class TaskMaker
     tasks = []
     settings.makefiles[type].each do |m|
       t = task m[:FILENAME] +" Build" do |x|
+      
         sh "#{settings.toolchainSettings[:MAKE][:COMMAND]} " + # make
-        "#{m[:TARGET]} " + # all
-        "#{settings.toolchainSettings[:MAKE][:MAKE_FLAGS]} " + # ??
-        "#{settings.toolchainSettings[:MAKE][:FLAGS]} " + # -j
-        "#{settings.toolchainSettings[:MAKE][:DIR_FLAG]} " + # -C
-        "#{File.dirname(m[:FILENAME])} " + # x/y
-        "#{settings.toolchainSettings[:MAKE][:FILE_FLAG]} " + # -f
-        "#{File.basename(m[:FILENAME])}" # x/y/makfile
-      end
+		  "#{m[:TARGET]} " + # all
+		  "#{settings.toolchainSettings[:MAKE][:MAKE_FLAGS]} " + # ??
+		  "#{settings.toolchainSettings[:MAKE][:FLAGS]} " + # -j
+		  "#{settings.toolchainSettings[:MAKE][:DIR_FLAG]} " + # -C
+		  "#{File.dirname(m[:FILENAME])} " + # x/y
+		  "#{settings.toolchainSettings[:MAKE][:FILE_FLAG]} " + # -f
+		  "#{File.basename(m[:FILENAME])}" # x/y/makfile
+        
+      end  
+        
       tasks << t
       t.showInGraph = true
     end
@@ -149,14 +153,23 @@ class TaskMaker
     directory outputdir
     t.enhance([outputdir])
 
-    # makefile clean
-    @makefileCleaner.enhance(create_makefile_clean_tasks(settings))
-
     if deps
       deps.each do |d|
         t.enhance([create_project_task(d)])
       end
+      @depSum = deps.length + 1
     end
+    
+
+	outputTaskname = task settings.name+ " OUTPUTTASKNAME" do
+		@depCounter = @depCounter + 1
+		puts "**** Building: #{settings.name} (#{@depCounter} of #{@depSum}) ****"
+	end
+	 
+   	t.enhance([outputTaskname])
+    
+    # makefile clean
+    @makefileCleaner.enhance(create_makefile_clean_tasks(settings))
 
     # makefile begin
     mkBegin = create_makefile_tasks(settings,:BEGIN)
@@ -251,6 +264,7 @@ class TaskMaker
 
     res.enhance([script]) if script != ""
 
+	res.linkTask = true
     res.showInGraph = true
     return res
   end

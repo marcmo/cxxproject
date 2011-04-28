@@ -68,14 +68,19 @@ module Cxxproject
           :FLAGS => "-j",
           :FILE_FLAG => "-f",
           :DIR_FLAG => "-C",
+          :TEST_FLAG => "-q",
           :CLEAN => "clean"
         }
       }
 
-      def self.add(name)
-        chain = Marshal.load(Marshal.dump(@@default))
+      def self.add(name, basedOn = nil)
+        chain = Marshal.load(Marshal.dump(basedOn.nil? ? @@default : @@settings[basedOn]))
         @@settings[name] = chain
         chain
+      end
+      
+      def self.default
+      	@@default
       end
     end
 

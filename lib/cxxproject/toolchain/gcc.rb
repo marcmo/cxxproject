@@ -14,9 +14,12 @@ module Cxxproject
     })
 
     GCCChain[:COMPILER][:C] = GCCChain[:COMPILER][:CPP]
+    GCCChain[:COMPILER][:C][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:C][:SOURCE_FILE_ENDINGS]
     GCCChain[:COMPILER][:C][:COMMAND] = "gcc"
 
+	tmp = GCCChain[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS]
     GCCChain[:COMPILER][:ASM] = GCCChain[:COMPILER][:C]
+    GCCChain[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS]
 
     GCCChain[:ARCHIVER][:COMMAND] = "ar"
     GCCChain[:ARCHIVER][:ARCHIVE_FLAGS] = "-r"
