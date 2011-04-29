@@ -3,7 +3,6 @@ require 'pp'
 require 'pathname'
 require 'cxxproject/rake_ext'
 
-
 # class which converts cxx-projects to rake-tasks
 # can be used in a rakefile like:
 # require 'cxxproject'
@@ -23,7 +22,7 @@ class CxxProject2Rake
     @log.debug "projects: #{projects}"
     register_projects(projects)
     define_project_info_task()
-    convert_to_rake(projects)
+    convert_to_rake_tasks(projects)
   end
 
   def define_project_info_task
@@ -49,38 +48,19 @@ class CxxProject2Rake
           raise "project config invalid for #{project_file}" unless loadContext.name
           project = loadContext.myblock.call()
           project.base = File.join(@base, base_dir)
-          project.to_s
         end
       end
     end
   end
 
-  def build_source_lib(lib,compiler)
-    @log.debug "building source lib"
-    objects = lib.sources.map do |s|
-      compiler.create_object_file(lib, s, @base)
-    end
-    t = multitask "multitask_#{lib}" => objects
-    compiler.create_source_lib(lib, t)
-  end
+private
 
-  def build_exe(exe,compiler,projects)
-    objects = exe.sources.map do |s|
-      compiler.create_object_file(exe, s, @base)
-    end
-    t = multitask "multitask_#{exe}"  => objects
-    compiler.create_exe(exe, t,projects)
-  end
-
-
-  def convert_to_rake(projects)
-    @log.debug "convert to rake"
+  def convert_to_rake_tasks(projects)
     ALL_BUILDING_BLOCKS.values.each do |building_block|
-      @log.debug "convert to rake2: #{building_block}"
       if (building_block.instance_of?(SourceLibrary)) then
-        build_source_lib(building_block,@compiler)
+        build_source_lib_task(building_block,@compiler)
       elsif (building_block.instance_of?(Exe)) then
-        build_exe(building_block,@compiler,projects)
+        build_exe_task(building_block,@compiler,projects)
       elsif (building_block.instance_of?(BinaryLibrary)) then
       else
         raise 'unknown building_block'
@@ -89,6 +69,24 @@ class CxxProject2Rake
     task :default => ALL.to_a do
     end
   end
+
+  def build_source_lib_task(lib,compiler)
+    @log.debug "building source lib"
+    objects = lib.sources.map do |s|
+      compiler.create_object_file_task(lib, s, @base)
+    end
+    t = multitask "multitask_#{lib}" => objects
+    compiler.create_source_lib(lib, t)
+  end
+
+  def build_exe_task(exe,compiler,projects)
+    objects = exe.sources.map do |s|
+      compiler.create_object_file_task(exe, s, @base)
+    end
+    t = multitask "multitask_#{exe}"  => objects
+    compiler.create_exe_task(exe, t,projects)
+  end
+
 end
 
 class EvalContext

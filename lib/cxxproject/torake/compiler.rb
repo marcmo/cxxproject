@@ -83,7 +83,7 @@ class Compiler
   end
 
   def include_string(d)
-    includes = transitive_includes(d)
+    includes = transitive_includes(d).uniq
     @log.debug "------------> #{includes}"
     includes.inject('') { | res, i | "#{res} -I#{i} " }
   end
@@ -114,7 +114,7 @@ class Compiler
     File.join(@output_path, type_to_path(type), "#{source.remove_from_start(base)}.#{type_to_ending(type)}")
   end
 
-  def create_object_file(lib, relative_source, base)
+  def create_object_file_task(lib, relative_source, base)
     defines = get_defines
     source = File.join(lib.base, relative_source)
     out = output_filename(source, :object, base)
@@ -163,7 +163,7 @@ class Compiler
 
   def create_source_lib(lib, objects)
     fullpath = static_lib_path(lib.name)
-    @log.info "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - create source lib:#{fullpath}"
+    @log.info "create source lib:#{fullpath}"
     command = objects.prerequisites.inject("ar -r #{fullpath}") do |command, o|
       "#{command} #{o}"
     end
@@ -173,7 +173,7 @@ class Compiler
     deps += lib.dependencies.map {|dep|get_path_for_lib(dep)}.flatten
     desc "link lib #{lib.name}"
     res = file fullpath => deps do
-      @log.info "\n- - - - - - - - - - - - - - - - - - - - \nlink #{lib.name}\n- - - - - - - - - - - - - - - - - - - - "
+      @log.info "\nlink #{lib.name}\n"
       sh command
     end
     return res
@@ -220,7 +220,7 @@ class Compiler
   LibPrefix='-Wl,--whole-archive'
   LibPostfix='-Wl,--no-whole-archive'
 
-  def create_exe(exe, objects,projects)
+  def create_exe_task(exe, objects,projects)
     exename = "#{exe.name}.exe"
     fullpath = File.join(@output_path, exename)
     command = objects.prerequisites.inject("g++ -all_load #{get_linker_flags} -o #{fullpath}") do |command, o|
