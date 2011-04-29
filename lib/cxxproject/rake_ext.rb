@@ -57,7 +57,7 @@ module Rake
 	        rescue
 	          warn "file deletion did not work"
 	        end
-	     	$logger.error("#{@name} not built/cleaned correctly")
+	     	warn "#{@name} not built/cleaned correctly, #{ex.message}"
 	    	@failure = true
 	    end
 	    

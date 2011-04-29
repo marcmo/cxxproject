@@ -3,6 +3,7 @@ $toolchainSettings = {}
 # the following toolchains are provided by cxxproject
 require 'cxxproject/toolchain/gcc'
 require 'cxxproject/toolchain/diab'
+require 'cxxproject/file_ext'
 
 class ProjectSettings
   attr_reader :projectDir, :outputDir, :name, :type

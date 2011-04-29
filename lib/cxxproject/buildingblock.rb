@@ -6,14 +6,20 @@ ALL_BUILDING_BLOCKS = {}
 class BuildingBlock
   attr_accessor :name, :base
   attr_reader :dependencies
+  attr_accessor :compiler
+  attr_accessor :lib
+  attr_accessor :base
+  attr_accessor :outdir
 
   def initialize(name)
     @name = name
     @dependencies = []
     ALL_BUILDING_BLOCKS[@name] = self
+    puts "initialize buildingblock, all was: #{ALL_BUILDING_BLOCKS.inspect}"
   end
 
   def set_dependencies(deps)
+    puts "set_dependencies ...#{deps.inspect}"
     @dependencies = deps.map do |dep|
       if dep.instance_of?(String)
         dep
