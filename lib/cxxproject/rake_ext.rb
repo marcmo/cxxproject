@@ -1,4 +1,5 @@
 require 'rake'
+require 'thread'
 
 module Rake
 	
@@ -16,7 +17,11 @@ module Rake
 	end
 
 	$queue = Queue.new
-	$queue << "" << "" << "" << "" << "" << ""
+	$queue << ""
+	$queue << ""
+	$queue << ""
+	$queue << ""
+	$queue << ""
 
 	#############
 	# - Limit parallel tasks

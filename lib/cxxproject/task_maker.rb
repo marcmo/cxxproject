@@ -8,10 +8,12 @@ class TaskMaker
   attr_reader :output_path
 
   # building_block_map is a mapping from unique names to building blocks
-  def initialize(output_path, building_block_map, compiler_config)
+  def initialize(output_path, building_block_map, toolchain)
     @log = Logger.new(STDOUT)
     @log.level = Logger::INFO
-    @compiler = compiler_config
+    @compiler = toolchain[:COMPILER][:CPP]
+    @linker = toolchain[:LINKER]
+    @deptool = toolchain[:DEPENDENCY]
     @output_path = output_path
     @includes = []
     CLOBBER.include(output_path)
@@ -62,7 +64,7 @@ class TaskMaker
     res = Dependencies.transitive_dependencies([from.name]).delete_if{|i|i.instance_of?(Exe)}.map do |i|
       if (i.instance_of?(BinaryLibrary))
         path = binary_lib_path(i)
-        "-L#{File.dirname(path)} -l#{i.name}"
+        "#{@linker[:LIB_PATH_FLAG]}#{File.dirname(path)} #{@linker[:LIB_FLAG]}#{i.name}"
       else
         "#{@output_path}/lib#{i.name}.a"
       end
@@ -73,17 +75,17 @@ class TaskMaker
   def include_string(d)
     includes = transitive_includes(d).uniq
     @log.debug "------------> #{includes}"
-    includes.inject('') { | res, i | "#{res} -I#{i} " }
+    includes.inject('') { | res, i | "#{res} #{@compiler[:INCLUDE_PATH_FLAG]}#{i} " }
   end
 
-  def get_flags
-    @flags.map{ |f| "-#{f}"}.join(' ')
+  def flags_string(flags)
+    flags.map{ |f| "-#{f}"}.join(' ')
   end
   def get_linker_flags
     @linker_flags.map{ |f| "-#{f}"}.join(' ')
   end
   def get_defines
-    @defines.map{ |i| "-D#{i}"}.join(' ')
+    @defines.map{ |i| "#{@compiler[:DEFINE_FLAG]}#{i}"}.join(' ')
   end
   def type_to_path(type)
     return "#{type.to_s}s"
@@ -100,6 +102,20 @@ class TaskMaker
 
   def output_filename(source, type, base)
     File.join(@output_path, type_to_path(type), "#{source.remove_from_start(base)}.#{type_to_ending(type)}")
+  end
+
+  def create_tasks_for_building_blocks(building_block, project_configs, base)
+    @log.debug "create_tasks_for_building_blocks: #{building_block}"
+    if (building_block.instance_of?(SourceLibrary)) then
+      build_source_lib_task(building_block, base)
+    elsif (building_block.instance_of?(Exe)) then
+      build_exe_task(building_block, project_configs, base)
+    elsif (building_block.instance_of?(BinaryLibrary)) then
+    elsif (building_block.instance_of?(CustomBuildingBlock)) then
+    elsif (building_block.instance_of?(SingleSourceBlock)) then
+    else
+      raise 'unknown building_block'
+    end
   end
 
   def build_source_lib_task(lib, base)
@@ -119,18 +135,6 @@ class TaskMaker
     create_exe_task(exe, t, project_configs)
   end
 
-  def create_tasks_for_building_blocks(building_block, project_configs, base)
-    @log.debug "convert to rake2: #{building_block}"
-    if (building_block.instance_of?(SourceLibrary)) then
-      build_source_lib_task(building_block, base)
-    elsif (building_block.instance_of?(Exe)) then
-      build_exe_task(building_block, project_configs, base)
-    elsif (building_block.instance_of?(BinaryLibrary)) then
-    else
-      raise 'unknown building_block'
-    end
-  end
-
   def create_object_file_task(lib, relative_source, base)
     defines = get_defines
     source = File.join(lib.base, relative_source)
@@ -141,8 +145,15 @@ class TaskMaker
     depfileTask = file depfile => source do
       calc_dependencies(depfile, defines, include_string(lib),source)
     end
+    command = [@compiler[:COMMAND],
+               @compiler[:COMPILE_FLAGS],
+               source,
+               include_string(lib),
+               defines,
+               flags_string(@flags),
+               @compiler[:OBJECT_FILE_FLAG]].join(' ')
     outfileTask = file out => depfile do |t|
-      sh "#{@compiler[:command]} -c #{source} #{include_string(lib)} #{defines} #{get_flags} -o #{t.name}"
+      sh "#{command} #{t.name}"
     end
     applyTask = create_apply_task(depfile,depfileTask,outfileTask)
     outfileTask.enhance([applyTask])
@@ -162,7 +173,11 @@ class TaskMaker
 
   def calc_dependencies(depFile, define_string, include_string, source)
     @log.info "calc_dependencies for #{depFile}"
-    command = "#{@compiler[:command]} -MM #{define_string} #{include_string} #{source}"
+    command = [@deptool[:COMMAND],
+               @deptool[:FLAGS],
+               define_string,
+               include_string,
+               source].join(' ')
     deps = nil
     @benchmark = @benchmark + Benchmark.realtime do
       deps = `#{command}`
@@ -193,7 +208,41 @@ class TaskMaker
       @log.info "\nlink #{lib.name}\n"
       sh command
     end
+    res
+  end
+
+  LibPrefix='-Wl,--whole-archive'
+  LibPostfix='-Wl,--no-whole-archive'
+
+  def create_exe_task(exe, objects,project_configs)
+    exename = "#{exe.name}.exe"
+    fullpath = File.join(@output_path, exename)
+    base_command = [@linker[:COMMAND], @linker[:FLAGS], @linker[:EXE_FLAG], fullpath].join(' ')
+    command = objects.prerequisites.inject(base_command) do |command, o|
+      "#{command} #{o}"
+    end
+    dep_paths = exe.dependencies.map {|dep|get_path_for_lib(dep)}.flatten
+    register(fullpath)
+    deps = [objects].dup
+    deps += dep_paths
+    executableName = File.basename(exe.name)
+    desc "link executable #{executableName}"
+    task executableName.to_sym => fullpath
+    res = file fullpath => deps + project_configs do
+      command += " #{LibPrefix} " if OS.linux?
+      command = transitive_libs(exe).inject(command) {|command,l|"#{command} #{l}"}
+      command += " #{LibPostfix}" if OS.linux?
+      sh command
+    end
+    create_run_task(fullpath, project_configs)
     return res
+  end
+  
+  def create_run_task(p, project_configs)
+    desc "run executable"
+    task :run => project_configs << p do
+      sh "#{p}"
+    end
   end
 
   def get_libendings_defaults
@@ -233,38 +282,4 @@ class TaskMaker
       static_lib_path(lib.name)
     end
   end
-
-  LibPrefix='-Wl,--whole-archive'
-  LibPostfix='-Wl,--no-whole-archive'
-
-  def create_exe_task(exe, objects,project_configs)
-    exename = "#{exe.name}.exe"
-    fullpath = File.join(@output_path, exename)
-    command = objects.prerequisites.inject("#{@compiler[:command]} -all_load #{get_linker_flags} -o #{fullpath}") do |command, o|
-      "#{command} #{o}"
-    end
-    dep_paths = exe.dependencies.map {|dep|get_path_for_lib(dep)}.flatten
-    register(fullpath)
-    deps = [objects].dup
-    deps += dep_paths
-    executableName = File.basename(exe.name)
-    desc "link executable #{executableName}"
-    task executableName.to_sym => fullpath
-    res = file fullpath => deps + project_configs do
-      command += " #{LibPrefix} " if OS.linux?
-      command = transitive_libs(exe).inject(command) {|command,l|"#{command} #{l}"}
-      command += " #{LibPostfix}" if OS.linux?
-      sh command
-    end
-    create_run_task(fullpath, project_configs)
-    return res
-  end
-  
-  def create_run_task(p, project_configs)
-    desc "run executable"
-    task :run => project_configs << p do
-      sh "#{p}"
-    end
-  end
-
 end

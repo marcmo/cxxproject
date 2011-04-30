@@ -29,5 +29,8 @@ module Cxxproject
     GCCChain[:LINKER][:LIB_PATH_FLAG] = "-L"
     GCCChain[:LINKER][:FLAGS] = "-all_load"
 
+    GCCChain[:DEPENDENCY][:COMMAND] = "g++"
+    GCCChain[:DEPENDENCY][:FLAGS] = "-MM"
+
   end
 end

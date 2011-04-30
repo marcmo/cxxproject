@@ -14,24 +14,32 @@ class CxxProject2Rake
   attr_accessor :base
   attr_reader :root_task
 
-  def initialize(projects, compiler, base='./', logLevel=Logger::ERROR)
+  def initialize(projects, compiler, base='.', logLevel=Logger::ERROR, norun=false)
+    puts "CxxProject2Rake, in constructor"
     @log = Logger.new(STDOUT)
     @log.level = logLevel
     @log.debug "starting..."
     @base = base
+    instantiate_tasks(projects, compiler, base) unless norun
+  end
 
-    compiler_config_gcc = { :command => "g++" }
-    
+  def instantiate_tasks(projects, compiler, base='./')
     project_configs = projects.map { |p| p.remove_from_start(base) }
     @log.debug "project_configs: #{project_configs}"
     register_projects(project_configs)
     define_project_info_task()
-    task_maker = TaskMaker.new(compiler.output_path, ALL_BUILDING_BLOCKS, compiler_config_gcc)
-    task_maker.set_loglevel(logLevel);
-    ALL_BUILDING_BLOCKS.values.each do |block|
-      task_maker.create_tasks_for_building_blocks(block, project_configs, base)
+    gcc = Cxxproject::Toolchain::GCCChain
+    task_maker = TaskMaker.new(compiler.output_path, ALL_BUILDING_BLOCKS, gcc)
+    task_maker.set_loglevel(@log.level);
+    tasks = []
+    ALL_BUILDING_BLOCKS.each do |name,block|
+      puts "creating task for block: #{block}"
+      t = task_maker.create_tasks_for_building_blocks(block, project_configs, base)
+      if (t != nil)
+        tasks << { :task => t, :name => name }
+      end
     end
-
+    tasks
   end
 
   def register_projects(projects)
@@ -111,21 +119,21 @@ class EvalContext
   def exe(name, hash)
     raise "not a hash" unless hash.is_a?(Hash)
     check_hash hash,[:sources,:includes,:dependencies]
-    exe = Exe.new(name)
-    exe.set_sources(hash[:sources]) if hash.has_key?(:sources)
-    exe.set_includes(hash[:includes]) if hash.has_key?(:includes)
-    exe.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
-    exe
+    bblock = Exe.new(name)
+    bblock.set_sources(hash[:sources]) if hash.has_key?(:sources)
+    bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
+    bblock.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
+    bblock
   end
 
   def source_lib(name, hash)
     raise "not a hash" unless hash.is_a?(Hash)
     check_hash hash,[:sources,:includes,:dependencies]
     raise ":sources need to be defined" unless hash.has_key?(:sources)
-    exe = SourceLibrary.new(name).set_sources(hash[:sources])
-    exe.set_includes(hash[:includes]) if hash.has_key?(:includes)
-    exe.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
-    exe
+    bblock = SourceLibrary.new(name).set_sources(hash[:sources])
+    bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
+    bblock.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
+    bblock
   end
 
 end

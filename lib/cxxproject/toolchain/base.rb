@@ -69,7 +69,15 @@ module Cxxproject
           :FILE_FLAG => "-f",
           :DIR_FLAG => "-C",
           :CLEAN => "clean"
+        },
+
+
+        :DEPENDENCY =>
+        {
+          :COMMAND => "",
+          :FLAGS => ""
         }
+
       }
 
       def self.add(name)

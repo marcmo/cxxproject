@@ -15,11 +15,9 @@ class BuildingBlock
     @name = name
     @dependencies = []
     ALL_BUILDING_BLOCKS[@name] = self
-    puts "initialize buildingblock, all was: #{ALL_BUILDING_BLOCKS.inspect}"
   end
 
   def set_dependencies(deps)
-    puts "set_dependencies ...#{deps.inspect}"
     @dependencies = deps.map do |dep|
       if dep.instance_of?(String)
         dep
@@ -31,10 +29,21 @@ class BuildingBlock
   end
 end
 
+class CustomBuildingBlock < BuildingBlock
+  attr_reader :custom_command
+  def initialize(name)
+    super(name)
+  end
+  def set_custom_command(c)
+    @custom_command = c
+    self
+  end
+end
+
 class LibraryBuildingBlock < BuildingBlock
   attr_reader :includes
   def initialize(name)
-    super
+    super(name)
   end
   def set_includes(i)
     i.each { |f| raise "include folder does not exist #{f}" unless File.exist?(f)}
@@ -69,6 +78,12 @@ class SourceBuildingBlock < LibraryBuildingBlock
   end
 end
 
+class SingleSourceBlock < SourceBuildingBlock
+  def initialize(name)
+    super
+  end
+end
+
 class SourceLibrary < SourceBuildingBlock
   def initialize(name)
     super
@@ -77,7 +92,7 @@ end
 
 class Exe < SourceBuildingBlock
   def initialize(name)
-    super
+    super(name)
   end
 end
 
