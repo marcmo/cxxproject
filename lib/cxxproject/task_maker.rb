@@ -52,26 +52,36 @@ class TaskMaker
     elsif (building_block.instance_of?(BinaryLibrary)) then
     elsif (building_block.instance_of?(CustomBuildingBlock)) then
     elsif (building_block.instance_of?(SingleSourceBlock)) then
+      build_source_only_task(building_block, base)
     else
       raise 'unknown building_block'
     end
   end
 
-  def build_source_lib_task(lib, base)
-    @log.debug "building source lib"
-    objects = lib.sources.map do |s|
+  def build_source_only_task(lib, base)
+    @log.debug "building sources only"
+    object_tasks = lib.sources.map do |s|
       create_object_file_task(lib, s, base)
     end
-    t = multitask "multitask_#{lib}" => objects
-    create_source_lib(lib, objects, t)
+    desc "compile sources only"
+    multitask "multitask_#{lib.name}" => object_tasks
+  end
+
+  def build_source_lib_task(lib, base)
+    @log.debug "building source lib"
+    object_tasks = lib.sources.map do |s|
+      create_object_file_task(lib, s, base)
+    end
+    t = multitask "multitask_#{lib}" => object_tasks
+    create_source_lib(lib, object_tasks, t)
   end
 
   def build_exe_task(exe, project_configs, base)
-    objects = exe.sources.map do |s|
+    object_tasks = exe.sources.map do |s|
       create_object_file_task(exe, s, base)
     end
-    t = multitask "multitask_#{exe}"  => objects
-    create_exe_task(exe, objects, t, project_configs)
+    t = multitask "multitask_#{exe}"  => object_tasks
+    create_exe_task(exe, object_tasks, t, project_configs)
   end
 
   # a task will be created that can be used to compile a source file into an object file
@@ -153,10 +163,10 @@ class TaskMaker
 
   # task that will link the given object files to a static lib
   #
-  def create_source_lib(lib, objects, object_multitask)
+  def create_source_lib(lib, object_tasks, object_multitask)
     fullpath = static_lib_path(lib.name)
     @log.info "create source lib:#{fullpath}"
-    command = objects.inject("ar -r #{fullpath}") do |command, o|
+    command = object_tasks.inject("ar -r #{fullpath}") do |command, o|
       "#{command} #{o}"
     end
     @log.debug "command will be: #{command}"
@@ -176,11 +186,11 @@ class TaskMaker
 
   # create a task that will link an executable from a set of object files
   #
-  def create_exe_task(exe, objects, object_multitask, project_configs)
+  def create_exe_task(exe, object_tasks, object_multitask, project_configs)
     exename = "#{exe.name}.exe"
     fullpath = File.join(@output_path, exename)
     base_command = [@linker[:COMMAND], @linker[:FLAGS], @linker[:EXE_FLAG], fullpath].join(' ')
-    command = objects.inject(base_command) do |command, o|
+    command = object_tasks.inject(base_command) do |command, o|
       "#{command} #{o}"
     end
     dep_paths = exe.dependencies.map {|dep|get_path_for_lib(dep)}.flatten

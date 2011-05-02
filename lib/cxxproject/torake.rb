@@ -14,6 +14,41 @@ class CxxProject2Rake
   attr_accessor :base
   attr_reader :root_task
 
+  def print_pres(tt)
+    dirty_count = 0
+    inner = lambda do |t,level|
+      s = ""
+      if t.needed? && tt.instance_of?(FileTask) then
+        level.times { s = s + "xxx" }
+        puts "#{s} #{level}.level: #{task2string(t)}, deps:#{t.prerequisites}"
+      else 
+        level.times { s = s + "---" }
+        # puts "#{s} #{level}.level: #{task2string(t)}"
+      end
+      dirty_count += 1 unless !(t.instance_of?(FileTask) && t.needed?)
+      prerequisites = prerequisites_if_any(t)
+      prerequisites.each do |p|
+        x = t.application[p, t.scope]
+        inner.call(x,level+1)
+      end
+    end
+    inner.call(tt,0)
+    dirty_count
+  end
+  def prerequisites_if_any(t)
+    if t.respond_to?('prerequisites')
+      t.prerequisites
+    else
+      []
+    end
+  end
+  def task2string(t)
+    if t.instance_of?(FileTask)
+      t.name
+    else
+      File.basename(t.name)
+    end
+  end
   def initialize(projects, compiler, base='.', logLevel=Logger::ERROR, norun=false)
     puts "CxxProject2Rake, in constructor"
     @log = Logger.new(STDOUT)
@@ -39,6 +74,7 @@ class CxxProject2Rake
         tasks << { :task => t, :name => name }
       end
     end
+    # tasks.each { |t| print_pres(t[:task]) }
     tasks
   end
 
@@ -133,6 +169,15 @@ class EvalContext
     bblock = SourceLibrary.new(name).set_sources(hash[:sources])
     bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
     bblock.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
+    bblock
+  end
+
+  def compile(name, hash)
+    raise "not a hash" unless hash.is_a?(Hash)
+    check_hash hash,[:sources,:includes]
+    bblock = SingleSourceBlock.new(name)
+    bblock.set_sources(hash[:sources]) if hash.has_key?(:sources)
+    bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
     bblock
   end
 

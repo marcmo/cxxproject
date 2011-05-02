@@ -63,7 +63,7 @@ describe CxxProject2Rake do
   it 'should execute only one action when one file was changed' do
     cd('../testdata/onlyOneHeader', :verbose => false) do
       compiler = GccCompiler.new('output')
-      cxx = CxxProject2Rake.new(Dir.glob('**/project.rb'), compiler, '.', Logger::ERROR, true)
+      cxx = CxxProject2Rake.new(Dir.glob('**/project.rb'), compiler, './', Logger::ERROR, true)
       tasks = cxx.instantiate_tasks(Dir.glob('**/project.rb'), compiler)
       puts "tasks: #{tasks.inspect}"
       gw = GraphWriter.new()
@@ -72,9 +72,11 @@ describe CxxProject2Rake do
       end
       check_execution_count(tasks)
       check_execution_count(tasks)
-      sh "touch help.h"
-      sleep(1)
+      tasks.each { |t| print_pres(t[:task]) }
+      # sh "touch help.h"
       check_execution_count(tasks)
+      tasks.each { |t| print_pres(t[:task]) }
+      # puts "dependent_file_tasks: #{dependent_file_tasks(tasks)}"
 
       # CLEAN.each { |fn| rm_r fn rescue nil }
       # CLOBBER.each { |fn| rm_r fn rescue nil }
@@ -100,9 +102,9 @@ describe CxxProject2Rake do
     dirty_count = 0
     inner = lambda do |t,level|
       s = ""
-      if t.needed? then
+      if t.needed? && tt.instance_of?(FileTask) then
         level.times { s = s + "xxx" }
-        puts "#{s} #{level}.level: #{task2string(t)}"
+        puts "#{s} #{level}.level: #{task2string(t)}, deps:#{t.prerequisites.inspect}"
       else 
         level.times { s = s + "---" }
         # puts "#{s} #{level}.level: #{task2string(t)}"
@@ -116,6 +118,22 @@ describe CxxProject2Rake do
     end
     inner.call(tt,0)
     dirty_count
+  end
+  def dependent_file_tasks(ts)
+    file_tasks = []
+    inner = lambda do |tasks|
+      tasks.each do |tn|
+        t = tn[:task]
+        if t.instance_of?(FileTask)
+          file_tasks << t
+        end
+        prerequisites_if_any(t).each do |p|
+          inner.call(t.application[p, t.scope])
+        end
+      end
+    end
+    inner.call(ts,0)
+    file_tasks
   end
 
   # it 'should find values in each config file' do
