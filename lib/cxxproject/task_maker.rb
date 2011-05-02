@@ -222,22 +222,21 @@ class TaskMaker
   #
 
   def get_libendings_defaults
-    return ["a","dylib"]
+    return ["a", 'so', "dylib"]
   end
 
   def get_libendings(lib)
-    # TODO: do we need the config here?
-    # return lib.config.get_value(:lib_endings) || get_libendings_defaults
     return get_libendings_defaults
   end
 
   def binary_lib_path(lib)
-    possibilities = get_libendings(lib).inject([]) { |res, ending| get_paths(lib).inject(res) { |res, lib_path| res << File.join(lib_path, 'lib', "lib#{lib.name}.#{ending}") } }
+    lib_file_names = get_libendings(lib).inject([]) {|res,ending| res << "lib#{lib.name}.#{ending}"}
+    possibilities = get_lib_path_defaults().inject([]) { |res,lib_path| res + lib_file_names.inject([]) { |res,name| res << File.join(lib_path, name) } }
     i = possibilities.index{ |x| File.exists?(x)}
     if i
       possibilities[i]
     else
-      raise "could not find libpath for #{lib.name}"
+      raise "could not find libpath for #{lib.name} tried: #{possibilities.join(':')}"
     end
   end
 
@@ -259,15 +258,18 @@ class TaskMaker
     end
   end
 
-  def get_path_defaults
-    return ["/usr/local", "/usr", "/opt/local", "C:/cygwin", "C:/tool/cygwin"]
+  def get_path_defaults(suffix)
+    return ["/usr/local", "/usr", "/opt/local", "C:/cygwin", "C:/tool/cygwin"].map{ |name| File.join(name, suffix) }
   end
+  def get_include_path_defaults
+    return get_path_defaults('include')
+  end
+  def get_lib_path_defaults
+    return get_path_defaults('lib') << '/usr/lib/x86_64-linux-gnu'
+  end
+  # TODO: do we need the config here?
+  # paths = lib.config.get_value(:binary_paths) || get_path_defaults
 
-  def get_paths(lib)
-    # TODO: do we need the config here?
-    # paths = lib.config.get_value(:binary_paths) || get_path_defaults
-    paths = get_path_defaults
-  end
 
   def transitive_includes(lib)
     res = Dependencies.transitive_dependencies([lib.name]).inject([]) do |res, i|
@@ -275,7 +277,7 @@ class TaskMaker
         if i.includes
           res << i.includes
         else
-          res << get_paths(lib).map{ |path| File.join(path, 'include') }
+          res << get_include_path_defaults
         end
       else
         if i.includes
