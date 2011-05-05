@@ -1,9 +1,17 @@
+<<<<<<< HEAD
+=======
+=begin
+
+>>>>>>> apichange
 $toolchainSettings = {}
 
 # the following toolchains are provided by cxxproject
 require 'cxxproject/toolchain/gcc'
 require 'cxxproject/toolchain/diab'
+<<<<<<< HEAD
 require 'cxxproject/file_ext'
+=======
+>>>>>>> apichange
 
 class ProjectSettings
   attr_reader :projectDir, :outputDir, :name, :type
@@ -61,6 +69,13 @@ class ProjectSettings
     File.relFromTo(getOutputDir + "/" + s + ".o",projectDir)
   end
 
+<<<<<<< HEAD
+=======
+  def getDepfileName(object)
+    object.chomp(File.extname(object)) + ".d"
+  end
+
+>>>>>>> apichange
   def getSourceType(source)
     ex = File.extname(source)
     [:CPP, :C, :ASM].each do |t|
@@ -88,3 +103,8 @@ class ProjectSettings
 
 end
 
+<<<<<<< HEAD
+=======
+
+=end
+>>>>>>> apichange

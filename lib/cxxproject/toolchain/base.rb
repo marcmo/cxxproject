@@ -14,7 +14,12 @@ module Cxxproject
             :COMPILE_FLAGS => "",
             :DEFINES => [],
             :FLAGS => "",
+<<<<<<< HEAD
             :SOURCE_FILE_ENDINGS => [".cxx", ".cpp", ".c++", ".cc", ".C"]
+=======
+            :SOURCE_FILE_ENDINGS => [".cxx", ".cpp", ".c++", ".cc", ".C"],
+            :DEP_FLAGS => ""
+>>>>>>> apichange
           },
           :C => {
             :COMMAND => "",
@@ -24,7 +29,12 @@ module Cxxproject
             :COMPILE_FLAGS => "",
             :DEFINES => [],
             :FLAGS => "",
+<<<<<<< HEAD
             :SOURCE_FILE_ENDINGS => [".c"]
+=======
+            :SOURCE_FILE_ENDINGS => [".c"],
+            :DEP_FLAGS => ""
+>>>>>>> apichange
           },
           :ASM => {
             :COMMAND => "",
@@ -34,7 +44,12 @@ module Cxxproject
             :COMPILE_FLAGS => "",
             :DEFINES => [],
             :FLAGS => "",
+<<<<<<< HEAD
             :SOURCE_FILE_ENDINGS => [".asm", ".s", ".S"]
+=======
+            :SOURCE_FILE_ENDINGS => [".asm", ".s", ".S"],
+            :DEP_FLAGS => ""
+>>>>>>> apichange
           }
         },
 
@@ -72,6 +87,7 @@ module Cxxproject
         },
 
 
+<<<<<<< HEAD
         :DEPENDENCY =>
         {
           :COMMAND => "",
@@ -85,6 +101,20 @@ module Cxxproject
         @@settings[name] = chain
         chain
       end
+=======
+      }
+
+      def self.add(name, basedOn = nil)
+        chain = Marshal.load(Marshal.dump(basedOn.nil? ? @@default : @@settings[basedOn]))
+        @@settings[name] = chain
+        chain
+      end
+
+      def self.default
+        @@default
+      end
+
+>>>>>>> apichange
     end
 
   end

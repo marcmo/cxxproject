@@ -10,6 +10,7 @@ module Cxxproject
       :DEFINE_FLAG => "-D",
       :OBJECT_FILE_FLAG => "-o",
       :INCLUDE_PATH_FLAG => "-I",
+<<<<<<< HEAD
       :COMPILE_FLAGS => "-c"
     })
 
@@ -17,6 +18,18 @@ module Cxxproject
     GCCChain[:COMPILER][:C][:COMMAND] = "gcc"
 
     GCCChain[:COMPILER][:ASM] = GCCChain[:COMPILER][:C]
+=======
+      :COMPILE_FLAGS => "-c ",
+      :DEP_FLAGS => "-MMD -MF "
+    })
+
+    GCCChain[:COMPILER][:C] = GCCChain[:COMPILER][:CPP].clone()
+    GCCChain[:COMPILER][:C][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:C][:SOURCE_FILE_ENDINGS]
+    GCCChain[:COMPILER][:C][:COMMAND] = "gcc"
+
+    GCCChain[:COMPILER][:ASM] = GCCChain[:COMPILER][:C].clone()
+    GCCChain[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS]
+>>>>>>> apichange
 
     GCCChain[:ARCHIVER][:COMMAND] = "ar"
     GCCChain[:ARCHIVER][:ARCHIVE_FLAGS] = "-r"
@@ -29,8 +42,11 @@ module Cxxproject
     GCCChain[:LINKER][:LIB_PATH_FLAG] = "-L"
     GCCChain[:LINKER][:FLAGS] = "-all_load"
 
+<<<<<<< HEAD
     GCCChain[:DEPENDENCY][:COMMAND] = "g++"
     GCCChain[:DEPENDENCY][:FLAGS] = "-MM"
 
+=======
+>>>>>>> apichange
   end
 end

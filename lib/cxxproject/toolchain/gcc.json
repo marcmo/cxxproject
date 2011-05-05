@@ -1,0 +1,7 @@
+{
+	compiler :
+	{
+		command : "g++"
+	}
+}
+
