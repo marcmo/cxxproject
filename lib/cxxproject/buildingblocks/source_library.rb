@@ -8,7 +8,11 @@ class SourceLibrary < BuildingBlock
 
   def initialize(name)
     super(name)
-    @libs_with_path = [File.relFromTo("#{@outputDir}/lib#{name}.a", @projectDir)]
+  end
+
+  def init_libs()
+    @libs_with_path = [File.join(@output_dir,"lib#{name}.a")]
+    puts "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO init_libs: #{@libs_with_path.inspect}"
   end
 
   def get_archive_name()

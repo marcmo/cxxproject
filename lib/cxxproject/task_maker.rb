@@ -93,13 +93,11 @@ class TaskMaker
     
     bb.dependencies.each do |d|
       bbDep = ALL_BUILDING_BLOCKS[d]
+      next if bbDep.instance_of?(BinaryLibrary)
       tname = bbDep.get_task_name
       next if onlyFileDeps and not File.exist?(tname) # used for build project only
-      if bbDep.already_created
-	      res.dismissed_prerequisites.unshift(tname)
-	  else
-	  	  res.prerequisites.unshift(tname)
-	  end
+      res.enhance([tname])
+      # TODO handle circular dependencies
     end
         
     res
@@ -192,6 +190,9 @@ class TaskMaker
       tasks << outfileTask
 
     end
+
+    tasks
+
   end
 
 
@@ -244,7 +245,7 @@ class TaskMaker
       archive, # debug/x.a
       objects.join(" ") # debug/src/abc.o debug/src/xy.o
     ].join(" ")
-
+    desc "build lib"
     res = file archive => object_multitask do
       sh cmd
     end
@@ -255,7 +256,6 @@ class TaskMaker
 
 
 
-
   # create a task that will link an executable from a set of object files
   #
   def create_exe_task(bb, objects, object_multitask)
@@ -263,22 +263,22 @@ class TaskMaker
 
     @log.debug "creating #{executable}"
 
-    bb.set_output_file = executable
     addFileToCleanTask(executable)
 
     script = bb.linker_script ? "#{bb.tcs[:LINKER][:SCRIPT]} #{File.relFromTo(bb.linker_script, bb.project_dir)}" : "" # -T xy/xy.dld
     mapfile = bb.mapfile ?  "#{bb.tcs[:LINKER][:MAP_FILE_FLAG]} > #{File.relFromTo(bb.mapfile, bb.project_dir)}" : "" # -Wl,-m6 > xy.map
 
     strMap = []
-    all_dependencies.each do |d|
-      next if not d.instance_of?(LibraryBuildingBlock)
-      d.lib_searchpaths.each { |k| strMap  << "#{bb.tcs[:LINKER][:LIB_PATH_FLAG]}#{File.relFromTo(k, bb.project_dir)}" }
+    deps = bb.all_dependencies
+    deps.each do |e|
+      d = ALL_BUILDING_BLOCKS[e]
+      next if not HasLibraries === d
+      d.lib_searchpaths.each { |k| strMap  << "#{bb.tcs[:LINKER][:LIB_PATH_FLAG]}#{File.relFromTo(k, d.project_dir)}" }
       d.libs_to_search.each  { |k| strMap  << "#{bb.tcs[:LINKER][:LIB_FLAG]}#{k}" }
       d.user_libs.each       { |k| strMap  << "#{bb.tcs[:LINKER][:USER_LIB_FLAG]}#{k}" }
-      d.libs_with_path.each  { |k| strMap << File.relFromTo(k, d.project_dir) }
+      d.get_libs_with_path.each  { |k| strMap << File.relFromTo(k, d.project_dir) }
     end
     linkerLibString = strMap.join(" ")
-
 
     cmd = [bb.tcs[:LINKER][:COMMAND], # g++
       bb.tcs[:LINKER][:MUST_FLAGS], # ??
@@ -297,22 +297,20 @@ class TaskMaker
     ].join(" ")
 
 
-    res = file archive => object_multitask do
+    res = file executable => object_multitask do
       sh cmd
     end
-    res.enhance(bb.configFiles)
-    res.enhance([script])
+    res.enhance(bb.config_files)
+    res.enhance([script]) unless script==""
 
-
-    create_run_task(executable, bb.configFiles)
-
-    return res
+    create_run_task(executable, bb.config_files)
+    res
   end
 
   def create_run_task(executable, configFiles)
     desc "run executable"
-    task :run => configFiles << executable do
-      sh "#{p}"
+    task :run => executable do
+      sh "#{executable}"
     end
   end
 

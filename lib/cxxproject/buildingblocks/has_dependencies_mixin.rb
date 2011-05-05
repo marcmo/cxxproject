@@ -3,7 +3,7 @@ module HasDependencies
   def dependencies
     @dependencies ||= []
   end
-  def set_dependencies(x)
+  def set_dependencies(deps)
     @dependencies = deps.map { |dep| dep.instance_of?(String) ? dep : dep.name }
     self
   end
@@ -15,8 +15,8 @@ module HasDependencies
 
   # inclusive self!!
   def calc_transitive_dependencies
-    deps = [self] # needed due to circular deps
-    all_dependencies = get_transitive_dependencies_internal(deps)
+    deps = [self.name] # needed due to circular deps
+    @all_dependencies = get_transitive_dependencies_internal(deps)
   end
 
   def get_transitive_dependencies_internal(deps)

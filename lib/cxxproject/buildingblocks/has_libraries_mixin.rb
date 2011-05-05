@@ -24,7 +24,7 @@ module HasLibraries
     self
   end
 
-  def libs_with_path
+  def get_libs_with_path
     @libs_with_path ||= []
   end
   def set_libs_with_path(x)
