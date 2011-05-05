@@ -4,6 +4,7 @@ begin
   require 'roodi_task'
   require 'spec/rake/spectask'
 rescue LoadError # don't bail out when people do not have roodi installed!
+  warn "roodi not installed...will not be checked!"
 end
 
 desc "Default Task"
@@ -34,7 +35,7 @@ end
 Rake::GemPackageTask.new(spec) {|pkg|}
 
 if self.class.const_defined?(:RoodiTask) then
-	RoodiTask.new
+	RoodiTask.new  'roodi', PKG_FILES, 'roodi.yml'
 	task :gem => [:roodi]
 end
 

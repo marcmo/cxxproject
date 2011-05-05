@@ -19,13 +19,17 @@ end
 
 task :default => :execute
 
+Testprojects = [
+  'basic',
+  # 'ckLayout', => needs to be fixed
+  'dependency_tests',
+  'simpleUnitTest',
+  'three_tests']
 def run_rakefiles()
-  Dir.glob('**/Rakefile.rb').each do |p|
-    dir = File.dirname(p)
-    if (dir != "." && File.directory?(dir))
-      cd(dir,:verbose => false)  do
-        yield
-      end
+  Testprojects.each do |p|
+    cd p do
+      dir = File.dirname('Rakefile.rb')
+      yield
     end
   end
 end

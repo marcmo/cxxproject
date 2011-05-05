@@ -10,15 +10,15 @@ module Cxxproject
       :DEFINE_FLAG => "-D",
       :OBJECT_FILE_FLAG => "-o",
       :INCLUDE_PATH_FLAG => "-I",
-      :COMPILE_FLAGS => "-c"
+      :COMPILE_FLAGS => "-c ",
+      :DEP_FLAGS => "-MMD -MF="
     })
 
-    GCCChain[:COMPILER][:C] = GCCChain[:COMPILER][:CPP]
+    GCCChain[:COMPILER][:C] = GCCChain[:COMPILER][:CPP].clone()
     GCCChain[:COMPILER][:C][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:C][:SOURCE_FILE_ENDINGS]
     GCCChain[:COMPILER][:C][:COMMAND] = "gcc"
 
-	tmp = GCCChain[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS]
-    GCCChain[:COMPILER][:ASM] = GCCChain[:COMPILER][:C]
+    GCCChain[:COMPILER][:ASM] = GCCChain[:COMPILER][:C].clone()
     GCCChain[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS]
 
     GCCChain[:ARCHIVER][:COMMAND] = "ar"

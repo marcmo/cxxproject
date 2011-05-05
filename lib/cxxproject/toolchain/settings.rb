@@ -1,3 +1,5 @@
+=begin
+
 $toolchainSettings = {}
 
 # the following toolchains are provided by cxxproject
@@ -91,3 +93,5 @@ class ProjectSettings
 
 end
 
+
+=end

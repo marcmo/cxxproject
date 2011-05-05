@@ -1,7 +1,9 @@
 require 'logger'
 require 'pp'
 require 'pathname'
-
+require 'cxxproject/rake_ext'
+require 'cxxproject/toolchain/gcc'
+require 'cxxproject/task_maker'
 
 # class which converts cxx-projects to rake-tasks
 # can be used in a rakefile like:
@@ -9,36 +11,80 @@ require 'pathname'
 # CxxProject2Rake.new(Dir.glob('**/project.rb'), OsxCompiler.new('build'))
 class CxxProject2Rake
 
-  attr_accessor :compiler, :base
+  attr_accessor :base
+  attr_reader :root_task
 
-  def initialize(projects, compiler, base='./', logLevel=Logger::ERROR)
+  def print_pres(tt)
+    dirty_count = 0
+    inner = lambda do |t,level|
+      s = ""
+      if t.needed? && tt.instance_of?(FileTask) then
+        level.times { s = s + "xxx" }
+        puts "#{s} #{level}.level: #{task2string(t)}, deps:#{t.prerequisites}"
+      else
+        level.times { s = s + "---" }
+        # puts "#{s} #{level}.level: #{task2string(t)}"
+      end
+      dirty_count += 1 unless !(t.instance_of?(FileTask) && t.needed?)
+      prerequisites = prerequisites_if_any(t)
+      prerequisites.each do |p|
+        x = t.application[p, t.scope]
+        inner.call(x,level+1)
+      end
+    end
+    inner.call(tt,0)
+    dirty_count
+  end
+  def prerequisites_if_any(t)
+    if t.respond_to?('prerequisites')
+      t.prerequisites
+    else
+      []
+    end
+  end
+  def task2string(t)
+    if t.instance_of?(FileTask)
+      t.name
+    else
+      File.basename(t.name)
+    end
+  end
+  def initialize(projects, compiler, base='.', logLevel=Logger::ERROR, norun=false)
+    puts "CxxProject2Rake, in constructor"
     @log = Logger.new(STDOUT)
     @log.level = logLevel
     @log.debug "starting..."
-    @compiler = compiler
-    @compiler.set_loglevel(logLevel);
     @base = base
-    projects = projects.map { |p| p.remove_from_start(base) }
-    @log.debug "projects: #{projects}"
-    register_projects(projects)
-    define_project_info_task()
-    convert_to_rake(projects)
+    instantiate_tasks(projects, compiler, base) unless norun
   end
 
-  def define_project_info_task
-    desc "shows your defined projects"
-    task :project_info do
-      p "ProjectBase: #{@base}"
-      ALL_BUILDING_BLOCKS.each_value do |bb|
-        pp bb
+  def instantiate_tasks(projects, compiler, base='./')
+    project_configs = projects.map { |p| p.remove_from_start(base) }
+    @log.debug "project_configs: #{project_configs}"
+    register_projects(project_configs)
+    define_project_info_task()
+    gcc = Cxxproject::Toolchain::GCCChain
+    task_maker = TaskMaker.new(compiler.output_path, gcc)
+    task_maker.set_loglevel(@log.level);
+    tasks = []
+
+    #todo: sort ALL_BUILDING_BLOCKS (circular deps)
+
+    ALL_BUILDING_BLOCKS.each do |name,block|
+      puts "creating task for block: #{block}"
+      t = task_maker.create_tasks_for_building_blocks(block, project_configs, base)
+      if (t != nil)
+        tasks << { :task => t, :name => name }
       end
     end
+    # tasks.each { |t| print_pres(t[:task]) }
+    tasks
   end
 
   def register_projects(projects)
     cd(@base,:verbose => false) do |b|
       projects.each do |project_file|
-        @log.debug "register project #{project_file}" 
+        @log.debug "register project #{project_file}"
         dirname = File.dirname(project_file)
         @log.debug "dirname for project was: #{dirname}"
         cd(dirname,:verbose => false) do | base_dir |
@@ -53,40 +99,37 @@ class CxxProject2Rake
       end
     end
   end
-
-  def build_source_lib(lib,compiler)
-    @log.debug "building source lib"
-    objects = lib.sources.map do |s|
-      compiler.create_object_file(lib, s, @base)
-    end
-    compiler.create_source_lib(lib, objects)
-  end
-
-  def build_exe(exe,compiler,projects)
-    objects = exe.sources.map do |s|
-      compiler.create_object_file(exe, s, @base)
-    end
-    pp "build_exe;;;..........projects:#{projects.inspect}"
-    compiler.create_exe(exe, objects,projects)
-  end
-
-
-  def convert_to_rake(projects)
-    @log.debug "convert to rake"
-    ALL_BUILDING_BLOCKS.values.each do |building_block|
-      @log.debug "convert to rake2: #{building_block}"
-      if (building_block.instance_of?(SourceLibrary)) then
-        build_source_lib(building_block,@compiler)
-      elsif (building_block.instance_of?(Exe)) then
-        build_exe(building_block,@compiler,projects)
-      elsif (building_block.instance_of?(BinaryLibrary)) then
-      else
-        raise 'unknown building_block'
+  def define_project_info_task
+    desc "shows your defined projects"
+    task :project_info do
+      p "ProjectBase: #{@base}"
+      ALL_BUILDING_BLOCKS.each_value do |bb|
+        pp bb
       end
     end
-    task :default => ALL.to_a do
-    end
   end
+
+  def read_project_config(project_file)
+    building_block = nil
+    cd(@base,:verbose => false) do |b|
+      @log.debug "register project #{project_file}"
+      dirname = File.dirname(project_file)
+      @log.debug "dirname for project was: #{dirname}"
+      cd(dirname,:verbose => false) do | base_dir |
+        @log.debug "current dir: #{`pwd`}"
+        loadContext = EvalContext.new
+        loadContext.eval_project(File.read(File.basename(project_file)))
+        raise "project config invalid for #{project_file}" unless loadContext.name
+        building_block = loadContext.myblock.call()
+        building_block.base = File.join(@base, base_dir)
+      end
+    end
+    puts "building_block was: " + building_block.inspect
+    building_block
+  end
+
+  private
+
 end
 
 class EvalContext
@@ -101,7 +144,7 @@ class EvalContext
   def eval_project(project_text)
     instance_eval(project_text)
   end
-  
+
   def configuration(*args, &block)
     name = args[0]
     raise "no name given" unless name.is_a?(String) && !name.strip.empty?
@@ -115,21 +158,31 @@ class EvalContext
   def exe(name, hash)
     raise "not a hash" unless hash.is_a?(Hash)
     check_hash hash,[:sources,:includes,:dependencies]
-    exe = Exe.new(name)
-    exe.set_sources(hash[:sources]) if hash.has_key?(:sources)
-    exe.set_includes(hash[:includes]) if hash.has_key?(:includes)
-    exe.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
-    exe
+    bblock = Executable.new(name)
+    bblock.sources(hash[:sources]) if hash.has_key?(:sources)
+    bblock.includes(hash[:includes]) if hash.has_key?(:includes)
+    bblock.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
+    bblock
   end
 
   def source_lib(name, hash)
     raise "not a hash" unless hash.is_a?(Hash)
     check_hash hash,[:sources,:includes,:dependencies]
     raise ":sources need to be defined" unless hash.has_key?(:sources)
-    exe = SourceLibrary.new(name).set_sources(hash[:sources])
-    exe.set_includes(hash[:includes]) if hash.has_key?(:includes)
-    exe.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
-    exe
+    bblock = SourceLibrary.new(name)
+    bblock.sources(hash[:sources])
+    bblock.includes(hash[:includes]) if hash.has_key?(:includes)
+    bblock.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
+    bblock
+  end
+
+  def compile(name, hash)
+    raise "not a hash" unless hash.is_a?(Hash)
+    check_hash hash,[:sources,:includes]
+    bblock = SingleSource.new(name)
+    bblock.sources(hash[:sources]) if hash.has_key?(:sources)
+    bblock.includes(hash[:includes]) if hash.has_key?(:includes)
+    bblock
   end
 
 end

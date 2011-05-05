@@ -14,12 +14,12 @@ class String
 end
 
 
-require 'cxxproject/alternative'
 require 'cxxproject/utils'
 require 'cxxproject/dependencies'
-require 'cxxproject/configuration'
 require 'cxxproject/buildingblock'
 require 'cxxproject/torake'
+require 'cxxproject/task_maker'
+#require 'cxxproject/graph'
 require 'cxxproject/torake/compiler'
 require 'cxxproject/torake/gcccompiler'
 require 'cxxproject/torake/osxcompiler'

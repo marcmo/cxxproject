@@ -7,18 +7,19 @@ module Cxxproject
 
     DiabChainDebug[:COMPILER][:C].update({
       :COMMAND => "dcc",
-      :FLAGS => "-tPPCE200Z6VEN:simple -XO -Xsize-opt -Xsmall-const=0 -Xenum-is-best -Xsection-split -Xforce-declarations -Xmake-dependency=6 -g",
+      :FLAGS => "-tPPCE200Z6VEN:simple -O -XO -Xsize-opt -Xsmall-const=0 -Xenum-is-best -Xrtti-off -Xexceptions-off -Xexceptions-off -Xenum-is-best -g",
       :DEFINE_FLAG => "-D",
       :OBJECT_FILE_FLAG => "-o",
       :INCLUDE_PATH_FLAG => "-I",
-      :COMPILE_FLAGS => "-c"
+      :COMPILE_FLAGS => "-c",
+      :DEP_FLAGS => "-Xmake-dependency=6 -Xmake-dependency-savefile="
     })
 
     DiabChainDebug[:COMPILER][:CPP] = DiabChainDebug[:COMPILER][:C].clone()
-    DiabChainDebug[:COMPILER][:CPP][:FLAGS] = "-tPPCE200Z6VEN:simple -XO -Xsize-opt -Xsmall-const=0 -Xenum-is-best -Xrtti-off -Xexceptions-off -Xsection-split -Xmake-dependency=6 -g"
+    DiabChainDebug[:COMPILER][:CPP][:FLAGS].concat(" -Xrtti-off")
     DiabChainDebug[:COMPILER][:CPP][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:CPP][:SOURCE_FILE_ENDINGS]
-    
-    DiabChainDebug[:COMPILER][:ASM] = DiabChainDebug[:COMPILER][:C].clone()
+
+    DiabChainDebug[:COMPILER][:ASM] = DiabChainDebug[:COMPILER][:C]
     DiabChainDebug[:COMPILER][:ASM][:COMMAND] = "das"
     DiabChainDebug[:COMPILER][:ASM][:FLAGS] = "-tPPCE200Z6VEN:simple -Xisa-vle -g -Xasm-debug-on"
     DiabChainDebug[:COMPILER][:ASM][:COMPILE_FLAGS] = ""
@@ -37,11 +38,9 @@ module Cxxproject
     DiabChainDebug[:LINKER][:FLAGS] = "-ulink_date_time -uResetConfigurationHalfWord -Wl,-Xstop-on-redeclaration -Wl,-Xstop-on-warning -tPPCE200Z6VEN:simple -Wl,-Xremove-unused-sections -Wl,-Xunused-sections-list"
     DiabChainDebug[:LINKER][:OUTPUT_ENDING] = ".elf"
 
-	DiabChainDebug[:DEP_BY_GCC] = false
-
     DiabChainRelease = Provider.add("Diab_Release", "Diab_Debug")
     DiabChainRelease[:COMPILER][:C][:FLAGS] = "-tPPCE200Z6VEN:simple -XO -Xsize-opt -Xsmall-const=0 -Xenum-is-best -Xsection-split -Xforce-declarations -Xmake-dependency=6"
-	DiabChainRelease[:COMPILER][:CPP][:FLAGS] = "-tPPCE200Z6VEN:simple -XO -Xsize-opt -Xsmall-const=0 -Xenum-is-best -Xrtti-off -Xexceptions-off -Xsection-split -Xmake-dependency=6"
+    DiabChainRelease[:COMPILER][:CPP][:FLAGS] = "-tPPCE200Z6VEN:simple -XO -Xsize-opt -Xsmall-const=0 -Xenum-is-best -Xrtti-off -Xexceptions-off -Xsection-split -Xmake-dependency=6"
 
   end
 end

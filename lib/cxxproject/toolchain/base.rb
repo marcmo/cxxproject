@@ -14,7 +14,8 @@ module Cxxproject
             :COMPILE_FLAGS => "",
             :DEFINES => [],
             :FLAGS => "",
-            :SOURCE_FILE_ENDINGS => [".cxx", ".cpp", ".c++", ".cc", ".C"]
+            :SOURCE_FILE_ENDINGS => [".cxx", ".cpp", ".c++", ".cc", ".C"],
+            :DEP_FLAGS => ""
           },
           :C => {
             :COMMAND => "",
@@ -24,7 +25,8 @@ module Cxxproject
             :COMPILE_FLAGS => "",
             :DEFINES => [],
             :FLAGS => "",
-            :SOURCE_FILE_ENDINGS => [".c"]
+            :SOURCE_FILE_ENDINGS => [".c"],
+            :DEP_FLAGS => ""
           },
           :ASM => {
             :COMMAND => "",
@@ -34,7 +36,8 @@ module Cxxproject
             :COMPILE_FLAGS => "",
             :DEFINES => [],
             :FLAGS => "",
-            :SOURCE_FILE_ENDINGS => [".asm", ".s", ".S"]
+            :SOURCE_FILE_ENDINGS => [".asm", ".s", ".S"],
+            :DEP_FLAGS => ""
           }
         },
 
@@ -68,11 +71,10 @@ module Cxxproject
           :FLAGS => "-j",
           :FILE_FLAG => "-f",
           :DIR_FLAG => "-C",
-          :TEST_FLAG => "-q",
           :CLEAN => "clean"
         },
-        
-        :DEP_BY_GCC => true
+
+
       }
 
       def self.add(name, basedOn = nil)
@@ -80,10 +82,11 @@ module Cxxproject
         @@settings[name] = chain
         chain
       end
-      
+
       def self.default
-      	@@default
+        @@default
       end
+
     end
 
   end
