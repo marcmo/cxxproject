@@ -14,12 +14,8 @@ module Cxxproject
             :COMPILE_FLAGS => "",
             :DEFINES => [],
             :FLAGS => "",
-<<<<<<< HEAD
-            :SOURCE_FILE_ENDINGS => [".cxx", ".cpp", ".c++", ".cc", ".C"]
-=======
             :SOURCE_FILE_ENDINGS => [".cxx", ".cpp", ".c++", ".cc", ".C"],
             :DEP_FLAGS => ""
->>>>>>> apichange
           },
           :C => {
             :COMMAND => "",
@@ -29,12 +25,8 @@ module Cxxproject
             :COMPILE_FLAGS => "",
             :DEFINES => [],
             :FLAGS => "",
-<<<<<<< HEAD
-            :SOURCE_FILE_ENDINGS => [".c"]
-=======
             :SOURCE_FILE_ENDINGS => [".c"],
             :DEP_FLAGS => ""
->>>>>>> apichange
           },
           :ASM => {
             :COMMAND => "",
@@ -44,12 +36,8 @@ module Cxxproject
             :COMPILE_FLAGS => "",
             :DEFINES => [],
             :FLAGS => "",
-<<<<<<< HEAD
-            :SOURCE_FILE_ENDINGS => [".asm", ".s", ".S"]
-=======
             :SOURCE_FILE_ENDINGS => [".asm", ".s", ".S"],
             :DEP_FLAGS => ""
->>>>>>> apichange
           }
         },
 
@@ -86,22 +74,6 @@ module Cxxproject
           :CLEAN => "clean"
         },
 
-
-<<<<<<< HEAD
-        :DEPENDENCY =>
-        {
-          :COMMAND => "",
-          :FLAGS => ""
-        }
-
-      }
-
-      def self.add(name)
-        chain = Marshal.load(Marshal.dump(@@default))
-        @@settings[name] = chain
-        chain
-      end
-=======
       }
 
       def self.add(name, basedOn = nil)
@@ -114,7 +86,6 @@ module Cxxproject
         @@default
       end
 
->>>>>>> apichange
     end
 
   end

@@ -12,7 +12,6 @@ class SourceLibrary < BuildingBlock
 
   def init_libs()
     @libs_with_path = [File.join(@output_dir,"lib#{name}.a")]
-    puts "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO init_libs: #{@libs_with_path.inspect}"
   end
 
   def get_archive_name()

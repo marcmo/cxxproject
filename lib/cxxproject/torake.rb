@@ -104,7 +104,6 @@ class CxxProject2Rake
           loadContext.eval_project(File.read(File.basename(project_file)))
           raise "project config invalid for #{project_file}" unless loadContext.name
           project = loadContext.myblock.call()
-          puts "set project dir to: #{Dir.pwd}"
           project.set_project_dir(Dir.pwd)
           project.to_s
         end
@@ -136,7 +135,6 @@ class CxxProject2Rake
         building_block.set_project_dir(File.join(@base, base_dir))
       end
     end
-    puts "building_block was: " + building_block.inspect
     building_block
   end
 
@@ -165,12 +163,10 @@ class EvalContext
 
   def check_hash(hash,allowed)
     puts "hash" + hash.inspect
-    # sleep(1)
     hash.keys.map {|k| raise "#{k} is not a valid specifier!" unless allowed.include?(k) }
   end
 
   def exe(name, hash)
-    puts "hash class: #{hash.class}, hash size: #{hash.size}"
     raise "not a hash" unless hash.is_a?(Hash)
     check_hash hash,[:sources,:includes,:dependencies]
     bblock = Executable.new(name)
@@ -182,14 +178,11 @@ class EvalContext
   end
 
   def source_lib(name, hash)
-    puts "source lib hash class: #{hash.class}, hash size: #{hash.size}"
     raise "not a hash" unless hash.is_a?(Hash)
     check_hash hash,[:sources,:includes,:dependencies]
     raise ":sources need to be defined" unless hash.has_key?(:sources)
     bblock = SourceLibrary.new(name)
-    puts "------------------------------source_lib sources:: #{(hash[:sources])}"
     bblock.set_sources(hash[:sources])
-    puts "------------------------------source_lib includes:: #{(hash[:includes])}" if hash.has_key?(:includes) 
     bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
     bblock.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
     bblock

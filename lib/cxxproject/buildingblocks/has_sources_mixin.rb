@@ -31,9 +31,7 @@ module HasSources
       strMap = []
       all_dependencies.each do |e|
         d = ALL_BUILDING_BLOCKS[e]
-        puts "d------#{d}"
         next if not HasSources === d
-        puts "next"
         if d.includes.length == 0
           strMap << File.relFromTo("include", d.project_dir)
         else
@@ -41,7 +39,6 @@ module HasSources
         end
       end
       @includeString[type] = strMap.map!{|k| "#{tcs[:COMPILER][type][:INCLUDE_PATH_FLAG]}#{k}"}.join(" ")
-      puts "++++++++++++++++++++++++++++++includeStrings: #{@includeString[type]}"
 
       @defineString[type] = @tcs[:COMPILER][type][:DEFINES].map {|k| "#{@tcs[:COMPILER][type][:DEFINE_FLAG]}#{k}"}.join(" ")
     end
