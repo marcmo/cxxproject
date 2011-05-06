@@ -15,11 +15,11 @@ class Makefile < BuildingBlock
   end
 
   def get_makefile
-    File.relFromTo(makefile, project_dir)
+    File.relFromTo(@makefile, @project_dir)
   end
 
   def get_target
-    target
+    @target
   end
 
   def initialize(name)
@@ -28,7 +28,7 @@ class Makefile < BuildingBlock
     @makefile = nil
   end
 
-  def get_task_name(tcs)
+  def get_task_name()
     get_makefile+"_"+get_target
   end
 
