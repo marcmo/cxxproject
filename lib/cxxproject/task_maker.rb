@@ -212,7 +212,7 @@ class TaskMaker
       sh cmd
     end
     mfileTask.transparent_timestamp = true
-    mfileTask.enhance(bb.configFiles)
+    mfileTask.enhance(bb.config_files)
 
     # generate the clean task
     if not taskAlreadyAddedToCleanTask(mfile+"Clean")

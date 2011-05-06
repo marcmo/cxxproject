@@ -1,38 +1,31 @@
-require 'cxxproject/toolchain/settings'
-
 class GraphWriter
 
-  YES = 0
-  OBJ = 1
-  HELPER = 2
-  NO = 3
-
-end
-
-=begin
-
-# - assumes that working dir is a project dir and workspace dir is "../"
-# - only tasks with showInGraph==true are printed out (.exe, .a, .o, .o.d, make)
-class GraphWriter
-
-  YES = 0
-  OBJ = 1
-  HELPER = 2
-  NO = 3
-
-  def initialize(startTask, level)
-    @startTask = startTask
-    @level = level
+  def writeGraph(startNode)
+	startGraph
+	@writtenNodes = []
+	writeStep(startNode)
+	endGraph  
   end
 
+private
+
+  def writeStep(node)
+	return if @writtenNodes.include? node
+	@writtenNodes << nodes
+	
+	writeNode(node)
+  
+    getDeps(node).each do |dep|
+ 	    writeTransition(node, dep)
+   	    writeStep(dep)
+   	end
+  end
 
   def startGraph
     puts "\nWriting dot-file graph.dot...\n"
     @dotFile = File.new("tasks.dot", "w")
     @dotFile.write("digraph TaskGraph\n");
     @dotFile.write("{\n");
-#    @dotFile.write("  rankdir=LR;\n");
-#    @dotFile.write("  \"#{@startTask.name}\"\n");
   end
       
   def endGraph
@@ -40,109 +33,78 @@ class GraphWriter
     @dotFile.close()
   end
 
-  def writeGraph
-    @dottedTasks = Set.new
+  def writeNode(node)
+	@dotFile.write("  \"node.name\"")
+  end
+  	
+  def writeTransition(node, dep)
+   	@dotFile.write("  \"node.name\" -> \"dep.name\"")
+  end 
 
-    puts "\nWriting dot-file graph.dot...\n"
-    @dotFile = File.new("tasks.dot", "w")
-    @dotFile.write("digraph TaskGraph\n");
-    @dotFile.write("{\n");
-    @dotFile.write("  rankdir=LR;\n");
-    @dotFile.write("  \"#{@startTask.name}\"\n");
-
-	tmp = @startTask.showInGraph
-	@startTask.showInGraph = GraphWriter::YES
-    dotSubTasks(@startTask, true)
-    @startTask.showInGraph = tmp
-
-
+  def getDeps(node)
+	raise "Must be implemented by descendants"
   end
 
-  private
+end
 
-  def makeDotName(pr)
-    #
-    #if pr.name.include? "MultiTask"
-    #  toname = pr.name
-    #elsif pr.name.length > 3 and pr.name[0..2] == "../"
-    #  toName = pr.name[3..-1]
-    #else
-    #  toName = @startupProjectSettings.config.name + "/" + pr.name
-    #end
+
+class BuildingBlockGraphWriter < GraphWriter
+
+  def initialize(moduleMode = false)
+  	@moduleMode = moduleMode # moduleMode is used by lake
   end
 
-  def calcDeps(deps, d, readTasks)
-    return if readTasks.include? d
-    readTasks << d
-    if d.showInGraph > @level
-      (d.prerequisites+d.dismissed_prerequisites).each do |sub|
-		x = d.application[sub, d.scope]
-        calcDeps(deps, x, readTasks)
-      end
-    else
-      deps << d
+private
+  
+  def writeNode(node)
+  	
+    if (@moduleMode)
+	    @dotFile.write("  \"#{node.name}\" <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"> <TR><TD bgcolor=\"#DDDDDD\">\"#{node.name}\"</TD></TR>")
+	    bb.dependencies.each do |depName|
+	        dep = ALL_BUILDING_BLOCKS[depName]
+	    	@dotFile.write("<TR><TD>#{dep.name}</TD></TR>") if not dep.instance_of?ModuleBuildingBlock
+	    end
+	    @dotFile.write("</TABLE>>];\n")  	
+	else  	
+		super(node)
+	end
+  end
+	
+  def writeTransition(node, dep)
+    if not @moduleMode or (node.instance_of?ModuleBuildingBlock and dep.instance_of?ModuleBuildingBlock)
+    	super(node, dep)
+    end
+  end  
+  
+  def getDeps(node)
+    return node.dependencies.map { |depName| ALL_BUILDING_BLOCKS[depName] }
+  end
+  
+
+end
+
+
+class TaskGraphWriter < GraphWriter
+
+  def initialize(allTasks = false, withFiles = false)
+  	@allTasks = allTasks # allTasks means write also tasks which are marked with showInGraph = false
+  	@withFiles = withFiles # shows dependencies to non-tasks like heaeder files
+  end
+  
+private
+  
+  def getDeps(node)
+    deps = []
+    node.prerequisites.each do |p|
+	  	task = Rake.application.lookup(p)
+	  	if (task)
+	  		next if not @allTasks and not @task.showInGraph
+	  	else
+	  		next if not @withFiles
+	  		task = Rake.application.synthesize_file_task(p)
+	  	end
+		deps << task if task    
     end
   end
- 
-  
-	def dotSubTasks(t, start = false)
-		return if @dottedTasks.include? t.name
-		@dottedTasks << t.name
-		
-		if start
-			@dotFile.write("  \"#{t.name}\" [shape=")
-        	@dotFile.write("doubleoctagon]\n") 
-	    elsif t.showInGraph <= @level
-	        @dotFile.write("  \"#{t.name}\" [shape=")
-		    @dotFile.write("box]\n") if t.showInGraph == GraphWriter::YES
-			@dotFile.write("ellipse]\n") if t.showInGraph == GraphWriter::OBJ
-			@dotFile.write("folder]\n") if t.showInGraph == GraphWriter::HELPER
-			@dotFile.write("note]\n") if t.showInGraph == GraphWriter::NO
-		end
-		
-		(t.prerequisites+t.dismissed_prerequisites).each do |d|
-		    x = t.application[d, t.scope]
-		    if t.showInGraph <= @level
-			    deps = []
-			    calcDeps(deps, x, [t])
-			    deps.each do |dep|
-					@dotFile.write("  \"#{t.name}\" -> \"#{dep.name}\"\n");
-				end
-			end
-			dotSubTasks(x)
-		end
-	end  
 
 end
-
-
-class ModuleGraphWriter
-  
-  def writeGraph(startBB, withSubModules = true)
-	startGraph
-	
-	bbWriten = []
-	writeNode(startBB, bbWriten)
-	
-	endGraph  
-  end
-  
-  def writeNode(bb, bbWriten)
-	return if bbWriten.include? bb
-	bbWriten << bb
-  
-  
-    struct3 [label="{ b | c | f}];
-  
-	@dotFile.write("  \"#{bb.name}\" [shape=folder]\n")
-	
-	
-  	@dotFile.write("box]\n") if t.showInGraph == GraphWriter::YES
-  
-  end
-  
-
-end
-
-=end
-
