@@ -10,7 +10,7 @@ class BinaryLibrary < BuildingBlock
   end
 
   def get_task_name()
-    libs_to_search[0] # todo: should be more robust (not used in lake)
+    libs_to_search[0]
   end
 
 end

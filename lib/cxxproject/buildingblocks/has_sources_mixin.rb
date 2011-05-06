@@ -45,7 +45,7 @@ module HasSources
   end
 
   def get_object_file(source)
-    File.relFromTo(output_dir + "/" + source + ".o", project_dir)
+    File.relFromTo(source, @project_dir + "/" + @output_dir) + ".o"
   end
 
   def get_dep_file(object)
@@ -60,5 +60,8 @@ module HasSources
     nil
   end
 
+  def get_sources_task_name
+    "Sources of #{name}"
+  end
 
 end

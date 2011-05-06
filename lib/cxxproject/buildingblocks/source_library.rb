@@ -10,8 +10,8 @@ class SourceLibrary < BuildingBlock
     super(name)
   end
 
-  def init_libs()
-    @libs_with_path = [File.join(@output_dir,"lib#{name}.a")]
+  def complete_init()
+    @libs_with_path = [File.join(@output_dir,"lib#{@name}.a")]
   end
 
   def get_archive_name()

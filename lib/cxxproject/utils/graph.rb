@@ -1,9 +1,9 @@
 class GraphWriter
 
-  def writeGraph(startNode)
+  def writeGraph(startNodes)
 	startGraph
 	@writtenNodes = []
-	writeStep(startNode)
+	startNodes.each { |n| writeStep(n) }
 	endGraph  
   end
 
@@ -11,7 +11,7 @@ private
 
   def writeStep(node)
 	return if @writtenNodes.include? node
-	@writtenNodes << nodes
+	@writtenNodes << node
 	
 	writeNode(node)
   
@@ -34,11 +34,11 @@ private
   end
 
   def writeNode(node)
-	@dotFile.write("  \"node.name\"")
+		raise "Must be implemented by descendants"
   end
   	
   def writeTransition(node, dep)
-   	@dotFile.write("  \"node.name\" -> \"dep.name\"")
+	raise "Must be implemented by descendants"
   end 
 
   def getDeps(node)
@@ -56,23 +56,31 @@ class BuildingBlockGraphWriter < GraphWriter
 
 private
   
+  def startGraph
+    super
+    @dotFile.write("node [shape=plaintext]\n") if @moduleMode
+  end
+  
+  
   def writeNode(node)
   	
     if (@moduleMode)
-	    @dotFile.write("  \"#{node.name}\" <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"> <TR><TD bgcolor=\"#DDDDDD\">\"#{node.name}\"</TD></TR>")
-	    bb.dependencies.each do |depName|
-	        dep = ALL_BUILDING_BLOCKS[depName]
-	    	@dotFile.write("<TR><TD>#{dep.name}</TD></TR>") if not dep.instance_of?ModuleBuildingBlock
-	    end
-	    @dotFile.write("</TABLE>>];\n")  	
+        if node.instance_of?ModuleBuildingBlock
+		    @dotFile.write("  \"#{node.graph_name}\" [label=<<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\"> <TR><TD bgcolor=\"#DDDDDD\">#{node.graph_name}</TD></TR>")
+		    node.dependencies.each do |depName|
+		        dep = ALL_BUILDING_BLOCKS[depName]
+		    	@dotFile.write("<TR><TD>#{dep.graph_name}</TD></TR>") if not dep.instance_of?ModuleBuildingBlock
+		    end
+		    @dotFile.write("</TABLE>>];\n")
+		end  	
 	else  	
-		super(node)
+		@dotFile.write("  \"#{node.graph_name}\"\n")
 	end
   end
 	
   def writeTransition(node, dep)
     if not @moduleMode or (node.instance_of?ModuleBuildingBlock and dep.instance_of?ModuleBuildingBlock)
-    	super(node, dep)
+   	  @dotFile.write("  \"#{node.graph_name}\" -> \"#{dep.graph_name}\"\n")
     end
   end  
   
@@ -86,9 +94,8 @@ end
 
 class TaskGraphWriter < GraphWriter
 
-  def initialize(allTasks = false, withFiles = false)
+  def initialize(allTasks = false)
   	@allTasks = allTasks # allTasks means write also tasks which are marked with showInGraph = false
-  	@withFiles = withFiles # shows dependencies to non-tasks like heaeder files
   end
   
 private
@@ -98,13 +105,19 @@ private
     node.prerequisites.each do |p|
 	  	task = Rake.application.lookup(p)
 	  	if (task)
-	  		next if not @allTasks and not @task.showInGraph
-	  	else
-	  		next if not @withFiles
-	  		task = Rake.application.synthesize_file_task(p)
+	  		next if not @allTasks and not task.showInGraph
+			deps << task    
 	  	end
-		deps << task if task    
     end
+    deps
   end
+  
+  def writeNode(node)
+	@dotFile.write("  \"#{node.name}\"\n")
+  end
+  	
+  def writeTransition(node, dep)
+   	@dotFile.write("  \"#{node.name}\" -> \"#{dep.name}\"\n")
+  end   
 
 end

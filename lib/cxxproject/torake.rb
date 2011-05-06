@@ -76,9 +76,9 @@ class CxxProject2Rake
       block.set_tcs(@gcc)
       # block.set_output_dir(compiler.output_path) todo
       block.set_output_dir("debug_output_dir")
-      block.init_libs() if block.instance_of?(SourceLibrary)
       # block.set_config_files(project_configs)
       block.set_config_files([])
+      block.complete_init()
     end
 
     ALL_BUILDING_BLOCKS.each do |name,block|

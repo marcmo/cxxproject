@@ -9,7 +9,7 @@ require 'cxxproject/extensions/rake_ext'
 require 'cxxproject/extensions/file_ext'
 
 require 'logger'
-
+require 'yaml'
 
 # A class which encapsulates the generation of c/cpp artifacts like object-files, libraries and so on
 class TaskMaker
@@ -43,7 +43,7 @@ class TaskMaker
   # * a binary-library-block (for which we do not need to do anything since it is already done)
   # * a custom building block
   # * a compile-only source file block
-  def create_tasks_for_building_block(bb, onlyFileDeps = false)
+  def create_tasks_for_building_block(bb)
     @log.debug "create tasks for: #{bb.name}"
 
     CLOBBER.include(bb.output_dir)
@@ -53,51 +53,52 @@ class TaskMaker
     if HasSources === bb
       bb.calc_compiler_strings()
       object_tasks = create_object_file_tasks(bb)
-      t = multitask "multitask_#{bb.name}" => object_tasks
+      t = multitask bb.get_sources_task_name => object_tasks
+      t.showInGraph = false if not bb.instance_of? SingleSource
+      t.transparent_timestamp = true
     end
 
-    outputTaskname = task bb.name + " OUTPUTTASKNAME" do
+    outputTaskname = task "Print #{bb.name}" do
       puts "**** Building: #{bb.name} ****"
     end
+    outputTaskname.showInGraph = false
+    outputTaskname.transparent_timestamp = true
 
     res = nil
     if (bb.instance_of?(SourceLibrary)) then
       res = create_source_lib(bb, object_tasks, t)
       res.prerequisites.unshift(outputTaskname)
-      res.showInGraph = GraphWriter::YES
     elsif (bb.instance_of?(Executable)) then
       res = create_exe_task(bb, object_tasks, t)
       res.prerequisites.unshift(outputTaskname)
-      res.showInGraph = GraphWriter::YES
     elsif (bb.instance_of?(BinaryLibrary)) then
       # nothing?
     elsif (bb.instance_of?(CustomBuildingBlock)) then
       # todo...
-      res.showInGraph = GraphWriter::YES
     elsif (bb.instance_of?(Makefile)) then
       res = create_makefile_task(bb)
-      res.showInGraph = GraphWriter::YES
     elsif (bb.instance_of?(SingleSource)) then
       t.add_description("compile sources only")
       res = t
-      res.showInGraph = GraphWriter::YES
     elsif (bb.instance_of?(ModuleBuildingBlock)) then
       res = task bb.get_task_name
-      res.showInGraph = GraphWriter::HELPER
       res.transparent_timestamp = true
     else
       raise 'unknown building block'
     end
 
-    bb.already_created = true
-    
+
+	# still in development:    
+    res.root_of_building_block = true
     bb.dependencies.each do |d|
       bbDep = ALL_BUILDING_BLOCKS[d]
-      next if bbDep.instance_of?(BinaryLibrary)
       tname = bbDep.get_task_name
-      next if onlyFileDeps and not File.exist?(tname) # used for build project only
-      res.enhance([tname])
-      # TODO handle circular dependencies
+      depTask = Rake.application.lookup(tname)
+      if not depTask or not depTask.findDependency(res.name) # avoid circular dependencies (on building block level)
+      	res.enhance([tname])
+      else
+      	@log.debug "Dismissed circular dependency: #{res.name} -> #{tname}"
+      end
     end
         
     res
@@ -125,7 +126,7 @@ class TaskMaker
   end
 
   def create_apply_task(depfile,outfileTask,bb)
-    task "#{depfile}.apply" do |task|
+    res = task "#{depfile}.apply" do |task|
       deps = nil
       if File.exists? depfile
         begin
@@ -143,6 +144,9 @@ class TaskMaker
         end
       end
     end
+    res.showInGraph = false
+    res.transparent_timestamp = true
+    res
   end
 
   def create_object_file_tasks(bb)
@@ -155,7 +159,7 @@ class TaskMaker
       end
 
       source = File.relFromTo(s,bb.project_dir)
-      object = bb.get_object_file(source)
+      object = bb.get_object_file(s)
       depfile = bb.get_dep_file(object)
 
       outputdir = File.dirname(object)
@@ -163,8 +167,8 @@ class TaskMaker
 
       cmd = [bb.tcs[:COMPILER][type][:COMMAND], # g++
         bb.tcs[:COMPILER][type][:COMPILE_FLAGS], # -c
-        bb.tcs[:COMPILER][type][:DEP_FLAGS], # -MMD -MF
-        depfile, # debug/src/abc.o.d
+        [bb.tcs[:COMPILER][type][:DEP_FLAGS], # -MMD -MF
+        depfile].join(""), # debug/src/abc.o.d
         bb.tcs[:COMPILER][type][:FLAGS], # -g3
         source, # src/abc.cpp
         bb.includeString(type), # -I include
@@ -180,7 +184,7 @@ class TaskMaker
         sh cmd
         convertDepfile(depfile, bb)
       end
-      outfileTask.showInGraph = GraphWriter::OBJ
+      outfileTask.showInGraph = false
       outfileTask.enhance(bb.config_files)
       outfileTask.enhance([outputdir])
       outfileTask.enhance([create_apply_task(depfile,outfileTask,bb)])
@@ -274,7 +278,7 @@ class TaskMaker
       d.lib_searchpaths.each { |k| strMap  << "#{bb.tcs[:LINKER][:LIB_PATH_FLAG]}#{File.relFromTo(k, d.project_dir)}" }
       d.libs_to_search.each  { |k| strMap  << "#{bb.tcs[:LINKER][:LIB_FLAG]}#{k}" }
       d.user_libs.each       { |k| strMap  << "#{bb.tcs[:LINKER][:USER_LIB_FLAG]}#{k}" }
-      d.get_libs_with_path.each  { |k| strMap << File.relFromTo(k, d.project_dir) }
+      d.libs_with_path.each  { |k| strMap << File.relFromTo(k, d.project_dir) }
     end
     linkerLibString = strMap.join(" ")
 

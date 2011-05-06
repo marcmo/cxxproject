@@ -1,6 +1,3 @@
-STDOUT.sync = true
-STDERR.sync = true
-
 module ThreadOut
 
   def self.write(stuff)
@@ -21,5 +18,3 @@ module ThreadOut
 
 end
 
-$stdout = ThreadOut
-$stderr = ThreadOut

@@ -8,10 +8,10 @@ class BuildingBlock
   include HasDependencies
 
   attr_reader :name
+  attr_reader :graph_name
   attr_reader :config_files
   attr_reader :project_dir
   attr_reader :output_dir
-  attr_accessor :already_created
 
   def set_name(x)
     @name = x
@@ -43,16 +43,24 @@ class BuildingBlock
     self
   end
 
+  def set_graph_name(x)
+    @graph_name = x
+    self
+  end
+
   def initialize(name)
     @name = name
+    @graph_name = name
     @config_files = []
     @project_dir = "."
     @output_dir = "."
-    @already_created = false
     @tcs = nil
 
 	raise "building block already exists: #{name}" if ALL_BUILDING_BLOCKS.include?@name
     ALL_BUILDING_BLOCKS[@name] = self
+  end
+  
+  def complete_init()
   end
 
   def get_task_name()

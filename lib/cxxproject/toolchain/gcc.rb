@@ -11,7 +11,7 @@ module Cxxproject
       :OBJECT_FILE_FLAG => "-o",
       :INCLUDE_PATH_FLAG => "-I",
       :COMPILE_FLAGS => "-c ",
-      :DEP_FLAGS => "-MMD -MF "
+      :DEP_FLAGS => "-MMD -MF " # empty space at the end is important!
     })
 
     GCCChain[:COMPILER][:C] = GCCChain[:COMPILER][:CPP].clone()
