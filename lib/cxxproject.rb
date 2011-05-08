@@ -16,6 +16,7 @@ end
 
 require 'cxxproject/task_maker'
 require 'cxxproject/utils/utils'
+require 'cxxproject/utils/ubigraph_support'
 require 'cxxproject/torake'
 require 'cxxproject/task_maker'
 require 'cxxproject/torake/compiler'

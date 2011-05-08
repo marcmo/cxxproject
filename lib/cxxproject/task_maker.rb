@@ -58,19 +58,19 @@ class TaskMaker
       t.transparent_timestamp = true
     end
 
-    outputTaskname = task "Print #{bb.name}" do
-      puts "**** Building: #{bb.name} ****"
-    end
-    outputTaskname.showInGraph = false
-    outputTaskname.transparent_timestamp = true
+#    outputTaskname = task "Print #{bb.name}" do
+#      puts "**** Building: #{bb.name} ****"
+#    end
+#    outputTaskname.showInGraph = false
+#    outputTaskname.transparent_timestamp = true
 
     res = nil
     if (bb.instance_of?(SourceLibrary)) then
       res = create_source_lib(bb, object_tasks, t)
-      res.prerequisites.unshift(outputTaskname)
+#      res.prerequisites.unshift(outputTaskname)
     elsif (bb.instance_of?(Executable)) then
       res = create_exe_task(bb, object_tasks, t)
-      res.prerequisites.unshift(outputTaskname)
+#      res.prerequisites.unshift(outputTaskname)
     elsif (bb.instance_of?(BinaryLibrary)) then
       # nothing?
     elsif (bb.instance_of?(CustomBuildingBlock)) then
@@ -89,17 +89,17 @@ class TaskMaker
 
 
 	# still in development:    
-    res.root_of_building_block = true
-    bb.dependencies.each do |d|
-      bbDep = ALL_BUILDING_BLOCKS[d]
-      tname = bbDep.get_task_name
-      depTask = Rake.application.lookup(tname)
-      if not depTask or not depTask.findDependency(res.name) # avoid circular dependencies (on building block level)
-      	res.enhance([tname])
-      else
-      	@log.debug "Dismissed circular dependency: #{res.name} -> #{tname}"
-      end
-    end
+#    res.root_of_building_block = true
+#    bb.dependencies.each do |d|
+#      bbDep = ALL_BUILDING_BLOCKS[d]
+#      tname = bbDep.get_task_name
+#      depTask = Rake.application.lookup(tname)
+#     if not depTask or not depTask.findDependency(res.name) # avoid circular dependencies (on building block level)
+##      	res.enhance([tname])
+ #     else
+ #     	@log.debug "Dismissed circular dependency: #{res.name} -> #{tname}"
+  #    end
+  #  end
         
     res
 
@@ -248,7 +248,7 @@ class TaskMaker
       objects.join(" ") # debug/src/abc.o debug/src/xy.o
     ].join(" ")
     desc "build lib"
-    res = file archive => object_multitask do
+    res = file archive => objects do #_multitask do
       sh cmd
     end
     addFileToCleanTask(archive)
@@ -298,8 +298,9 @@ class TaskMaker
       bb.tcs[:LINKER][:LIB_POSTFIX_FLAGS] # "-Wl,--no-whole-archive "
     ].join(" ")
 
-
-    res = file executable => object_multitask do
+    puts "that are the object of file #{executable} => #{objects.join(',')}"
+    puts "#{objects[0].class}"
+    res = file executable => objects do ##object_multitask do
       sh cmd
     end
     res.enhance(bb.config_files)
