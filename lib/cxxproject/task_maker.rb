@@ -50,14 +50,15 @@ class TaskMaker
 
     bb.calc_transitive_dependencies()
 
+	objects_multitask = nil
     if HasSources === bb
       bb.calc_compiler_strings()
       object_tasks = create_object_file_tasks(bb)
-      t = multitask bb.get_sources_task_name => object_tasks
-      t.showInGraph = false if not bb.instance_of? SingleSource
-      t.transparent_timestamp = true
+      objects_multitask = multitask bb.get_sources_task_name => object_tasks
+      objects_multitask.transparent_timestamp = true
     end
 
+<<<<<<< HEAD
 #    outputTaskname = task "Print #{bb.name}" do
 #      puts "**** Building: #{bb.name} ****"
 #    end
@@ -71,21 +72,29 @@ class TaskMaker
     elsif (bb.instance_of?(Executable)) then
       res = create_exe_task(bb, object_tasks, t)
 #      res.prerequisites.unshift(outputTaskname)
+=======
+    res = nil
+    if (bb.instance_of?(SourceLibrary)) then
+      res = create_source_lib(bb, object_tasks, objects_multitask)
+    elsif (bb.instance_of?(Executable)) then
+      res = create_exe_task(bb, object_tasks, objects_multitask)
+>>>>>>> 79b27d7c2183d0700a4fb9098f00c01d24051ee6
     elsif (bb.instance_of?(BinaryLibrary)) then
-      # nothing?
+      res = task bb.get_task_name
     elsif (bb.instance_of?(CustomBuildingBlock)) then
       # todo...
     elsif (bb.instance_of?(Makefile)) then
       res = create_makefile_task(bb)
     elsif (bb.instance_of?(SingleSource)) then
-      t.add_description("compile sources only")
-      res = t
+      objects_multitask.add_description("compile sources only")
+      res = objects_multitask
     elsif (bb.instance_of?(ModuleBuildingBlock)) then
       res = task bb.get_task_name
       res.transparent_timestamp = true
     else
       raise 'unknown building block'
     end
+<<<<<<< HEAD
 
 
 	# still in development:    
@@ -102,7 +111,21 @@ class TaskMaker
   #  end
         
     res
+=======
+    
+    bb.config_files.each do |cf|
+    	Rake.application[cf].showInGraph = GraphWriter::NO
+    end
+>>>>>>> 79b27d7c2183d0700a4fb9098f00c01d24051ee6
 
+	# convert building block deps to rake task prerequisites (e.g. exe needs lib)	
+	depList = bb.task_prerequisites[0] ? bb.task_prerequisites[1..-1] : bb.dependencies  
+    depList.reverse.each do |d|
+      res.prerequisites.unshift(ALL_BUILDING_BLOCKS[d].get_task_name)
+    end
+	
+	res
+	
   end
 
   private
@@ -133,6 +156,7 @@ class TaskMaker
           deps = YAML.load_file(depfile)
           deps.map!{|d| File.relFromTo(d,bb.project_dir)} if deps
         rescue
+          deps = nil
           # may happen if depfile was not converted the last time
         end
       end
@@ -144,7 +168,7 @@ class TaskMaker
         end
       end
     end
-    res.showInGraph = false
+    res.showInGraph = GraphWriter::NO
     res.transparent_timestamp = true
     res
   end
@@ -155,8 +179,10 @@ class TaskMaker
     bb.sources.each do |s|
       type = bb.getSourceType(s)
       if type.nil?
+      	puts "Warning: no valid source type for #{File.relFromTo(s,bb.project_dir)}, will be ignored!"
         next
       end
+      
 
       source = File.relFromTo(s,bb.project_dir)
       object = bb.get_object_file(s)
@@ -164,30 +190,35 @@ class TaskMaker
 
       outputdir = File.dirname(object)
       directory  outputdir
+      
+      depStr = type == :ASM ? "" : [bb.tcs[:COMPILER][type][:DEP_FLAGS], # -MMD -MF
+        depfile].join("") # debug/src/abc.o.d
+      #depStr = ""
 
       cmd = [bb.tcs[:COMPILER][type][:COMMAND], # g++
         bb.tcs[:COMPILER][type][:COMPILE_FLAGS], # -c
-        [bb.tcs[:COMPILER][type][:DEP_FLAGS], # -MMD -MF
-        depfile].join(""), # debug/src/abc.o.d
+        depStr,
         bb.tcs[:COMPILER][type][:FLAGS], # -g3
-        source, # src/abc.cpp
         bb.includeString(type), # -I include
         bb.defineString(type), # -DDEBUG
         bb.tcs[:COMPILER][type][:OBJECT_FILE_FLAG], # -o
-        object # debug/src/abc.o
+        object, # debug/src/abc.o
+        source # src/abc.cpp
       ].join(" ")
 
-      addFileToCleanTask(depfile)
+      addFileToCleanTask(depfile) if depStr != ""
       addFileToCleanTask(object)
 
-      outfileTask = file object do
-        sh cmd
-        convertDepfile(depfile, bb)
+      outfileTask = file object => source do
+        puts cmd
+        puts `#{cmd + " 2>&1"}`
+        raise "System command failed" if $?.to_i != 0
+        convertDepfile(depfile, bb) if depStr != ""
       end
-      outfileTask.showInGraph = false
+      outfileTask.showInGraph = GraphWriter::DETAIL
       outfileTask.enhance(bb.config_files)
       outfileTask.enhance([outputdir])
-      outfileTask.enhance([create_apply_task(depfile,outfileTask,bb)])
+      outfileTask.enhance([create_apply_task(depfile,outfileTask,bb)]) if depStr != ""
 
       tasks << outfileTask
 
@@ -209,10 +240,12 @@ class TaskMaker
       bb.tcs[:MAKE][:DIR_FLAG], # -C
       File.dirname(mfile), # x/y
       bb.tcs[:MAKE][:FILE_FLAG], # -f
-      File.basename(mfile) # x/y/makfile
+      File.basename(mfile) # x/y/makefile
     ].join(" ")
     mfileTask = task bb.get_task_name do
-      sh cmd
+      puts cmd
+      puts `#{cmd + " 2>&1"}`
+      raise "System command failed" if $?.to_i != 0
     end
     mfileTask.transparent_timestamp = true
     mfileTask.enhance(bb.config_files)
@@ -224,10 +257,12 @@ class TaskMaker
         bb.tcs[:MAKE][:DIR_FLAG], # -C
         File.dirname(mfile), # x/y
         bb.tcs[:MAKE][:FILE_FLAG], # -f
-        File.basename(mfile) # x/y/makfile
+        File.basename(mfile) # x/y/makefile
       ].join(" ")
       mfileCleanTask = task mfile+"Clean" do
-        sh cmdClean
+        puts cmdClean
+        puts `#{cmdClean + " 2>&1"}`
+        raise "System command failed" if $?.to_i != 0
       end
       addTaskToCleanTask(mfileCleanTask)
     end
@@ -239,7 +274,6 @@ class TaskMaker
   #
   def create_source_lib(bb, objects, object_multitask)
     archive = bb.get_archive_name()
-    @log.debug "creating #{archive}"
 
     cmd = [bb.tcs[:ARCHIVER][:COMMAND], # ar
       bb.tcs[:ARCHIVER][:ARCHIVE_FLAGS], # -r
@@ -248,8 +282,15 @@ class TaskMaker
       objects.join(" ") # debug/src/abc.o debug/src/xy.o
     ].join(" ")
     desc "build lib"
+<<<<<<< HEAD
     res = file archive => objects do #_multitask do
       sh cmd
+=======
+    res = file archive => object_multitask do
+      puts cmd
+      puts `#{cmd + " 2>&1"}`
+      raise "System command failed" if $?.to_i != 0
+>>>>>>> 79b27d7c2183d0700a4fb9098f00c01d24051ee6
     end
     addFileToCleanTask(archive)
     res.enhance(bb.config_files)
@@ -263,12 +304,15 @@ class TaskMaker
   def create_exe_task(bb, objects, object_multitask)
     executable = bb.get_executable_name()
 
-    @log.debug "creating #{executable}"
-
     addFileToCleanTask(executable)
 
-    script = bb.linker_script ? "#{bb.tcs[:LINKER][:SCRIPT]} #{File.relFromTo(bb.linker_script, bb.project_dir)}" : "" # -T xy/xy.dld
-    mapfile = bb.mapfile ?  "#{bb.tcs[:LINKER][:MAP_FILE_FLAG]} > #{File.relFromTo(bb.mapfile, bb.project_dir)}" : "" # -Wl,-m6 > xy.map
+	scriptFile = ""
+	script = ""
+	if bb.linker_script
+		scriptFile = File.relFromTo(bb.linker_script, bb.project_dir)
+    	script = "#{bb.tcs[:LINKER][:SCRIPT]} #{scriptFile}"  # -T xy/xy.dld
+   	end
+    mapfile = bb.mapfile ?  "#{bb.tcs[:LINKER][:MAP_FILE_FLAG]} >#{File.relFromTo(bb.mapfile, bb.project_dir)}" : "" # -Wl,-m6 > xy.map
 
     strMap = []
     deps = bb.all_dependencies
@@ -298,13 +342,21 @@ class TaskMaker
       bb.tcs[:LINKER][:LIB_POSTFIX_FLAGS] # "-Wl,--no-whole-archive "
     ].join(" ")
 
+<<<<<<< HEAD
     puts "that are the object of file #{executable} => #{objects.join(',')}"
     puts "#{objects[0].class}"
     res = file executable => objects do ##object_multitask do
       sh cmd
+=======
+    res = file executable => object_multitask do
+      sh cmd # no backticks with " 2>&1", because some compilers, e.g. diab, uses ">" for piping to map files. --> dont link in threads
+      #puts cmd
+      #puts `#{cmd + " 2>&1"}`
+      raise "System command failed" if $?.to_i != 0
+>>>>>>> 79b27d7c2183d0700a4fb9098f00c01d24051ee6
     end
     res.enhance(bb.config_files)
-    res.enhance([script]) unless script==""
+    res.enhance([scriptFile]) unless scriptFile==""
 
     create_run_task(executable, bb.config_files)
     res

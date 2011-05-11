@@ -1,3 +1,5 @@
+require 'stringio'
+
 module ThreadOut
 
   def self.write(stuff)
@@ -8,13 +10,20 @@ module ThreadOut
     end
   end
 
+begin
   def self.puts(stuff)
     if Thread.current[:stdout] then
       Thread.current[:stdout].puts stuff
     else
-      STDOUT.puts stuff
+      STDERR.puts stuff
     end
   end
+end  
 
 end
+
+STDOUT.sync = true
+STDERR.sync = true
+$stdout = ThreadOut
+$stderr = ThreadOut
 

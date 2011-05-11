@@ -8,8 +8,6 @@ module Rake
     def initialize(mutex)
       super()
       @mutex = mutex
-      STDOUT.sync = true
-      STDERR.sync = true
     end
 
     def syncFlush
@@ -31,7 +29,7 @@ module Rake
       jobqueue = @prerequisites.dup
       m = Mutex.new
 
-      numThreads = jobqueue.length > 3 ? 3 : jobqueue.length
+      numThreads = jobqueue.length > 10 ? 10 : jobqueue.length
 
       threads = []
       numThreads.times {
@@ -64,7 +62,6 @@ module Rake
     attr_accessor :showInGraph
     attr_accessor :transparent_timestamp
     attr_accessor :dismissed_prerequisites
-    attr_accessor :root_of_building_block
 
     execute_org = self.instance_method(:execute)
     initialize_org = self.instance_method(:initialize)
@@ -72,11 +69,10 @@ module Rake
 
     define_method(:initialize) do |task_name, app|
       initialize_org.bind(self).call(task_name, app)
-      @showInGraph = true
+      @showInGraph = GraphWriter::YES
       @deps = nil
       @transparent_timestamp = false
       @dismissed_prerequisites = []
-      @root_of_building_block = false
     end
 
     define_method(:execute) do |arg|
@@ -92,11 +88,13 @@ module Rake
       begin
         execute_org.bind(self).call(arg)
         @failure = false
-      rescue Exception => ex1# todo: no rescue to stop on first error
-        puts "Error: #{@name} not built/cleaned correctly: #{ex1.message}"
+      rescue Exception => ex1 # todo: no rescue to stop on first error
+          # todo: debug log, no puts here! 
+          puts "Error: #{@name} not built/cleaned correctly: #{ex1.message}"
         begin
           FileUtils.rm(@name) if File.exists?(@name) # todo: error parsing?
         rescue Exception => ex2
+          # todo: debug log, no puts here!
           puts "Error: Could not delete #{@name}: #{ex2.message}"
         end
         @failure = true
@@ -110,30 +108,14 @@ module Rake
       if @transparent_timestamp
         res = Rake::EARLY
         @prerequisites.each do |ts|
-          ts = Rake.application[ts]
-          next if Rake::EarlyTime === ts.timestamp
-          if not Rake::EarlyTime === res
-            res = rs if ts > res
-          end
+          prereq_timestamp = Rake.application[ts].timestamp
+          res = prereq_timestamp if prereq_timestamp > res
         end
         res
       else
         timestamp_org.bind(self).call()
       end
     end
-
-	def findDependency(task_name, alreadyChecked = [])
-		return false if alreadyChecked.include?name
-		alreadyChecked << name
-		@prerequisites.each do |p|
-		    prereq = application.lookup(p)
-		    next if not prereq
-			next if not prereq.root_of_building_block
-			return true if prereq.name == task_name
-			return true if prereq.findDependency(task_name, alreadyChecked)
-		end
-		return false
-	end
 
   end
 
