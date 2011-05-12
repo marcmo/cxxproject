@@ -89,8 +89,8 @@ module Rake
         execute_org.bind(self).call(arg)
         @failure = false
       rescue Exception => ex1 # todo: no rescue to stop on first error
-          # todo: debug log, no puts here! 
-          puts "Error: #{@name} not built/cleaned correctly: #{ex1.message}"
+        # todo: debug log, no puts here!
+        puts "Error: #{@name} not built/cleaned correctly: #{ex1.message}"
         begin
           FileUtils.rm(@name) if File.exists?(@name) # todo: error parsing?
         rescue Exception => ex2
@@ -99,9 +99,9 @@ module Rake
         end
         @failure = true
       end
-      
+
       Thread.current[:stdout].sync_flush if Thread.current[:stdout]
-      
+
     end
 
     define_method(:timestamp) do

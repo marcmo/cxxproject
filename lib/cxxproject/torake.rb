@@ -65,7 +65,6 @@ class CxxProject2Rake
     register_projects(project_configs)
     define_project_info_task()
     @gcc = Cxxproject::Toolchain::GCCChain
-    # task_maker = TaskMaker.new(compiler.output_path, gcc)
     task_maker = TaskMaker.new(@log)
     task_maker.set_loglevel(@log.level);
     tasks = []
@@ -74,8 +73,7 @@ class CxxProject2Rake
 
     ALL_BUILDING_BLOCKS.each do |name,block|
       block.set_tcs(@gcc)
-      # block.set_output_dir(compiler.output_path) todo
-      block.set_output_dir("debug_output_dir")
+      block.set_output_dir(Dir.pwd + "/" + compiler.output_path)
       # block.set_config_files(project_configs)
       block.set_config_files([])
       block.complete_init()
@@ -173,7 +171,12 @@ class EvalContext
     bblock.set_sources(hash[:sources]) if hash.has_key?(:sources)
     bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
     bblock.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
-    bblock.set_lib_searchpaths(["/usr/local/lib","/usr/lib"])
+    
+    if OS.linux?
+      bblock.set_lib_searchpaths(["/usr/local/lib","/usr/lib"])
+   	else
+      bblock.set_lib_searchpaths(["C:/tool/cygwin/lib"])
+    end 
     bblock
   end
 

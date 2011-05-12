@@ -10,15 +10,15 @@ module ThreadOut
     end
   end
 
-begin
-  def self.puts(stuff)
-    if Thread.current[:stdout] then
-      Thread.current[:stdout].puts stuff
-    else
-      STDERR.puts stuff
+  begin
+    def self.puts(stuff)
+      if Thread.current[:stdout] then
+        Thread.current[:stdout].puts stuff
+      else
+        STDERR.puts stuff
+      end
     end
   end
-end  
 
 end
 

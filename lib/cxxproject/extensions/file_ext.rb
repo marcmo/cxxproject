@@ -9,7 +9,8 @@ class File
     end
 
     begin
-      res = Pathname.new(res).relative_path_from(Pathname.new(thenRelToThisDir)).to_s
+      resToCheck = Pathname.new(res).relative_path_from(Pathname.new(thenRelToThisDir)).to_s
+      res = resToCheck if resToCheck.length < res.length # avoid something like "../../../../../../usr/local/lib"
     rescue # not the same dir (well, Pathname is case sensitive on Windows as well...)
       res
     end

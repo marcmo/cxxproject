@@ -28,24 +28,24 @@ module HasSources
     @include_string = {}
     @define_string = {}
     [:CPP, :C, :ASM].each do |type|
-      strMap = []
+      incArray = []
       all_dependencies.each do |e|
         d = ALL_BUILDING_BLOCKS[e]
         next if not HasSources === d
         if d.includes.length == 0
-          strMap << File.relFromTo("include", d.project_dir)
+          incArray << File.relFromTo("include", d.project_dir)
         else
-          d.includes.each { |k| strMap << File.relFromTo(k, d.project_dir) }
+          d.includes.each { |k| incArray << File.relFromTo(k, d.project_dir) }
         end
       end
-      @include_string[type] = strMap.map!{|k| "#{tcs[:COMPILER][type][:INCLUDE_PATH_FLAG]}#{k}"}.join(" ")
+      @include_string[type] = incArray.uniq.map!{|k| "#{tcs[:COMPILER][type][:INCLUDE_PATH_FLAG]}#{k}"}.join(" ")
 
       @define_string[type] = @tcs[:COMPILER][type][:DEFINES].map {|k| "#{@tcs[:COMPILER][type][:DEFINE_FLAG]}#{k}"}.join(" ")
     end
   end
 
   def get_object_file(source)
-    File.relFromTo(source, @project_dir + "/" + @output_dir) + ".o"
+    File.relFromTo(source, @complete_output_dir + "/" + @name) + ".o"
   end
 
   def get_dep_file(object)

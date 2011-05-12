@@ -77,7 +77,7 @@ class ModuleGraphWriter < GraphWriter
 		 end
       @dotFile.write("</TABLE>>];\n")
 
-      depList = get_deps(node.mmDepNode)
+      depList = get_deps(node)
       depList.each do |dNode|
         if dNode.instance_of?ModuleBuildingBlock
           @dotFile.write("  \"#{node.graph_name}\" -> \"#{dNode.graph_name}\"\n")
@@ -90,8 +90,9 @@ class ModuleGraphWriter < GraphWriter
   def write_transition(node, dep)
   end
 
-  def get_deps(node)
-    depList = (@orgDeps and node.helper_dependencies.length > 0)? node.dependencies : node.helper_dependencies
+  def get_deps(n)
+    return [] if not n.instance_of?ModuleBuildingBlock
+    depList = @orgDeps ? n.mmDepNodeOrg.helper_dependencies : n.mmDepNodeRed.dependencies
     return depList.map { |depName| ALL_BUILDING_BLOCKS[depName] }
   end
 
@@ -120,7 +121,7 @@ class TaskGraphWriter < GraphWriter
 
   def write_graph(filename,startNodes,detailTasks = false)
     @detailTasks = detailTasks ? GraphWriter::DETAIL : GraphWriter::YES
-  	super(filename,startNodes)
+    super(filename,startNodes)
   end
 
   private
@@ -128,14 +129,14 @@ class TaskGraphWriter < GraphWriter
   def get_deps(node)
     deps = []
     if node.showInGraph == GraphWriter::YES
-	    node.prerequisites.each do |p|
-	      task = Rake.application.lookup(p)
-	      if (task)
-	        next if task.showInGraph < @detailTasks 
-	        deps << task
-	      end
-	    end
-	end
+      node.prerequisites.each do |p|
+        task = Rake.application.lookup(p)
+        if (task)
+          next if task.showInGraph < @detailTasks
+          deps << task
+        end
+      end
+    end
     deps
   end
 

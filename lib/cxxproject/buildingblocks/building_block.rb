@@ -12,6 +12,7 @@ class BuildingBlock
   attr_reader :config_files
   attr_reader :project_dir
   attr_reader :output_dir
+  attr_reader :complete_output_dir
 
   def set_name(x)
     @name = x
@@ -35,12 +36,22 @@ class BuildingBlock
 
   def set_project_dir(x)
     @project_dir = x
+    calc_complete_output_dir
     self
   end
 
   def set_output_dir(x)
     @output_dir = x
+    calc_complete_output_dir
     self
+  end
+
+  def calc_complete_output_dir
+    if Pathname.new(@output_dir).absolute?
+      @complete_output_dir = @output_dir
+    else
+      @complete_output_dir = @project_dir + "/" + @output_dir
+    end
   end
 
   def set_graph_name(x)
@@ -54,12 +65,13 @@ class BuildingBlock
     @config_files = []
     @project_dir = "."
     @output_dir = "."
+    @complete_output_dir = "."
     @tcs = nil
 
-	raise "building block already exists: #{name}" if ALL_BUILDING_BLOCKS.include?@name
+    raise "building block already exists: #{name}" if ALL_BUILDING_BLOCKS.include?@name
     ALL_BUILDING_BLOCKS[@name] = self
   end
-  
+
   def complete_init()
   end
 

@@ -45,7 +45,7 @@ class TaskMaker
   # * a compile-only source file block
   def create_tasks_for_building_block(bb)
     @log.debug "create tasks for: #{bb.name}"
-    CLOBBER.include(bb.output_dir)
+    CLOBBER.include(bb.complete_output_dir)
 
     bb.calc_transitive_dependencies()
 
@@ -64,6 +64,7 @@ class TaskMaker
       res = create_exe_task(bb, object_tasks, objects_multitask)
     elsif (bb.instance_of?(BinaryLibrary)) then
       res = task bb.get_task_name
+      res.transparent_timestamp = true
     elsif (bb.instance_of?(CustomBuildingBlock)) then
       # todo...
     elsif (bb.instance_of?(Makefile)) then
@@ -78,10 +79,10 @@ class TaskMaker
       raise 'unknown building block'
     end
     bb.config_files.each do |cf|
-    	Rake.application[cf].showInGraph = GraphWriter::NO
+      Rake.application[cf].showInGraph = GraphWriter::NO
     end
 
-    # convert building block deps to rake task prerequisites (e.g. exe needs lib)	
+    # convert building block deps to rake task prerequisites (e.g. exe needs lib)
     bb.dependencies.reverse.each do |d|
       res.prerequisites.unshift(ALL_BUILDING_BLOCKS[d].get_task_name)
     end
@@ -99,7 +100,6 @@ class TaskMaker
     end
 
     deps = deps.gsub(/\\\n/,'').split()[1..-1]
-    #todo: kann weg? Rake.application["#{depfile}.apply"].deps = deps.clone() # = no need to re-read the deps file
     deps.map!{|d| File.relFromTo(d,::Dir.pwd,bb.project_dir)}
 
     FileUtils.mkpath File.dirname(depfile)
@@ -139,7 +139,7 @@ class TaskMaker
     bb.sources.each do |s|
       type = bb.get_source_type(s)
       if type.nil?
-      	puts "Warning: no valid source type for #{File.relFromTo(s,bb.project_dir)}, will be ignored!"
+        puts "Warning: no valid source type for #{File.relFromTo(s,bb.project_dir)}, will be ignored!"
         next
       end
 
@@ -148,7 +148,7 @@ class TaskMaker
       depfile = bb.get_dep_file(object)
 
       depStr = type == :ASM ? "" : [bb.tcs[:COMPILER][type][:DEP_FLAGS], # -MMD -MF
-        depfile].join("") # debug/src/abc.o.d
+      depfile].join("") # debug/src/abc.o.d
 
       cmd = [bb.tcs[:COMPILER][type][:COMMAND], # g++
         bb.tcs[:COMPILER][type][:COMPILE_FLAGS], # -c
@@ -237,7 +237,7 @@ class TaskMaker
     add_file_to_clean_task(archive)
     res.enhance(bb.config_files)
     set_output_dir(archive, res)
-    
+
     res
   end
 
@@ -250,31 +250,38 @@ class TaskMaker
     script = ""
     if bb.linker_script
       scriptFile = File.relFromTo(bb.linker_script, bb.project_dir)
-    	script = "#{bb.tcs[:LINKER][:SCRIPT]} #{scriptFile}"  # -T xy/xy.dld
-   	end
-    mapfile = bb.mapfile ?  "#{bb.tcs[:LINKER][:MAP_FILE_FLAG]} >#{File.relFromTo(bb.mapfile, bb.project_dir)}" : "" # -Wl,-m6 > xy.map
+      script = "#{bb.tcs[:LINKER][:SCRIPT]} #{scriptFile}"  # -T xy/xy.dld
+    end
 
-    strMap = []
+    mapfile = bb.mapfile ? "#{bb.tcs[:LINKER][:MAP_FILE_FLAG]} >#{File.relFromTo(bb.mapfile, bb.complete_output_dir)}" : "" # -Wl,-m6 > xy.map
+
+    # calc linkerLibString (two steps for removing duplicates)
+    lib_searchpaths_array = []
+    libs_to_search_array = []
+    user_libs_array = []
+    libs_with_path_array = []
     deps = bb.all_dependencies
     deps.each do |e|
       d = ALL_BUILDING_BLOCKS[e]
       next if not HasLibraries === d
-      d.lib_searchpaths.each { |k| strMap  << "#{bb.tcs[:LINKER][:LIB_PATH_FLAG]}#{File.relFromTo(k, d.project_dir)}" }
-      d.libs_to_search.each  { |k| strMap  << "#{bb.tcs[:LINKER][:LIB_FLAG]}#{k}" }
-      d.user_libs.each       { |k| strMap  << "#{bb.tcs[:LINKER][:USER_LIB_FLAG]}#{k}" }
-      d.libs_with_path.each  { |k| strMap << File.relFromTo(k, d.project_dir) }
+      d.lib_searchpaths.each { |k| lib_searchpaths_array << File.relFromTo(k, d.project_dir) }
+      d.libs_to_search.each  { |k| libs_to_search_array  << k }
+      d.user_libs.each       { |k| user_libs_array       << k }
+      d.libs_with_path.each  { |k| libs_with_path_array  << File.relFromTo(k, d.project_dir) }
     end
-    linkerLibString = strMap.join(" ")
+    strArray = []
+    lib_searchpaths_array.uniq.each { |k| strArray << "#{bb.tcs[:LINKER][:LIB_PATH_FLAG]}#{k}" }
+    libs_to_search_array.uniq.each  { |k| strArray << "#{bb.tcs[:LINKER][:LIB_FLAG]}#{k}" }
+    user_libs_array.uniq.each       { |k| strArray << "#{bb.tcs[:LINKER][:USER_LIB_FLAG]}#{k}" }
+    libs_with_path_array.uniq.each  { |k| strArray << "#{k}" }
+    linkerLibString = strArray.join(" ")
 
     cmd = [bb.tcs[:LINKER][:COMMAND], # g++
       bb.tcs[:LINKER][:MUST_FLAGS], # ??
       bb.tcs[:LINKER][:FLAGS], # --all_load
-
       bb.tcs[:LINKER][:EXE_FLAG], # -o
       executable, # debug/x.o
-
       objects.join(" "), # debug/src/abc.o debug/src/xy.o
-
       script,
       mapfile,
       bb.tcs[:LINKER][:LIB_PREFIX_FLAGS], # "-Wl,--whole-archive "
