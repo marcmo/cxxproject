@@ -172,7 +172,7 @@ class TaskMaker
       end
       outfileTask.showInGraph = GraphWriter::DETAIL
       outfileTask.enhance(bb.config_files)
-      setOutputDir(object, outfileTask)
+      set_output_dir(object, outfileTask)
       outfileTask.enhance([create_apply_task(depfile,outfileTask,bb)]) if depStr != ""
       tasks << outfileTask
     end
@@ -236,7 +236,7 @@ class TaskMaker
     end
     add_file_to_clean_task(archive)
     res.enhance(bb.config_files)
-    setOutputDir(archive, res)
+    set_output_dir(archive, res)
     
     res
   end
@@ -288,7 +288,7 @@ class TaskMaker
     end
     res.enhance(bb.config_files)
     res.enhance([scriptFile]) unless scriptFile==""
-    setOutputDir(executable, res)
+    set_output_dir(executable, res)
 
     create_run_task(executable, bb.config_files)
     res
@@ -301,7 +301,7 @@ class TaskMaker
     end
   end
 
-  def setOutputDir(file, taskOfFile)
+  def set_output_dir(file, taskOfFile)
     outputdir = File.dirname(file)
     directory outputdir
     taskOfFile.enhance([outputdir])
