@@ -16,17 +16,17 @@ module HasSources
     self
   end
 
-  def includeString(type)
-    @includeString[type] ||= ""
+  def include_string(type)
+    @include_string[type] ||= ""
   end
 
-  def defineString(type)
-    @defineString[type] ||= ""
+  def define_string(type)
+    @define_string[type] ||= ""
   end
 
   def calc_compiler_strings()
-    @includeString = {}
-    @defineString = {}
+    @include_string = {}
+    @define_string = {}
     [:CPP, :C, :ASM].each do |type|
       strMap = []
       all_dependencies.each do |e|
@@ -38,9 +38,9 @@ module HasSources
           d.includes.each { |k| strMap << File.relFromTo(k, d.project_dir) }
         end
       end
-      @includeString[type] = strMap.map!{|k| "#{tcs[:COMPILER][type][:INCLUDE_PATH_FLAG]}#{k}"}.join(" ")
+      @include_string[type] = strMap.map!{|k| "#{tcs[:COMPILER][type][:INCLUDE_PATH_FLAG]}#{k}"}.join(" ")
 
-      @defineString[type] = @tcs[:COMPILER][type][:DEFINES].map {|k| "#{@tcs[:COMPILER][type][:DEFINE_FLAG]}#{k}"}.join(" ")
+      @define_string[type] = @tcs[:COMPILER][type][:DEFINES].map {|k| "#{@tcs[:COMPILER][type][:DEFINE_FLAG]}#{k}"}.join(" ")
     end
   end
 
@@ -52,7 +52,7 @@ module HasSources
     object + ".d"
   end
 
-  def getSourceType(source)
+  def get_source_type(source)
     ex = File.extname(source)
     [:CPP, :C, :ASM].each do |t|
       return t if tcs[:COMPILER][t][:SOURCE_FILE_ENDINGS].include?(ex)

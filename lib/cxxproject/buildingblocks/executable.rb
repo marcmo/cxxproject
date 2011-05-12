@@ -32,7 +32,7 @@ class Executable < BuildingBlock
     @mapfile = nil
   end
 
-  def linkerLibsString
+  def linker_libs_string
     @linkerString ||= ""
   end
 

@@ -10,7 +10,7 @@ end
 desc "Default Task"
 task :default => [:install]
 
-PKG_VERSION = '0.4'
+PKG_VERSION = '0.4.2'
 PKG_FILES = FileList[
     'lib/**/*.rb',
     'Rakefile.rb',

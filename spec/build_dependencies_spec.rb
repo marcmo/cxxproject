@@ -2,7 +2,6 @@ $:.unshift File.join(File.dirname(__FILE__),"..","lib")
 require 'cxxproject'
 require 'rake'
 
-
 module Rake
 	class Task
 
@@ -21,7 +20,6 @@ module Rake
 			@@task_execution_count += 1
       prerequisites().each do |p|
         x = application[p, scope]
-        # puts "needed: #{x.inspect}" # unless !x.needed?
       end
 			execute_org.bind(self).call(args)
 		end

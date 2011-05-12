@@ -10,7 +10,7 @@ module Rake
       @mutex = mutex
     end
 
-    def syncFlush
+    def sync_flush
       if string.length > 0
         @mutex.synchronize { STDOUT.write string; truncate(0); rewind}
       end
@@ -42,7 +42,7 @@ module Rake
             s = SyncStringIO.new(m)
             Thread.current[:stdout] = s
             application[p].invoke_with_call_chain(args, invocation_chain)
-            s.syncFlush
+            s.sync_flush
           end
         }
       }
@@ -100,7 +100,7 @@ module Rake
         @failure = true
       end
       
-      Thread.current[:stdout].syncFlush if Thread.current[:stdout]
+      Thread.current[:stdout].sync_flush if Thread.current[:stdout]
       
     end
 
