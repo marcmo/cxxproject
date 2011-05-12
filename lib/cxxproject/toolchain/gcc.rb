@@ -31,6 +31,8 @@ module Cxxproject
     GCCChain[:LINKER][:LIB_FLAG] = "-l"
     GCCChain[:LINKER][:LIB_PATH_FLAG] = "-L"
     GCCChain[:LINKER][:FLAGS] = "-all_load"
+    GCCChain[:LINKER][:LIB_PREFIX_FLAGS] = "-Wl,--whole-archive"
+    GCCChain[:LINKER][:LIB_POSTFIX_FLAGS] = "-Wl,--no-whole-archive"
 
   end
 end
