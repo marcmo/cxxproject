@@ -153,9 +153,6 @@ class TaskMaker
       object = bb.get_object_file(s)
       depfile = bb.get_dep_file(object)
 
-      outputdir = File.dirname(object)
-      directory  outputdir
-      
       depStr = type == :ASM ? "" : [bb.tcs[:COMPILER][type][:DEP_FLAGS], # -MMD -MF
         depfile].join("") # debug/src/abc.o.d
       #depStr = ""
@@ -182,7 +179,7 @@ class TaskMaker
       end
       outfileTask.showInGraph = GraphWriter::DETAIL
       outfileTask.enhance(bb.config_files)
-      outfileTask.enhance([outputdir])
+      setOutputDir(object, outfileTask)
       outfileTask.enhance([create_apply_task(depfile,outfileTask,bb)]) if depStr != ""
 
       tasks << outfileTask
@@ -254,6 +251,8 @@ class TaskMaker
     end
     addFileToCleanTask(archive)
     res.enhance(bb.config_files)
+    setOutputDir(archive, res)
+    
     res
   end
 
@@ -310,6 +309,7 @@ class TaskMaker
     end
     res.enhance(bb.config_files)
     res.enhance([scriptFile]) unless scriptFile==""
+    setOutputDir(executable, res)
 
     create_run_task(executable, bb.config_files)
     res
@@ -320,6 +320,12 @@ class TaskMaker
     task :run => executable do
       sh "#{executable}"
     end
+  end
+
+  def setOutputDir(file, taskOfFile)
+    outputdir = File.dirname(file)
+    directory outputdir
+    taskOfFile.enhance([outputdir])
   end
 
 end
