@@ -2,10 +2,21 @@ require 'rake/gempackagetask'
 begin
   require 'roodi' 
   require 'roodi_task'
-  require 'spec/rake/spectask'
 rescue LoadError # don't bail out when people do not have roodi installed!
   warn "roodi not installed...will not be checked!"
 end
+
+begin
+  require 'spec/rake/spectask' # old rspec
+rescue LoadError
+  require 'rspec/core/rake_task' # rspec 2.5.0
+  begin
+  rescue LoadError # don't bail out when people do not have roodi installed!  
+    warn "spec not installed...will not be checked!"
+  end
+end
+
+
 
 desc "Default Task"
 task :default => [:install]
