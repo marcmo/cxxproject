@@ -56,7 +56,7 @@ end
 class ModuleGraphWriter < GraphWriter
 
   def write_graph(filename,startNodes,orgDeps = true)
-    @orgDeps = orgDeps # orgDeps is with dependencies, otherwise task_prerequisites is used as dependency list
+    @orgDeps = orgDeps
     super(filename,startNodes)
   end
 
@@ -91,7 +91,7 @@ class ModuleGraphWriter < GraphWriter
   end
 
   def get_deps(node)
-    depList = @orgDeps? node.dependencies : node.task_prerequisites[1..-1]
+    depList = (@orgDeps and node.helper_dependencies.length > 0)? node.dependencies : node.helper_dependencies
     return depList.map { |depName| ALL_BUILDING_BLOCKS[depName] }
   end
 
