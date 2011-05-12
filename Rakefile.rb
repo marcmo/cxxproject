@@ -9,7 +9,7 @@ end
 begin
   require 'spec/rake/spectask' # old rspec
 rescue LoadError
-  require 'rspec/core/rake_task' # rspec 2.5.0
+  require 'rspec/core/rake_task' # rspec 2.5.x
   begin
   rescue LoadError # don't bail out when people do not have roodi installed!  
     warn "spec not installed...will not be checked!"
@@ -50,12 +50,23 @@ if self.class.const_defined?(:RoodiTask) then
 	task :gem => [:roodi]
 end
 
+# old rspec
 if self.class.const_defined?(:SpecTask) then
 	desc "Run all examples"
 	Spec::Rake::SpecTask.new() do |t|
 	  t.spec_files = FileList['spec/**/*.rb']
 	end
 	task :gem => [:spec]
+end
+
+# new rspec
+begin # const_defined? did not work?
+ 	desc "Run all examples"
+	RSpec::Core::RakeTask.new() do |t|
+	  t.pattern = 'spec/**/*.rb'
+	end
+	task :gem => [:spec]
+rescue
 end
 
 desc "install gem globally"
