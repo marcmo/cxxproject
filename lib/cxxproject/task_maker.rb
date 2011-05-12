@@ -80,9 +80,9 @@ class TaskMaker
     bb.config_files.each do |cf|
     	Rake.application[cf].showInGraph = GraphWriter::NO
     end
+
     # convert building block deps to rake task prerequisites (e.g. exe needs lib)	
-    depList = bb.task_prerequisites[0] ? bb.task_prerequisites[1..-1] : bb.dependencies  
-    depList.reverse.each do |d|
+    bb.dependencies.reverse.each do |d|
       res.prerequisites.unshift(ALL_BUILDING_BLOCKS[d].get_task_name)
     end
     res
