@@ -26,7 +26,7 @@ module HasDependencies
 
   # inclusive self!!
   def calc_transitive_dependencies
-    deps = [self.name] # needed due to circular deps
+    deps = [self.name]
     @all_dependencies = get_transitive_dependencies_internal(deps)
   end
 
