@@ -47,7 +47,7 @@ class BuildingBlock
   end
 
   def calc_complete_output_dir
-    if Pathname.new(@output_dir).absolute?
+    if File.is_absolute?(@output_dir)
       @complete_output_dir = @output_dir
     else
       @complete_output_dir = @project_dir + "/" + @output_dir
