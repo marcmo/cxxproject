@@ -73,6 +73,8 @@ module Rake
       @deps = nil
       @transparent_timestamp = false
       @dismissed_prerequisites = []
+      @tsStored = nil # cache result for performance
+      @@neededStored = nil # cache result for performance
     end
 
     define_method(:execute) do |arg|
@@ -105,18 +107,42 @@ module Rake
     end
 
     define_method(:timestamp) do
-      if @transparent_timestamp
-        res = Rake::EARLY
-        @prerequisites.each do |ts|
-          prereq_timestamp = Rake.application[ts].timestamp
-          res = prereq_timestamp if prereq_timestamp > res
+      if @tsStored.nil?
+        if @transparent_timestamp
+          @tsStored = Rake::EARLY
+          @prerequisites.each do |ts|
+            prereq_timestamp = Rake.application[ts].timestamp
+            @tsStored = prereq_timestamp if prereq_timestamp > @tsStored
+          end
+        else
+          @tsStored = timestamp_org.bind(self).call()
         end
-        res
-      else
-        timestamp_org.bind(self).call()
       end
+      @tsStored
     end
 
+  end
+
+  class FileTask < Task
+  
+    timestamp_org = self.instance_method(:timestamp)
+    needed_org = self.instance_method(:needed?)  
+  
+    define_method(:timestamp) do
+      if @tsStored.nil?
+        @tsStored = timestamp_org.bind(self).call()
+      end
+      @tsStored
+    end  
+
+    define_method(:needed?) do
+      if @neededStored.nil?
+        @neededStored = needed_org.bind(self).call()
+      end
+      @neededStored
+    end
+
+  
   end
 
 end
