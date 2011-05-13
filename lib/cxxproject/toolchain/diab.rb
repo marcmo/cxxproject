@@ -16,7 +16,7 @@ module Cxxproject
     })
 
     DiabChainDebug[:COMPILER][:CPP] = DiabChainDebug[:COMPILER][:C].clone()
-    DiabChainDebug[:COMPILER][:CPP][:FLAGS].concat(" -Xrtti-off")
+    DiabChainDebug[:COMPILER][:CPP][:FLAGS] = DiabChainDebug[:COMPILER][:CPP][:FLAGS] + " -Xrtti-off"
     DiabChainDebug[:COMPILER][:CPP][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:CPP][:SOURCE_FILE_ENDINGS]
 
     DiabChainDebug[:COMPILER][:ASM] = DiabChainDebug[:COMPILER][:C].clone()
