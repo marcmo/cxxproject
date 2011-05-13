@@ -10,6 +10,8 @@ require 'cxxproject/extensions/file_ext'
 
 require 'logger'
 require 'yaml'
+require 'tmpdir' 
+
 
 # A class which encapsulates the generation of c/cpp artifacts like object-files, libraries and so on
 class TaskMaker
@@ -144,8 +146,7 @@ class TaskMaker
       object = bb.get_object_file(s)
       depfile = bb.get_dep_file(object)
 
-      depStr = type == :ASM ? "" : [bb.tcs[:COMPILER][type][:DEP_FLAGS], # -MMD -MF
-      depfile].join("") # debug/src/abc.o.d
+      depStr = type == :ASM ? "" : (bb.tcs[:COMPILER][type][:DEP_FLAGS] + depfile) # -MMD -MF debug/src/abc.o.d
 
       cmd = [bb.tcs[:COMPILER][type][:COMMAND], # g++
         bb.tcs[:COMPILER][type][:COMPILE_FLAGS], # -c
@@ -156,7 +157,7 @@ class TaskMaker
         bb.tcs[:COMPILER][type][:OBJECT_FILE_FLAG], # -o
         object, # debug/src/abc.o
         source # src/abc.cpp
-      ].join(" ")
+      ].reject{|e| e == ""}.join(" ")
 
       add_file_to_clean_task(depfile) if depStr != ""
       add_file_to_clean_task(object)
@@ -186,7 +187,7 @@ class TaskMaker
       File.dirname(mfile), # x/y
       bb.tcs[:MAKE][:FILE_FLAG], # -f
       File.basename(mfile) # x/y/makefile
-    ].join(" ")
+    ].reject{|e| e == ""}.join(" ")
     mfileTask = task bb.get_task_name do
       puts cmd
       puts `#{cmd + " 2>&1"}`
@@ -203,7 +204,7 @@ class TaskMaker
         File.dirname(mfile), # x/y
         bb.tcs[:MAKE][:FILE_FLAG], # -f
         File.basename(mfile) # x/y/makefile
-      ].join(" ")
+      ].reject{|e| e == ""}.join(" ")
       mfileCleanTask = task mfile+"Clean" do
         puts cmdClean
         puts `#{cmdClean + " 2>&1"}`
@@ -223,8 +224,8 @@ class TaskMaker
       bb.tcs[:ARCHIVER][:ARCHIVE_FLAGS], # -r
       bb.tcs[:ARCHIVER][:FLAGS], # ??
       archive, # debug/x.a
-      objects.join(" ") # debug/src/abc.o debug/src/xy.o
-    ].join(" ")
+      objects.reject{|e| e == ""}.join(" ") # debug/src/abc.o debug/src/xy.o
+    ].reject{|e| e == ""}.join(" ")
     desc "build lib"
     res = file archive => object_multitask do
       puts cmd
@@ -271,25 +272,30 @@ class TaskMaker
     libs_to_search_array.uniq.each  { |k| strArray << "#{bb.tcs[:LINKER][:LIB_FLAG]}#{k}" }
     user_libs_array.uniq.each       { |k| strArray << "#{bb.tcs[:LINKER][:USER_LIB_FLAG]}#{k}" }
     libs_with_path_array.uniq.each  { |k| strArray << "#{k}" }
-    linkerLibString = strArray.join(" ")
+    linkerLibString = strArray.reject{|e| e == ""}.join(" ")
 
     cmd = [bb.tcs[:LINKER][:COMMAND], # g++
       bb.tcs[:LINKER][:MUST_FLAGS], # ??
       bb.tcs[:LINKER][:FLAGS], # --all_load
       bb.tcs[:LINKER][:EXE_FLAG], # -o
       executable, # debug/x.o
-      objects.join(" "), # debug/src/abc.o debug/src/xy.o
+      objects.reject{|e| e == ""}.join(" "), # debug/src/abc.o debug/src/xy.o
       script,
       mapfile,
       bb.tcs[:LINKER][:LIB_PREFIX_FLAGS], # "-Wl,--whole-archive "
       linkerLibString,
       bb.tcs[:LINKER][:LIB_POSTFIX_FLAGS] # "-Wl,--no-whole-archive "
-    ].join(" ")
+    ].reject{|e| e == ""}.join(" ")
 
+	d = task "dummy"
     res = file executable => object_multitask do
-      sh cmd # no backticks with " 2>&1", because some compilers, e.g. diab, uses ">" for piping to map files. --> dont link in threads
+      # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
+      puts cmd
+      puts `#{cmd + " 2>" + getTempFilename}`
+      puts readTempFile
       raise "System command failed" if $?.to_i != 0
     end
+    res.enhance([d])
     res.enhance(bb.config_files)
     res.enhance([scriptFile]) unless scriptFile==""
     set_output_dir(executable, res)
@@ -309,6 +315,20 @@ class TaskMaker
     outputdir = File.dirname(file)
     directory outputdir
     taskOfFile.enhance([outputdir])
+  end
+
+  def getTempFilename
+    Dir.tmpdir + "/lake.tmp"
+  end
+  
+  def readTempFile
+    lines = []  
+    File.open(getTempFilename, "r") do |infile|
+      while (line = infile.gets)
+        lines << line
+      end
+    end
+    lines
   end
 
 end
