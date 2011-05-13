@@ -12,20 +12,16 @@ class SourceLibrary < BuildingBlock
   end
 
   def complete_init()
-    if @search_for_lib
-      libs_with_path << File.join(@output_dir,"lib#{@name}.a")
-    else
+    if @output_dir_abs
       libs_to_search << @name
       lib_searchpaths << @output_dir
+    else
+      libs_with_path << File.join(@output_dir,"lib#{@name}.a")
     end
   end
 
   def get_archive_name()
     File.relFromTo(@complete_output_dir + "/lib" + @name + ".a", @project_dir)
-  end
-
-  def set_search_for_lib(sfl)
-    @search_for_lib = sfl
   end
 
   def get_task_name()

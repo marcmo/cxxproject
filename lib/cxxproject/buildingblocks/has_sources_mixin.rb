@@ -45,7 +45,7 @@ module HasSources
   end
 
   def get_object_file(source)
-    File.relFromTo(source, @complete_output_dir + "/" + @name) + ".o"
+    File.relFromTo(source, @complete_output_dir + (@output_dir_abs ? ("/" + @name) : "") ) + ".o"
   end
 
   def get_dep_file(object)

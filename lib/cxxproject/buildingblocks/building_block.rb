@@ -40,14 +40,16 @@ class BuildingBlock
     self
   end
 
+  # if output dir is absolute, -L and -l is used for linker ("linux mode") 
   def set_output_dir(x)
     @output_dir = x
+    @output_dir_abs = File.is_absolute?(@output_dir)
     calc_complete_output_dir
     self
   end
 
   def calc_complete_output_dir
-    if File.is_absolute?(@output_dir)
+    if @output_dir_abs
       @complete_output_dir = @output_dir
     else
       @complete_output_dir = @project_dir + "/" + @output_dir
@@ -67,6 +69,7 @@ class BuildingBlock
     @output_dir = "."
     @complete_output_dir = "."
     @tcs = nil
+    @output_dir_abs = false
 
     raise "building block already exists: #{name}" if ALL_BUILDING_BLOCKS.include?@name
     ALL_BUILDING_BLOCKS[@name] = self
