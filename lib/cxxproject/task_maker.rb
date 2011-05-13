@@ -100,7 +100,7 @@ class TaskMaker
     end
 
     deps = deps.gsub(/\\\n/,'').split()[1..-1]
-    deps.map!{|d| File.relFromTo(d,::Dir.pwd,bb.project_dir)}
+    deps.map!{|d| File.expand_path(d)}
 
     FileUtils.mkpath File.dirname(depfile)
     File.open(depfile, 'wb') do |f|
@@ -111,14 +111,11 @@ class TaskMaker
   def create_apply_task(depfile,outfileTask,bb)
     res = task "#{depfile}.apply" do |task|
       deps = nil
-      if File.exists? depfile
-        begin
-          deps = YAML.load_file(depfile)
-          deps.map!{|d| File.relFromTo(d,bb.project_dir)} if deps
-        rescue
-          deps = nil
-          # may happen if depfile was not converted the last time
-        end
+      begin
+        deps = YAML.load_file(depfile)
+      rescue
+        deps = nil
+        # may happen if depfile was not converted the last time
       end
       if (deps)
         outfileTask.enhance(deps)
