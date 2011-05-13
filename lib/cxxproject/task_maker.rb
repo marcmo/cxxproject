@@ -287,7 +287,6 @@ class TaskMaker
       bb.tcs[:LINKER][:LIB_POSTFIX_FLAGS] # "-Wl,--no-whole-archive "
     ].reject{|e| e == ""}.join(" ")
 
-	d = task "dummy"
     res = file executable => object_multitask do
       # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
       puts cmd
@@ -295,7 +294,7 @@ class TaskMaker
       puts readTempFile
       raise "System command failed" if $?.to_i != 0
     end
-    res.enhance([d])
+    
     res.enhance(bb.config_files)
     res.enhance([scriptFile]) unless scriptFile==""
     set_output_dir(executable, res)

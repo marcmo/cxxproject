@@ -29,7 +29,7 @@ module Rake
       jobqueue = @prerequisites.dup
       m = Mutex.new
 
-      numThreads = jobqueue.length > 10 ? 10 : jobqueue.length
+      numThreads = jobqueue.length > 4 ? 4 : jobqueue.length
 
       threads = []
       numThreads.times {
