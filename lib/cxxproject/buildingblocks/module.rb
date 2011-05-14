@@ -6,7 +6,7 @@ require 'cxxproject/buildingblocks/has_sources_mixin'
 class ModuleBuildingBlock < BuildingBlock
   include HasLibraries
   include HasSources
-  
+
   def get_task_name()
     name
   end

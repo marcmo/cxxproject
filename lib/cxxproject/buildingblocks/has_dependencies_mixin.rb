@@ -7,36 +7,33 @@ module HasDependencies
     @dependencies = deps.map { |dep| dep.instance_of?(String) ? dep : dep.name }
     self
   end
-  
+
+  # if set, includes and libs are taken from this array, not from @dependencies.
+  # task deps are still taken from @dependencies.
+  # use case: circular deps are allowed on "include-level", but not on "task-level".
   def helper_dependencies
     @helper_dependencies ||= []
+  end
+
+  def set_helper_dependencies(deps)
+    @helper_dependencies = deps.map { |dep| dep.instance_of?(String) ? dep : dep.name }
   end
 
   # will be calculated at the beginning of creating the building block task
   def all_dependencies
     @all_dependencies ||= []
   end
-  
-  # can be used instead of @dependencies when creating task enhancements
-  # - must be cleaned from circular dependencies
-  # - first element specifies if this array shall be used
-  def task_prerequisites
-    @task_prerequisites ||= [false] 
-  end
-  def set_task_prerequisites(x)
-    @task_prerequisites = x
-    self
-  end
-  
+
   # inclusive self!!
   def calc_transitive_dependencies
-    deps = [self.name] # needed due to circular deps
+    deps = [self.name]
     @all_dependencies = get_transitive_dependencies_internal(deps)
   end
 
   def get_transitive_dependencies_internal(deps)
     depsToCheck = []
-    (dependencies+helper_dependencies).each do |d|
+    depList = helper_dependencies.length > 0 ? helper_dependencies : dependencies
+    depList.each do |d|
       if not deps.include?d
         deps << d
         depsToCheck << d

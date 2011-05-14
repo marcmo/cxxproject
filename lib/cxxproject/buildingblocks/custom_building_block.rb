@@ -13,5 +13,5 @@ class CustomBuildingBlock < BuildingBlock
   def get_task_name()
     raise "todo"
   end
-  
+
 end

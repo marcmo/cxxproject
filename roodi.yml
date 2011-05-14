@@ -1,12 +1,10 @@
-AssignmentInConditionalCheck:    { }
 CaseMissingElseCheck:            { }
-ClassLineCountCheck:             { line_count: 300 }
+ClassLineCountCheck:             { line_count: 500 }
 ClassNameCheck:                  { pattern: !ruby/regexp /^[A-Z][a-zA-Z0-9]*$/ }
-CyclomaticComplexityBlockCheck:  { complexity: 5 }
-CyclomaticComplexityMethodCheck: { complexity: 8 }
-EmptyRescueBodyCheck:            { }
+CyclomaticComplexityBlockCheck:  { complexity: 9 }
+CyclomaticComplexityMethodCheck: { complexity: 10 }
 ForLoopCheck:                    { }
-MethodLineCountCheck:            { line_count: 30 }
+MethodLineCountCheck:            { line_count: 100 }
 MethodNameCheck:                 { pattern: !ruby/regexp /^[_a-z<>=\[\]|+-\/\*`]+[_a-z0-9_<>=~@\[\]]*[=!\?]?$/ }
 ModuleLineCountCheck:            { line_count: 300 }
 ModuleNameCheck:                 { pattern: !ruby/regexp /^[A-Z][a-zA-Z0-9]*$/ }

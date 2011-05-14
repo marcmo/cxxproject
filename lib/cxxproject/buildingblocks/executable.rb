@@ -32,13 +32,13 @@ class Executable < BuildingBlock
     @mapfile = nil
   end
 
-  def linkerLibsString
+  def linker_libs_string
     @linkerString ||= ""
   end
 
 
   def get_executable_name()
-    File.relFromTo(@project_dir + "/" + @output_dir + "/" + @name + @tcs[:LINKER][:OUTPUT_ENDING], @project_dir)
+    File.relFromTo(@complete_output_dir + "/" + @name + @tcs[:LINKER][:OUTPUT_ENDING], @project_dir)
   end
 
   def get_task_name()

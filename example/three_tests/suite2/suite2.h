@@ -16,6 +16,7 @@ public:
   }
 
   void test2() {
+      printf("inside test2\n");
     CPPUNIT_ASSERT_MESSAGE( "hat auch geklappt", true );
   }
 

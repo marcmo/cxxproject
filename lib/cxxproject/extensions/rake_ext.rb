@@ -10,7 +10,7 @@ module Rake
       @mutex = mutex
     end
 
-    def syncFlush
+    def sync_flush
       if string.length > 0
         @mutex.synchronize { STDOUT.write string; truncate(0); rewind}
       end
@@ -29,7 +29,7 @@ module Rake
       jobqueue = @prerequisites.dup
       m = Mutex.new
 
-      numThreads = jobqueue.length > 10 ? 10 : jobqueue.length
+      numThreads = jobqueue.length > 4 ? 4 : jobqueue.length
 
       threads = []
       numThreads.times {
@@ -42,7 +42,7 @@ module Rake
             s = SyncStringIO.new(m)
             Thread.current[:stdout] = s
             application[p].invoke_with_call_chain(args, invocation_chain)
-            s.syncFlush
+            s.sync_flush
           end
         }
       }
@@ -73,6 +73,8 @@ module Rake
       @deps = nil
       @transparent_timestamp = false
       @dismissed_prerequisites = []
+      @tsStored = nil # cache result for performance
+      @@neededStored = nil # cache result for performance
     end
 
     define_method(:execute) do |arg|
@@ -89,8 +91,8 @@ module Rake
         execute_org.bind(self).call(arg)
         @failure = false
       rescue Exception => ex1 # todo: no rescue to stop on first error
-          # todo: debug log, no puts here! 
-          puts "Error: #{@name} not built/cleaned correctly: #{ex1.message}"
+        # todo: debug log, no puts here!
+        puts "Error: #{@name} not built/cleaned correctly: #{ex1.message}"
         begin
           FileUtils.rm(@name) if File.exists?(@name) # todo: error parsing?
         rescue Exception => ex2
@@ -99,24 +101,48 @@ module Rake
         end
         @failure = true
       end
-      
-      Thread.current[:stdout].syncFlush if Thread.current[:stdout]
-      
+
+      Thread.current[:stdout].sync_flush if Thread.current[:stdout]
+
     end
 
     define_method(:timestamp) do
-      if @transparent_timestamp
-        res = Rake::EARLY
-        @prerequisites.each do |ts|
-          prereq_timestamp = Rake.application[ts].timestamp
-          res = prereq_timestamp if prereq_timestamp > res
+      if @tsStored.nil?
+        if @transparent_timestamp
+          @tsStored = Rake::EARLY
+          @prerequisites.each do |ts|
+            prereq_timestamp = Rake.application[ts].timestamp
+            @tsStored = prereq_timestamp if prereq_timestamp > @tsStored
+          end
+        else
+          @tsStored = timestamp_org.bind(self).call()
         end
-        res
-      else
-        timestamp_org.bind(self).call()
       end
+      @tsStored
     end
 
+  end
+
+  class FileTask < Task
+  
+    timestamp_org = self.instance_method(:timestamp)
+    needed_org = self.instance_method(:needed?)  
+  
+    define_method(:timestamp) do
+      if @tsStored.nil?
+        @tsStored = timestamp_org.bind(self).call()
+      end
+      @tsStored
+    end  
+
+    define_method(:needed?) do
+      if @neededStored.nil?
+        @neededStored = needed_org.bind(self).call()
+      end
+      @neededStored
+    end
+
+  
   end
 
 end
