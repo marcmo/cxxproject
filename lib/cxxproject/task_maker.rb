@@ -56,6 +56,9 @@ class TaskMaker
       bb.calc_compiler_strings()
       object_tasks = create_object_file_tasks(bb)
       objects_multitask = multitask bb.get_sources_task_name => object_tasks
+      def objects_multitask.needed?
+        return false
+      end
       objects_multitask.transparent_timestamp = true
     end
 
@@ -66,6 +69,9 @@ class TaskMaker
       res = create_exe_task(bb, object_tasks, objects_multitask)
     elsif (bb.instance_of?(BinaryLibrary)) then
       res = task bb.get_task_name
+      def res.needed?
+        return false
+      end
       res.transparent_timestamp = true
     elsif (bb.instance_of?(CustomBuildingBlock)) then
       # todo...
