@@ -297,6 +297,7 @@ class TaskMaker
       # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
       puts cmd
       puts `#{cmd + " 2>" + get_temp_filename}`
+      puts read_temp_file
       raise "System command failed" if $?.to_i != 0
     end
 
@@ -323,6 +324,16 @@ class TaskMaker
 
   def get_temp_filename
     Dir.tmpdir + "/lake.tmp"
+  end
+
+  def read_temp_file
+    lines = []
+    File.open(get_temp_filename, "r") do |infile|
+      while (line = infile.gets)
+        lines << line
+      end
+    end
+    lines
   end
 
 end
