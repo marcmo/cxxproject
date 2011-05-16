@@ -152,15 +152,25 @@ class TaskMaker
       object = bb.get_object_file(s)
       depfile = bb.get_dep_file(object)
 
-      depStr = type == :ASM ? "" : (bb.tcs[:COMPILER][type][:DEP_FLAGS] + depfile) # -MMD -MF debug/src/abc.o.d
+      if bb.tcs4source().include?s
+        tcs = bb.tcs4source()[s]
+        iString = bb.get_include_string(tcs, type)
+        dString = bb.get_define_string(tcs, type)
+      else
+        tcs = bb.tcs
+        iString = bb.include_string(type)
+        dString = bb.define_string(type)
+      end
 
-      cmd = [bb.tcs[:COMPILER][type][:COMMAND], # g++
-        bb.tcs[:COMPILER][type][:COMPILE_FLAGS], # -c
+      depStr = type == :ASM ? "" : (tcs[:COMPILER][type][:DEP_FLAGS] + depfile) # -MMD -MF debug/src/abc.o.d
+
+      cmd = [tcs[:COMPILER][type][:COMMAND], # g++
+        tcs[:COMPILER][type][:COMPILE_FLAGS], # -c
         depStr,
-        bb.tcs[:COMPILER][type][:FLAGS], # -g3
-        bb.include_string(type), # -I include
-        bb.define_string(type), # -DDEBUG
-        bb.tcs[:COMPILER][type][:OBJECT_FILE_FLAG], # -o
+        tcs[:COMPILER][type][:FLAGS], # -g3
+        iString, # -I include
+        dString, # -DDEBUG
+        tcs[:COMPILER][type][:OBJECT_FILE_FLAG], # -o
         object, # debug/src/abc.o
         source # src/abc.cpp
       ].reject{|e| e == ""}.join(" ")
