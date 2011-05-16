@@ -22,3 +22,12 @@ module OS
   end
 
 end
+
+module Utils
+
+def self.deep_copy(x)
+  Marshal.load(Marshal.dump(x))
+end
+
+
+end

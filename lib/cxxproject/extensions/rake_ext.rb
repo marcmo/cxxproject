@@ -22,6 +22,17 @@ module Rake
   # - Limit parallel tasks
   #############
   class MultiTask < Task
+
+    @@max_parallel_tasks = 8
+
+    def self.max_parallel_tasks
+      @@max_parallel_tasks
+    end
+
+    def self.set_max_parallel_tasks(number)
+      @@max_parallel_tasks = number
+    end
+
     private
     def invoke_prerequisites(args, invocation_chain)
       return unless @prerequisites
@@ -29,7 +40,7 @@ module Rake
       jobqueue = @prerequisites.dup
       m = Mutex.new
 
-      numThreads = jobqueue.length > 4 ? 4 : jobqueue.length
+      numThreads = jobqueue.length > @@max_parallel_tasks ? @@max_parallel_tasks : jobqueue.length
 
       threads = []
       numThreads.times {

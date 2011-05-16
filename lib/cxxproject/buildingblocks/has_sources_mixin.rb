@@ -15,7 +15,7 @@ module HasSources
     @includes = x
     self
   end
-  
+
   # used when a source file shall have different tcs than the project default
   def tcs4source
     @tcs4source ||= {}
@@ -36,7 +36,7 @@ module HasSources
   def calc_compiler_strings()
     @include_string = {}
     @define_string = {}
-    
+
     @incArray = []
     all_dependencies.each do |e|
       d = ALL_BUILDING_BLOCKS[e]
@@ -45,23 +45,23 @@ module HasSources
         @incArray << File.relFromTo("include", d.project_dir)
       else
         d.includes.each { |k| @incArray << File.relFromTo(k, d.project_dir) }
-      end    
+      end
     end
-    
+
     [:CPP, :C, :ASM].each do |type|
       @include_string[type] = get_include_string(@tcs, type)
       @define_string[type] = get_define_string(@tcs, type)
     end
   end
-  
+
   def get_include_string(tcs, type)
     @incArray.uniq.map!{|k| "#{tcs[:COMPILER][type][:INCLUDE_PATH_FLAG]}#{k}"}.join(" ")
   end
-  
+
   def get_define_string(tcs, type)
     @tcs[:COMPILER][type][:DEFINES].map {|k| "#{tcs[:COMPILER][type][:DEFINE_FLAG]}#{k}"}.join(" ")
   end
-  
+
   def get_object_file(source)
     File.relFromTo(source, @complete_output_dir + (@output_dir_abs ? ("/" + @name) : "") ) + ".o"
   end
