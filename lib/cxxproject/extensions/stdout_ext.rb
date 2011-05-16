@@ -10,16 +10,22 @@ module ThreadOut
     end
   end
 
-  begin
-    def self.puts(stuff)
-      if Thread.current[:stdout] then
-        Thread.current[:stdout].puts stuff
-      else
-        STDERR.puts stuff
-      end
+  def self.puts(stuff)
+    if Thread.current[:stdout] then
+      Thread.current[:stdout].puts stuff
+    else
+      STDERR.puts stuff
     end
   end
 
+  def self.flush
+    if Thread.current[:stdout] then
+      Thread.current[:stdout].flush
+    else
+      STDOUT.flush
+      STDERR.flush
+    end
+  end
 end
 
 STDOUT.sync = true

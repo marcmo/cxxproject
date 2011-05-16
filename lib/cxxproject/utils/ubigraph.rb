@@ -4,6 +4,47 @@ require 'rubigraph'
     name.match(/.*\.apply\Z/) != nil
   end
 
+
+class V
+  attr_reader :v
+  begin
+    @@id_cache = YAML.load_file('id_cache')
+    puts 'cache loaded'
+    puts @@id_cache
+  rescue
+    puts 'could not load id_cache'
+    @@id_cache = Hash.new
+  end
+
+  def initialize(name)
+    id = @@id_cache[name]
+    if !id
+      puts 'id not found ... creating new one'
+      @v = Rubigraph::Vertex.new
+      puts "new id -> #{@v.id}"
+      @@id_cache[name] = @v.id
+    else
+      puts "id found #{name} => #{id}"
+      @v = Rubigraph::Vertex.new(-1, id)
+    end
+  end
+  def self.shutdown
+    File.open('id_cache', 'w') do |f|
+      f.write(@@id_cache.to_yaml)
+    end
+  end
+  def self.reset
+    begin
+      File.delete('id_cache')
+    rescue StandardError => e
+      puts e
+      puts 'problem deleting id_cache'
+    end
+    @@id_cache = Hash.new
+  end
+
+end
+
 class UbiGraphSupport
 
   def object?(name)
@@ -24,7 +65,6 @@ class UbiGraphSupport
   end
 
   def initialize
-
     Rake::Task.tasks.each do |t|
       if apply?(t.name)
         t.invoke
@@ -33,16 +73,13 @@ class UbiGraphSupport
 
     interesting_tasks = Rake::Task.tasks.select { |i| interesting?(i.name) }
     @vertices = {}
-    Rubigraph.init
-    Rubigraph.clear
 
     # create vertices
     interesting_tasks.each do |task|
-      puts task.name
-      v = Rubigraph::Vertex.new
+      v = V.new(task.name)
       @vertices[task.name] = {:vertex=>v, :task=>task}
     end
-    
+
     # create edges
     interesting_tasks.each do |task|
       name = task.name
@@ -50,7 +87,7 @@ class UbiGraphSupport
       task.prerequisites.each do |p|
         v2 = @vertices[p]
         if (v2 != nil)
-          e = Rubigraph::Edge.new(v1, v2[:vertex])
+          e = Rubigraph::Edge.new(v1.v, v2[:vertex].v)
           e.width=2
         end
       end
@@ -58,7 +95,7 @@ class UbiGraphSupport
 
     @vertices.each do |k, value|
       v = value[:vertex]
-      v.label = k
+      v.v.label = k
       set_attributes(v, k)
     end
 
@@ -71,9 +108,9 @@ class UbiGraphSupport
   end
 
   def set_attributes(v, name)
-    v.color = state2color(name)
-    v.shape = name2shape(name)
-    v.size = name2size(name)
+    v.v.color = state2color(name)
+    v.v.shape = name2shape(name)
+    v.v.size = name2size(name)
   end
 
   def name2shape(name)
@@ -111,7 +148,7 @@ class UbiGraphSupport
   end
 
   def update(name, color)
-    @vertices[name][:vertex].color = color if @vertices[name]
+    @vertices[name][:vertex].v.color = color if @vertices[name]
   end
 
   YELLOW = '#ffff00'
@@ -136,7 +173,7 @@ class UbiGraphSupport
 end
 
 
-DELAY=0.0
+DELAY=0.01
 class StdoutRakeListener
   def before_prerequisites(name)
     sleep(DELAY)
@@ -225,10 +262,28 @@ module Rake
 end
 
 def activate_ubigraph
-  begin
-    LISTENER << StdoutRakeListener.new
-    LISTENER << UbiGraphSupport.new
-  rescue
+  desc 'initialize rubygraph'
+  task :rubygraph_init do
+    Rubigraph.init
+  end
+
+  desc 'clear rubygraph'
+  task :rubygraph_clear => :rubygraph_init do
+    Rubigraph.clear
+    V.reset
+  end
+
+  desc 'update rubygraph'
+  task :rubygraph_update => :rubygraph_init do
+    begin
+      LISTENER << StdoutRakeListener.new
+      LISTENER << UbiGraphSupport.new
+    rescue
+    end
+  end
+
+  at_exit do
+    V.shutdown
   end
 end
 
@@ -238,4 +293,3 @@ rescue LoadError
   end
 
 end
-
