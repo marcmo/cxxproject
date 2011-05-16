@@ -10,7 +10,7 @@ require 'cxxproject/extensions/file_ext'
 
 require 'logger'
 require 'yaml'
-require 'tmpdir' 
+require 'tmpdir'
 
 
 # A class which encapsulates the generation of c/cpp artifacts like object-files, libraries and so on
@@ -294,7 +294,7 @@ class TaskMaker
       puts readTempFile
       raise "System command failed" if $?.to_i != 0
     end
-    
+
     res.enhance(bb.config_files)
     res.enhance([scriptFile]) unless scriptFile==""
     set_output_dir(executable, res)
@@ -319,9 +319,9 @@ class TaskMaker
   def getTempFilename
     Dir.tmpdir + "/lake.tmp"
   end
-  
+
   def readTempFile
-    lines = []  
+    lines = []
     File.open(getTempFilename, "r") do |infile|
       while (line = infile.gets)
         lines << line

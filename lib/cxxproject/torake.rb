@@ -171,12 +171,12 @@ class EvalContext
     bblock.set_sources(hash[:sources]) if hash.has_key?(:sources)
     bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
     bblock.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
-    
+
     if OS.linux?
       bblock.set_lib_searchpaths(["/usr/local/lib","/usr/lib"])
-   	else
+    else
       bblock.set_lib_searchpaths(["C:/tool/cygwin/lib"])
-    end 
+    end
     bblock
   end
 

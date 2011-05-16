@@ -66,6 +66,7 @@ module Rake
     execute_org = self.instance_method(:execute)
     initialize_org = self.instance_method(:initialize)
     timestamp_org = self.instance_method(:timestamp)
+    invoke_prerequisites_org = self.instance_method(:invoke_prerequisites)
 
     define_method(:initialize) do |task_name, app|
       initialize_org.bind(self).call(task_name, app)
@@ -74,7 +75,28 @@ module Rake
       @transparent_timestamp = false
       @dismissed_prerequisites = []
       @tsStored = nil # cache result for performance
-      @@neededStored = nil # cache result for performance
+      @neededStored = nil # cache result for performance
+    end
+
+    define_method(:invoke_prerequisites) do |task_args, invocation_chain|
+      orgLength = 0
+      while @prerequisites.length > orgLength do
+        orgLength = @prerequisites.length
+        @prerequisites.dup.each { |n| # dup needed when apply tasks changes that array
+          begin
+            prereq = application[n, @scope]
+            prereq_args = task_args.new_scope(prereq.arg_names)
+            prereq.invoke_with_call_chain(prereq_args, invocation_chain)
+          rescue
+            if @name.length>2 and @name[-2..-1] == ".o" # file found in dep file does not exist anymore
+              @prerequisites.delete(n)
+              def self.needed?
+                true
+              end
+            end
+          end
+        }
+      end
     end
 
     define_method(:execute) do |arg|
@@ -124,16 +146,16 @@ module Rake
   end
 
   class FileTask < Task
-  
+
     timestamp_org = self.instance_method(:timestamp)
-    needed_org = self.instance_method(:needed?)  
-  
+    needed_org = self.instance_method(:needed?)
+
     define_method(:timestamp) do
       if @tsStored.nil?
         @tsStored = timestamp_org.bind(self).call()
       end
       @tsStored
-    end  
+    end
 
     define_method(:needed?) do
       if @neededStored.nil?
@@ -142,7 +164,7 @@ module Rake
       @neededStored
     end
 
-  
+
   end
 
 end

@@ -40,7 +40,7 @@ class BuildingBlock
     self
   end
 
-  # if output dir is absolute, -L and -l is used for linker ("linux mode") 
+  # if output dir is absolute, -L and -l is used for linker ("linux mode")
   def set_output_dir(x)
     @output_dir = x
     @output_dir_abs = File.is_absolute?(@output_dir)
