@@ -10,7 +10,7 @@ require 'cxxproject/extensions/file_ext'
 
 require 'logger'
 require 'yaml'
-require 'tmpdir' 
+require 'tmpdir'
 
 
 # A class which encapsulates the generation of c/cpp artifacts like object-files, libraries and so on
@@ -56,6 +56,9 @@ class TaskMaker
       bb.calc_compiler_strings()
       object_tasks = create_object_file_tasks(bb)
       objects_multitask = multitask bb.get_sources_task_name => object_tasks
+      def objects_multitask.needed?
+        return false
+      end
       objects_multitask.transparent_timestamp = true
     end
 
@@ -66,6 +69,9 @@ class TaskMaker
       res = create_exe_task(bb, object_tasks, objects_multitask)
     elsif (bb.instance_of?(BinaryLibrary)) then
       res = task bb.get_task_name
+      def res.needed?
+        return false
+      end
       res.transparent_timestamp = true
     elsif (bb.instance_of?(CustomBuildingBlock)) then
       # todo...
@@ -146,15 +152,25 @@ class TaskMaker
       object = bb.get_object_file(s)
       depfile = bb.get_dep_file(object)
 
-      depStr = type == :ASM ? "" : (bb.tcs[:COMPILER][type][:DEP_FLAGS] + depfile) # -MMD -MF debug/src/abc.o.d
+      if bb.tcs4source().include?s
+        tcs = bb.tcs4source()[s]
+        iString = bb.get_include_string(tcs, type)
+        dString = bb.get_define_string(tcs, type)
+      else
+        tcs = bb.tcs
+        iString = bb.include_string(type)
+        dString = bb.define_string(type)
+      end
 
-      cmd = [bb.tcs[:COMPILER][type][:COMMAND], # g++
-        bb.tcs[:COMPILER][type][:COMPILE_FLAGS], # -c
+      depStr = type == :ASM ? "" : (tcs[:COMPILER][type][:DEP_FLAGS] + depfile) # -MMD -MF debug/src/abc.o.d
+
+      cmd = [tcs[:COMPILER][type][:COMMAND], # g++
+        tcs[:COMPILER][type][:COMPILE_FLAGS], # -c
         depStr,
-        bb.tcs[:COMPILER][type][:FLAGS], # -g3
-        bb.include_string(type), # -I include
-        bb.define_string(type), # -DDEBUG
-        bb.tcs[:COMPILER][type][:OBJECT_FILE_FLAG], # -o
+        tcs[:COMPILER][type][:FLAGS], # -g3
+        iString, # -I include
+        dString, # -DDEBUG
+        tcs[:COMPILER][type][:OBJECT_FILE_FLAG], # -o
         object, # debug/src/abc.o
         source # src/abc.cpp
       ].reject{|e| e == ""}.join(" ")
@@ -290,11 +306,11 @@ class TaskMaker
     res = file executable => object_multitask do
       # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
       puts cmd
-      puts `#{cmd + " 2>" + getTempFilename}`
-      puts readTempFile
+      puts `#{cmd + " 2>" + get_temp_filename}`
+      puts read_temp_file
       raise "System command failed" if $?.to_i != 0
     end
-    
+
     res.enhance(bb.config_files)
     res.enhance([scriptFile]) unless scriptFile==""
     set_output_dir(executable, res)
@@ -316,13 +332,13 @@ class TaskMaker
     taskOfFile.enhance([outputdir])
   end
 
-  def getTempFilename
+  def get_temp_filename
     Dir.tmpdir + "/lake.tmp"
   end
-  
-  def readTempFile
-    lines = []  
-    File.open(getTempFilename, "r") do |infile|
+
+  def read_temp_file
+    lines = []
+    File.open(get_temp_filename, "r") do |infile|
       while (line = infile.gets)
         lines << line
       end

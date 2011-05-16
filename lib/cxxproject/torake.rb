@@ -49,22 +49,22 @@ class CxxProject2Rake
       File.basename(t.name)
     end
   end
-  def initialize(projects, compiler, base='.', logLevel=Logger::ERROR, norun=false)
+  def initialize(projects, build_dir, toolchain, base='.', logLevel=Logger::DEBUG, norun=false)
     puts "CxxProject2Rake, in constructor"
     @log = Logger.new(STDOUT)
     @log.level = logLevel
     # @log.level = Logger::DEBUG
     @log.debug "starting..."
     @base = base
-    instantiate_tasks(projects, compiler, base) unless norun
+    instantiate_tasks(projects, build_dir, toolchain, base) unless norun
   end
 
-  def instantiate_tasks(projects, compiler, base='./')
+  def instantiate_tasks(projects, build_dir, toolchain, base='./')
     project_configs = projects.map { |p| p.remove_from_start(base) }
     @log.debug "project_configs: #{project_configs}"
     register_projects(project_configs)
     define_project_info_task()
-    @gcc = Cxxproject::Toolchain::GCCChain
+    @gcc = toolchain # Cxxproject::Toolchain::GCCChain
     task_maker = TaskMaker.new(@log)
     task_maker.set_loglevel(@log.level);
     tasks = []
@@ -73,7 +73,7 @@ class CxxProject2Rake
 
     ALL_BUILDING_BLOCKS.each do |name,block|
       block.set_tcs(@gcc)
-      block.set_output_dir(Dir.pwd + "/" + compiler.output_path)
+      block.set_output_dir(Dir.pwd + "/" + build_dir)
       # block.set_config_files(project_configs)
       block.set_config_files([])
       block.complete_init()
@@ -171,12 +171,12 @@ class EvalContext
     bblock.set_sources(hash[:sources]) if hash.has_key?(:sources)
     bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
     bblock.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
-    
+
     if OS.linux?
       bblock.set_lib_searchpaths(["/usr/local/lib","/usr/lib"])
-   	else
+    else
       bblock.set_lib_searchpaths(["C:/tool/cygwin/lib"])
-    end 
+    end
     bblock
   end
 
