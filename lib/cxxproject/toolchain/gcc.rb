@@ -1,4 +1,5 @@
 require 'cxxproject/toolchain/base'
+require 'cxxproject/utils/utils'
 
 module Cxxproject
   module Toolchain
@@ -14,11 +15,11 @@ module Cxxproject
       :DEP_FLAGS => "-MMD -MF " # empty space at the end is important!
     })
 
-    GCCChain[:COMPILER][:C] = GCCChain[:COMPILER][:CPP].clone()
+    GCCChain[:COMPILER][:C] = Utils.deep_copy(GCCChain[:COMPILER][:CPP])
     GCCChain[:COMPILER][:C][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:C][:SOURCE_FILE_ENDINGS]
     GCCChain[:COMPILER][:C][:COMMAND] = "gcc"
 
-    GCCChain[:COMPILER][:ASM] = GCCChain[:COMPILER][:C].clone()
+    GCCChain[:COMPILER][:ASM] = Utils.deep_copy(GCCChain[:COMPILER][:C])
     GCCChain[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS]
 
     GCCChain[:ARCHIVER][:COMMAND] = "ar"

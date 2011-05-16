@@ -1,4 +1,5 @@
 require 'cxxproject/toolchain/base'
+require 'cxxproject/utils/utils'
 
 module Cxxproject
   module Toolchain
@@ -15,11 +16,11 @@ module Cxxproject
       :DEP_FLAGS => "-Xmake-dependency=6 -Xmake-dependency-savefile="
     })
 
-    DiabChainDebug[:COMPILER][:CPP] = DiabChainDebug[:COMPILER][:C].clone()
+    DiabChainDebug[:COMPILER][:CPP] = Utils.deep_copy(DiabChainDebug[:COMPILER][:C])
     DiabChainDebug[:COMPILER][:CPP][:FLAGS] = DiabChainDebug[:COMPILER][:CPP][:FLAGS] + " -Xrtti-off"
     DiabChainDebug[:COMPILER][:CPP][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:CPP][:SOURCE_FILE_ENDINGS]
 
-    DiabChainDebug[:COMPILER][:ASM] = DiabChainDebug[:COMPILER][:C].clone()
+    DiabChainDebug[:COMPILER][:ASM] = Utils.deep_copy(DiabChainDebug[:COMPILER][:C])
     DiabChainDebug[:COMPILER][:ASM][:COMMAND] = "das"
     DiabChainDebug[:COMPILER][:ASM][:FLAGS] = "-tPPCE200Z6VEN:simple -Xisa-vle -g -Xasm-debug-on"
     DiabChainDebug[:COMPILER][:ASM][:COMPILE_FLAGS] = ""
