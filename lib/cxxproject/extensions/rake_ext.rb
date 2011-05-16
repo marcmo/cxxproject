@@ -50,8 +50,6 @@ module Rake
     end
   end
 
-
-
   #############
   # - Go on if a task fails (but to not execute the parent)
   # - showInGraph is used for GraphWriter (internal tasks are not shown)
@@ -74,7 +72,6 @@ module Rake
       @deps = nil
       @transparent_timestamp = false
       @dismissed_prerequisites = []
-      @tsStored = nil # cache result for performance
       @neededStored = nil # cache result for performance
     end
 
@@ -129,41 +126,17 @@ module Rake
     end
 
     define_method(:timestamp) do
-      if @tsStored.nil?
-        if @transparent_timestamp
-          @tsStored = Rake::EARLY
-          @prerequisites.each do |ts|
-            prereq_timestamp = Rake.application[ts].timestamp
-            @tsStored = prereq_timestamp if prereq_timestamp > @tsStored
-          end
-        else
-          @tsStored = timestamp_org.bind(self).call()
+      if @transparent_timestamp
+        ts = Rake::EARLY
+        @prerequisites.each do |pre|
+          prereq_timestamp = Rake.application[pre].timestamp
+          ts = prereq_timestamp if prereq_timestamp > ts
         end
+      else
+        ts = timestamp_org.bind(self).call()
       end
-      @tsStored
+      ts
     end
-
-  end
-
-  class FileTask < Task
-
-    timestamp_org = self.instance_method(:timestamp)
-    needed_org = self.instance_method(:needed?)
-
-    define_method(:timestamp) do
-      if @tsStored.nil?
-        @tsStored = timestamp_org.bind(self).call()
-      end
-      @tsStored
-    end
-
-    define_method(:needed?) do
-      if @neededStored.nil?
-        @neededStored = needed_org.bind(self).call()
-      end
-      @neededStored
-    end
-
 
   end
 
