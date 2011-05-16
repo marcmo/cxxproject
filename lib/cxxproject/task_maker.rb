@@ -296,8 +296,7 @@ class TaskMaker
     res = file executable => object_multitask do
       # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
       puts cmd
-      puts `#{cmd + " 2>" + getTempFilename}`
-      puts readTempFile
+      puts `#{cmd + " 2>" + get_temp_filename}`
       raise "System command failed" if $?.to_i != 0
     end
 
@@ -322,18 +321,8 @@ class TaskMaker
     taskOfFile.enhance([outputdir])
   end
 
-  def getTempFilename
+  def get_temp_filename
     Dir.tmpdir + "/lake.tmp"
-  end
-
-  def readTempFile
-    lines = []
-    File.open(getTempFilename, "r") do |infile|
-      while (line = infile.gets)
-        lines << line
-      end
-    end
-    lines
   end
 
 end
