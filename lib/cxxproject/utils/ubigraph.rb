@@ -1,5 +1,7 @@
 begin
+
   require 'rubigraph'
+
   def apply?(name)
     name.match(/.*\.apply\Z/) != nil
   end
@@ -316,10 +318,6 @@ begin
     end
   end
 
-rescue => e
-  puts e.backtrace
-  def activate_ubigraph
-  end
-
+rescue Exception => e
+  puts e
 end
-
