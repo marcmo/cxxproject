@@ -2,7 +2,5 @@ $:.unshift File.join(File.dirname(__FILE__),"..","..","lib")
 require 'cxxproject'
 
 BuildDir="build"
-toolchain = Cxxproject::Toolchain::GCCChain
-CxxProject2Rake.new(Dir.glob('**/project.rb'), BuildDir, toolchain)
-activate_ubigraph
-
+toolchain = GCCChain
+CxxProject2Rake.new(['basic/project.rb','lib1/project.rb','lib2/project.rb'] , BuildDir, toolchain)

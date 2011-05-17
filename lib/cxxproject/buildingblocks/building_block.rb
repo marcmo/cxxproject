@@ -23,6 +23,10 @@ class BuildingBlock
     @tcs = x
     self
   end
+  
+  def has_tcs?
+    @tcs != nil
+  end
 
   def tcs()
     raise "Toolchain settings must be set before!" if @tcs.nil?

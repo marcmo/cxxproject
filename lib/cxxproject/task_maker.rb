@@ -5,6 +5,7 @@ require 'cxxproject/buildingblocks/source_library'
 require 'cxxproject/buildingblocks/single_source'
 require 'cxxproject/buildingblocks/binary_library'
 require 'cxxproject/buildingblocks/custom_building_block'
+require 'cxxproject/buildingblocks/command_line'
 require 'cxxproject/extensions/rake_ext'
 require 'cxxproject/extensions/file_ext'
 
@@ -75,6 +76,8 @@ class TaskMaker
       res.transparent_timestamp = true
     elsif (bb.instance_of?(CustomBuildingBlock)) then
       # todo...
+    elsif (bb.instance_of?(CommandLine)) then
+      res = create_commandline_task(bb)
     elsif (bb.instance_of?(Makefile)) then
       res = create_makefile_task(bb)
     elsif (bb.instance_of?(SingleSource)) then
@@ -162,15 +165,17 @@ class TaskMaker
         dString = bb.define_string(type)
       end
 
-      depStr = type == :ASM ? "" : (tcs[:COMPILER][type][:DEP_FLAGS] + depfile) # -MMD -MF debug/src/abc.o.d
+      compiler = tcs[:COMPILER][type]
+      depStr = type == :ASM ? "" : (compiler[:DEP_FLAGS] + depfile) # -MMD -MF debug/src/abc.o.d
 
-      cmd = [tcs[:COMPILER][type][:COMMAND], # g++
-        tcs[:COMPILER][type][:COMPILE_FLAGS], # -c
+      cmd = [compiler[:COMMAND], # g++
+        compiler[:COMPILE_FLAGS], # -c
+        compiler[:DEFINES].collect {|d| "#{compiler[:DEFINE_FLAG]}#{d}" }.join(' '),
         depStr,
-        tcs[:COMPILER][type][:FLAGS], # -g3
+        compiler[:FLAGS], # -g3
         iString, # -I include
         dString, # -DDEBUG
-        tcs[:COMPILER][type][:OBJECT_FILE_FLAG], # -o
+        compiler[:OBJECT_FILE_FLAG], # -o
         object, # debug/src/abc.o
         source # src/abc.cpp
       ].reject{|e| e == ""}.join(" ")
@@ -191,6 +196,17 @@ class TaskMaker
       tasks << outfileTask
     end
     tasks
+  end
+
+  def create_commandline_task(bb)
+  	res = task bb.get_task_name do
+  	  cmd = bb.get_command_line
+      puts cmd
+      puts `#{cmd + " 2>&1"}`
+      raise "System command failed" if $?.to_i != 0
+  	end
+  	res.transparent_timestamp = true
+  	res
   end
 
   def create_makefile_task(bb)
@@ -242,7 +258,7 @@ class TaskMaker
       archive, # debug/x.a
       objects.reject{|e| e == ""}.join(" ") # debug/src/abc.o debug/src/xy.o
     ].reject{|e| e == ""}.join(" ")
-    desc "build lib"
+
     res = file archive => object_multitask do
       puts cmd
       puts `#{cmd + " 2>&1"}`
@@ -251,7 +267,10 @@ class TaskMaker
     add_file_to_clean_task(archive)
     res.enhance(bb.config_files)
     set_output_dir(archive, res)
-
+    namespace 'lib' do
+      desc archive
+      task bb.name => archive
+    end
     res
   end
 
@@ -303,6 +322,8 @@ class TaskMaker
       bb.tcs[:LINKER][:LIB_POSTFIX_FLAGS] # "-Wl,--no-whole-archive "
     ].reject{|e| e == ""}.join(" ")
 
+    create_run_task(executable, bb.config_files, bb.name)
+
     res = file executable => object_multitask do
       # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
       puts cmd
@@ -310,19 +331,23 @@ class TaskMaker
       puts read_temp_file
       raise "System command failed" if $?.to_i != 0
     end
-
     res.enhance(bb.config_files)
     res.enhance([scriptFile]) unless scriptFile==""
     set_output_dir(executable, res)
 
-    create_run_task(executable, bb.config_files)
+    namespace 'exe' do
+      desc executable
+      task bb.name => executable
+    end
     res
   end
 
-  def create_run_task(executable, configFiles)
-    desc "run executable"
-    task :run => executable do
-      sh "#{executable}"
+  def create_run_task(executable, configFiles, name)
+    namespace 'run' do
+      desc "run executable #{executable}"
+      task name => executable do
+        sh "#{executable}"
+      end
     end
   end
 

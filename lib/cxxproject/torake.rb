@@ -49,9 +49,12 @@ class CxxProject2Rake
       File.basename(t.name)
     end
   end
-  def initialize(projects, build_dir, toolchain, base='.', logLevel=Logger::DEBUG, norun=false)
-    puts "CxxProject2Rake, in constructor"
+  def initialize(projects, build_dir, toolchain, base='./', logLevel=Logger::ERROR, norun=false)
     @log = Logger.new(STDOUT)
+    @log.formatter = proc { |severity, datetime, progname, msg|
+      "#{severity}: #{msg}\n"
+    }
+
     @log.level = logLevel
     # @log.level = Logger::DEBUG
     @log.debug "starting..."
@@ -72,7 +75,7 @@ class CxxProject2Rake
     #todo: sort ALL_BUILDING_BLOCKS (circular deps)
 
     ALL_BUILDING_BLOCKS.each do |name,block|
-      block.set_tcs(@gcc)
+      block.set_tcs(@gcc) unless block.has_tcs?
       block.set_output_dir(Dir.pwd + "/" + build_dir)
       # block.set_config_files(project_configs)
       block.set_config_files([])
@@ -80,7 +83,7 @@ class CxxProject2Rake
     end
 
     ALL_BUILDING_BLOCKS.each do |name,block|
-      puts "creating task for block: #{block.name}/taskname: #{block.get_task_name} (#{block})"
+      @log.debug "creating task for block: #{block.name}/taskname: #{block.get_task_name} (#{block})"
       t = task_maker.create_tasks_for_building_block(block)
       if (t != nil)
         tasks << { :task => t, :name => name }
@@ -100,10 +103,13 @@ class CxxProject2Rake
           @log.debug "current dir: #{`pwd`}, #{base_dir}"
           loadContext = EvalContext.new
           loadContext.eval_project(File.read(File.basename(project_file)))
-          raise "project config invalid for #{project_file}" unless loadContext.name
-          project = loadContext.myblock.call()
-          project.set_project_dir(Dir.pwd)
-          project.to_s
+          loadContext.myblock.call()
+          loadContext.all_blocks.each do |p|
+            p.set_project_dir(Dir.pwd)
+            if p.sources.instance_of?(Rake::FileList)
+              p.set_sources(p.sources.to_a)
+            end
+          end
         end
       end
     end
@@ -118,35 +124,15 @@ class CxxProject2Rake
     end
   end
 
-  def read_project_config(project_file)
-    building_block = nil
-    cd(@base,:verbose => false) do |b|
-      @log.debug "register project #{project_file}"
-      dirname = File.dirname(project_file)
-      @log.debug "dirname for project was: #{dirname}"
-      cd(dirname,:verbose => false) do | base_dir |
-        @log.debug "current dir: #{`pwd`}"
-        loadContext = EvalContext.new
-        loadContext.eval_project(File.read(File.basename(project_file)))
-        raise "project config invalid for #{project_file}" unless loadContext.name
-        building_block = loadContext.myblock.call()
-        building_block.set_project_dir(File.join(@base, base_dir))
-      end
-    end
-    building_block
-  end
-
-  private
-
 end
 
 class EvalContext
 
-  attr_accessor :name, :myblock
+  attr_accessor :myblock, :all_blocks
 
-  def cxx_configuration(name, &block)
+  def cxx_configuration(&block)
     @myblock = block
-    @name = name
+    @all_blocks = []
   end
 
   def eval_project(project_text)
@@ -160,7 +146,6 @@ class EvalContext
   end
 
   def check_hash(hash,allowed)
-    puts "hash" + hash.inspect
     hash.keys.map {|k| raise "#{k} is not a valid specifier!" unless allowed.include?(k) }
   end
 
@@ -177,18 +162,19 @@ class EvalContext
     else
       bblock.set_lib_searchpaths(["C:/tool/cygwin/lib"])
     end
-    bblock
+    all_blocks << bblock
   end
 
   def source_lib(name, hash)
     raise "not a hash" unless hash.is_a?(Hash)
-    check_hash hash,[:sources,:includes,:dependencies]
+    check_hash hash,[:sources,:includes,:dependencies,:toolchain]
     raise ":sources need to be defined" unless hash.has_key?(:sources)
     bblock = SourceLibrary.new(name)
     bblock.set_sources(hash[:sources])
     bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
+    bblock.set_tcs(hash[:toolchain]) if hash.has_key?(:toolchain)
     bblock.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
-    bblock
+    all_blocks << bblock
   end
 
   def compile(name, hash)
@@ -197,7 +183,7 @@ class EvalContext
     bblock = SingleSource.new(name)
     bblock.set_sources(hash[:sources]) if hash.has_key?(:sources)
     bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
-    bblock
+    all_blocks << bblock
   end
 
 end

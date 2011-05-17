@@ -1,4 +1,4 @@
-cxx_configuration "compile_only" do
+cxx_configuration do
   compile "basic",
     :sources => FileList.new('*.cpp')
 end

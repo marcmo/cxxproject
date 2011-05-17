@@ -1,5 +1,8 @@
-cxx_configuration "basic" do
+cxx_configuration do
   exe "basic",
-    :sources => FileList.new('**/*.cpp'),
+    :sources => FileList['**/*.cpp'],
     :dependencies => ['2']
+  exe "debug",
+    :sources => FileList['**/*.cpp'],
+    :dependencies => ['2_debug']
 end

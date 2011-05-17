@@ -1,38 +1,41 @@
 begin
+
   require 'rubigraph'
+
   def apply?(name)
     name.match(/.*\.apply\Z/) != nil
   end
 
 
-  class V
-    attr_reader :v
-    begin
-      @@id_cache = YAML.load_file('id_cache')
-      puts 'cache loaded'
-      puts @@id_cache
-    rescue
-      puts 'could not load id_cache'
-      @@id_cache = Hash.new
-    end
-
-    def initialize(name)
-      id = @@id_cache[name]
-      if !id
-        puts 'id not found ... creating new one'
-        @v = Rubigraph::Vertex.new
-        puts "new id -> #{@v.id}"
-        @@id_cache[name] = @v.id
-      else
-        puts "id found #{name} => #{id}"
-        @v = Rubigraph::Vertex.new(-1, id)
+  module Rubigraph
+    class Vertex
+      alias_method :initialize_original, :initialize
+      def initialize(id = nil)
+        if id != nil
+          @id = id
+        else
+          initialize_original
+        end
       end
     end
+  end
+
+  class IdsAndEdges
+    attr_reader :ids, :edges
+    def initialize
+      @ids = Hash.new
+      @edges = Hash.new
+    end
+  end
+
+  class V
+
     def self.shutdown
       File.open('id_cache', 'w') do |f|
-        f.write(@@id_cache.to_yaml)
+        f.write(@@ids_and_edges.to_yaml)
       end
     end
+
     def self.reset
       begin
         File.delete('id_cache')
@@ -40,9 +43,39 @@ begin
         puts e
         puts 'problem deleting id_cache'
       end
-      @@id_cache = Hash.new
+      @@ids_and_edges = IdsAndEdges.new
     end
 
+    def self.startup
+      begin
+        @@ids_and_edges = YAML.load_file('id_cache')
+      rescue
+        @@ids_and_edges = IdsAndEdges.new
+      end
+    end
+
+    attr_reader :v
+
+    def initialize(name)
+      h = @@ids_and_edges.ids
+      id = h[name]
+      if !id
+        @v = Rubigraph::Vertex.new
+        @@ids_and_edges.ids()[name] = @v.id
+      else
+        @v = Rubigraph::Vertex.new(id)
+      end
+    end
+    def self.create_edge(edge_and_task1, edge_and_task2)
+      complete_name = "#{edge_and_task1[:task].name}->#{edge_and_task2[:task].name}"
+      if @@ids_and_edges.edges.has_key?(complete_name)
+        return nil
+      else
+        e = Rubigraph::Edge.new(edge_and_task1[:vertex].v, edge_and_task2[:vertex].v)
+        @@ids_and_edges.edges[complete_name] = true
+        return e
+      end
+    end
   end
 
   class UbiGraphSupport
@@ -83,12 +116,12 @@ begin
       # create edges
       interesting_tasks.each do |task|
         name = task.name
-        v1 = @vertices[name][:vertex]
+        v1 = @vertices[name]
         task.prerequisites.each do |p|
           v2 = @vertices[p]
           if (v2 != nil)
-            e = Rubigraph::Edge.new(v1.v, v2[:vertex].v)
-            e.width=2
+            e = V.create_edge(v1, v2)
+            e.width=2 if e
           end
         end
       end
@@ -235,7 +268,6 @@ begin
         return calc_dirty_for_prerequsites if apply?(name)
 
         if needed?
-          puts "#{name} is dirty because of itself"
           return true
         end
         return calc_dirty_for_prerequsites
@@ -246,7 +278,6 @@ begin
           t = Task[p]
           if t != nil
             if t.dirty?
-              puts "#{name} is dirty because of #{p}"
               true
             else
               false
@@ -261,36 +292,32 @@ begin
 
   end
 
-  def activate_ubigraph
-    desc 'initialize rubygraph'
-    task :rubygraph_init do
+  namespace :rubygraph do
+    task :init do
       Rubigraph.init
+      V.startup
+      at_exit do
+        V.shutdown
+      end
     end
 
     desc 'clear rubygraph'
-    task :rubygraph_clear => :rubygraph_init do
+    task :clear => :init do
       Rubigraph.clear
       V.reset
     end
 
     desc 'update rubygraph'
-    task :rubygraph_update => :rubygraph_init do
+    task :update => :init do
       begin
         LISTENER << StdoutRakeListener.new
         LISTENER << UbiGraphSupport.new
-      rescue
+      rescue StandardError => e
+        puts e
       end
     end
-
-    at_exit do
-      V.shutdown
-    end
   end
 
-rescue LoadError
-
-  def activate_ubigraph
-  end
-
+rescue Exception => e
+  puts e
 end
-

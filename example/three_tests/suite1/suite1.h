@@ -20,7 +20,7 @@ public:
   }
 
   CPPUNIT_TEST_SUITE( Suite1 );
-  CPPUNIT_TEST( test1 );
+    CPPUNIT_TEST( test1 );
   CPPUNIT_TEST_SUITE_END();
 
 };
