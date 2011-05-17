@@ -49,8 +49,7 @@ class CxxProject2Rake
       File.basename(t.name)
     end
   end
-  def initialize(projects, build_dir, toolchain, base='.', logLevel=Logger::DEBUG, norun=false)
-    puts "CxxProject2Rake, in constructor"
+  def initialize(projects, build_dir, toolchain, base='./', logLevel=Logger::ERROR, norun=false)
     @log = Logger.new(STDOUT)
     @log.level = logLevel
     # @log.level = Logger::DEBUG
@@ -80,7 +79,7 @@ class CxxProject2Rake
     end
 
     ALL_BUILDING_BLOCKS.each do |name,block|
-      puts "creating task for block: #{block.name}/taskname: #{block.get_task_name} (#{block})"
+      @log.debug "creating task for block: #{block.name}/taskname: #{block.get_task_name} (#{block})"
       t = task_maker.create_tasks_for_building_block(block)
       if (t != nil)
         tasks << { :task => t, :name => name }
@@ -101,9 +100,12 @@ class CxxProject2Rake
           loadContext = EvalContext.new
           loadContext.eval_project(File.read(File.basename(project_file)))
           raise "project config invalid for #{project_file}" unless loadContext.name
+
           project = loadContext.myblock.call()
+          if project.sources.instance_of?(Rake::FileList)
+            project.set_sources(project.sources.to_a)
+          end
           project.set_project_dir(Dir.pwd)
-          project.to_s
         end
       end
     end
@@ -160,7 +162,6 @@ class EvalContext
   end
 
   def check_hash(hash,allowed)
-    puts "hash" + hash.inspect
     hash.keys.map {|k| raise "#{k} is not a valid specifier!" unless allowed.include?(k) }
   end
 

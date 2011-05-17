@@ -3,6 +3,4 @@ require 'cxxproject'
 
 BuildDir="build"
 toolchain = Cxxproject::Toolchain::GCCChain
-CxxProject2Rake.new(Dir.glob('**/project.rb'), BuildDir, toolchain)
-activate_ubigraph
-
+CxxProject2Rake.new(Dir.glob('./**/project.rb'), BuildDir, toolchain)
