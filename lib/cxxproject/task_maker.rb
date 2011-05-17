@@ -165,15 +165,17 @@ class TaskMaker
         dString = bb.define_string(type)
       end
 
-      depStr = type == :ASM ? "" : (tcs[:COMPILER][type][:DEP_FLAGS] + depfile) # -MMD -MF debug/src/abc.o.d
+      compiler = tcs[:COMPILER][type]
+      depStr = type == :ASM ? "" : (compiler[:DEP_FLAGS] + depfile) # -MMD -MF debug/src/abc.o.d
 
-      cmd = [tcs[:COMPILER][type][:COMMAND], # g++
-        tcs[:COMPILER][type][:COMPILE_FLAGS], # -c
+      cmd = [compiler[:COMMAND], # g++
+        compiler[:COMPILE_FLAGS], # -c
+        compiler[:DEFINES].collect {|d| "#{compiler[:DEFINE_FLAG]}#{d}" }.join(' '),
         depStr,
-        tcs[:COMPILER][type][:FLAGS], # -g3
+        compiler[:FLAGS], # -g3
         iString, # -I include
         dString, # -DDEBUG
-        tcs[:COMPILER][type][:OBJECT_FILE_FLAG], # -o
+        compiler[:OBJECT_FILE_FLAG], # -o
         object, # debug/src/abc.o
         source # src/abc.cpp
       ].reject{|e| e == ""}.join(" ")
@@ -329,13 +331,13 @@ class TaskMaker
     res.enhance([scriptFile]) unless scriptFile==""
     set_output_dir(executable, res)
 
-    create_run_task(executable, bb.config_files)
+    create_run_task(executable, bb.config_files, bb.name)
     res
   end
 
-  def create_run_task(executable, configFiles)
-    desc "run executable"
-    task :run => executable do
+  def create_run_task(executable, configFiles, name)
+    desc "run executable #{executable}"
+    task "run_#{name}" => executable do
       sh "#{executable}"
     end
   end

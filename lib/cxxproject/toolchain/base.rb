@@ -86,6 +86,12 @@ module Cxxproject
         @@default
       end
 
+      def self.modify_cpp_compiler(based_on, h)
+        chain = Marshal.load(Marshal.dump(@@settings[based_on]))
+        chain[:COMPILER][:CPP].update(h)
+        chain
+      end
+
     end
 
   end
