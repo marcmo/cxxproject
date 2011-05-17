@@ -5,6 +5,7 @@ require 'cxxproject/buildingblocks/source_library'
 require 'cxxproject/buildingblocks/single_source'
 require 'cxxproject/buildingblocks/binary_library'
 require 'cxxproject/buildingblocks/custom_building_block'
+require 'cxxproject/buildingblocks/command_line'
 require 'cxxproject/extensions/rake_ext'
 require 'cxxproject/extensions/file_ext'
 
@@ -75,6 +76,8 @@ class TaskMaker
       res.transparent_timestamp = true
     elsif (bb.instance_of?(CustomBuildingBlock)) then
       # todo...
+    elsif (bb.instance_of?(CommandLine)) then
+      res = create_commandline_task(bb) 
     elsif (bb.instance_of?(Makefile)) then
       res = create_makefile_task(bb)
     elsif (bb.instance_of?(SingleSource)) then
@@ -192,6 +195,17 @@ class TaskMaker
     end
     tasks
   end
+
+  def create_commandline_task(bb)
+  	res = task bb.get_task_name do
+  	  cmd = bb.get_command_line
+      puts cmd
+      puts `#{cmd + " 2>&1"}`
+      raise "System command failed" if $?.to_i != 0
+  	end
+  	res.transparent_timestamp = true
+  	res
+  end 
 
   def create_makefile_task(bb)
     mfile = bb.get_makefile()
