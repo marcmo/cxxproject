@@ -87,7 +87,7 @@ class TaskMaker
     elsif (bb.instance_of?(Executable)) then
       res = create_exe_task(bb, object_tasks, objects_multitask ? objects_multitask : [])
     elsif (bb.instance_of?(SingleSource)) then
-      res = create_single_source_task(objects_multitask)
+      res = create_single_source_task(bb, objects_multitask)
     end
     res
   end
@@ -115,7 +115,7 @@ class TaskMaker
     res
   end
 
-  def create_single_source_task(objects_multitask)
+  def create_single_source_task(bb, objects_multitask)
     res = nil
     if objects_multitask
       res = objects_multitask
