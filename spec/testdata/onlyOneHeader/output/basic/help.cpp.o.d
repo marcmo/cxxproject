@@ -1,3 +1,0 @@
---- 
-- /home/omueller/Dropbox/code/ruby/cxxproject.git/spec/testdata/onlyOneHeader/help.cpp
-- /home/omueller/Dropbox/code/ruby/cxxproject.git/spec/testdata/onlyOneHeader/help.h
