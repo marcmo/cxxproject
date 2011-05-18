@@ -1,3 +1,0 @@
----
-  :binary_paths: ['~/.homebrew', '/opt/local', '/usr/local', '/usr']
-  :lib_endings: ['a', 'dylib']

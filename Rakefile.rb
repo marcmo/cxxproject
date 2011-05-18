@@ -9,9 +9,9 @@ end
 begin
   require 'spec/rake/spectask' # old rspec
 rescue LoadError
-  require 'rspec/core/rake_task' # rspec 2.5.x
   begin
-  rescue LoadError # don't bail out when people do not have roodi installed!
+		require 'rspec/core/rake_task' # rspec 2.5.x
+  rescue LoadError
     warn "spec not installed...will not be checked!"
   end
 end
@@ -21,9 +21,10 @@ end
 desc "Default Task"
 task :default => [:install]
 
-PKG_VERSION = '0.4.4'
+PKG_VERSION = '0.4.5'
 PKG_FILES = FileList[
   'lib/**/*.rb',
+  'lib/tools/**/*.template',
   'Rakefile.rb',
   'spec/**/*.rb'
   #    'doc/**/*'
@@ -39,9 +40,11 @@ spec = Gem::Specification.new do |s|
   s.files = PKG_FILES.to_a
   s.require_path = 'lib'
   s.author = ''
-  s.email = ''
-  s.homepage = ''
+  s.email = 'oliver.mueller@gmail.com'
+  s.homepage = 'https://github.com/marcmo/cxxproject'
+  s.add_dependency('highline', '>= 1.6.0')
   s.has_rdoc = true
+  s.executables = ["cxx"]
 end
 Rake::GemPackageTask.new(spec) {|pkg|}
 
