@@ -11,7 +11,7 @@ require 'cxxproject/task_maker'
 # CxxProject2Rake.new(Dir.glob('**/project.rb'), OsxCompiler.new('build'))
 class CxxProject2Rake
 
-  attr_accessor :base
+  attr_accessor :base, :all_tasks
   attr_reader :root_task
 
   def print_pres(tt)
@@ -49,17 +49,16 @@ class CxxProject2Rake
       File.basename(t.name)
     end
   end
-  def initialize(projects, build_dir, toolchain, base='./', logLevel=Logger::ERROR, norun=false)
+  def initialize(projects, build_dir, toolchain, base='./', logLevel=Logger::ERROR)
     @log = Logger.new(STDOUT)
     @log.formatter = proc { |severity, datetime, progname, msg|
       "#{severity}: #{msg}\n"
     }
 
     @log.level = logLevel
-    # @log.level = Logger::DEBUG
     @log.debug "starting..."
     @base = base
-    instantiate_tasks(projects, build_dir, toolchain, base) unless norun
+    @all_tasks = instantiate_tasks(projects, build_dir, toolchain, base)
   end
 
   def instantiate_tasks(projects, build_dir, toolchain, base='./')
@@ -89,7 +88,6 @@ class CxxProject2Rake
         tasks << { :task => t, :name => name }
       end
     end
-    # tasks.each { |t| print_pres(t[:task]) }
     tasks
   end
 

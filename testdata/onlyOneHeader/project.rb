@@ -1,4 +1,4 @@
-cxx_configuration "basic" do
+cxx_configuration do
   exe "basic",
     :sources => FileList.new('**/*.cpp')
 end
