@@ -205,93 +205,6 @@ begin
     end
   end
 
-
-  DELAY=0.01
-  class StdoutRakeListener
-    def before_prerequisites(name)
-      sleep(DELAY)
-    end
-
-    def after_prerequisites(name)
-      sleep(DELAY)
-    end
-
-    def before_execute(name)
-      sleep(DELAY)
-    end
-
-    def after_execute(name)
-      sleep(DELAY)
-    end
-  end
-
-  LISTENER = []
-
-  module Rake
-
-    class MultiTask
-      alias_method :invoke_prerequisites_original, :invoke_prerequisites
-
-      def invoke_prerequisites(task_args, invocation_chain)
-        LISTENER.each {|l|l.before_prerequisites(name)}
-        invoke_prerequisites_original(task_args, invocation_chain)
-        LISTENER.each {|l|l.after_prerequisites(name)}
-        if !needed?
-          LISTENER.each{|l|l.after_execute(name)}
-        end
-      end
-    end
-
-    class Task
-
-      alias_method :invoke_prerequisites_original, :invoke_prerequisites
-
-      alias_method :execute_original, :execute
-
-      def invoke_prerequisites(task_args, invocation_chain)
-        LISTENER.each {|l|l.before_prerequisites(name)}
-        invoke_prerequisites_original(task_args, invocation_chain)
-        LISTENER.each {|l|l.after_prerequisites(name)}
-        if !needed?
-          LISTENER.each{|l|l.after_execute(name)}
-        end
-      end
-
-      def execute(args=nil)
-        LISTENER.each {|l|l.before_execute(name)}
-        execute_original(args)
-        LISTENER.each {|l|l.after_execute(name)}
-      end
-
-      # return true if this or one of the prerequisites is dirty
-      def dirty?
-        return calc_dirty_for_prerequsites if apply?(name)
-
-        if needed?
-          return true
-        end
-        return calc_dirty_for_prerequsites
-      end
-
-      def calc_dirty_for_prerequsites
-        res = prerequisites.find do |p|
-          t = Task[p]
-          if t != nil
-            if t.dirty?
-              true
-            else
-              false
-            end
-          else
-            false
-          end
-        end
-        return res != nil
-      end
-    end
-
-  end
-
   namespace :rubygraph do
     task :init do
       Rubigraph.init
@@ -310,8 +223,9 @@ begin
     desc 'update rubygraph'
     task :update => :init do
       begin
-        LISTENER << StdoutRakeListener.new
-        LISTENER << UbiGraphSupport.new
+        require 'cxxproject/extensions/rake_listener_ext'
+        require 'cxxproject/extensions/rake_dirty_ext'
+        Rake::add_listener(UbiGraphSupport.new)
       rescue StandardError => e
         puts e
       end
