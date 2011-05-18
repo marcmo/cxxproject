@@ -110,7 +110,13 @@ class TaskMaker
   # convert building block deps to rake task prerequisites (e.g. exe needs lib)
   def add_building_block_deps_as_prerequisites(bb,res)
     bb.dependencies.reverse.each do |d|
-      res.prerequisites.unshift(ALL_BUILDING_BLOCKS[d].get_task_name)
+      begin
+        raise "ERROR: tried to add the dependencies of \"#{d}\" to \"#{bb.name}\" but such a building block could not be found!" unless ALL_BUILDING_BLOCKS[d]
+        res.prerequisites.unshift(ALL_BUILDING_BLOCKS[d].get_task_name) 
+      rescue Exception => e
+        puts e
+        exit
+      end
     end
   end
 
