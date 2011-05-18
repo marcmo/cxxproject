@@ -75,8 +75,12 @@ class BuildingBlock
     @tcs = nil
     @output_dir_abs = false
 
-    raise "building block already exists: #{name}" if ALL_BUILDING_BLOCKS.include?@name
-    ALL_BUILDING_BLOCKS[@name] = self
+    begin
+      raise "building block already exists: #{name}" if ALL_BUILDING_BLOCKS.include?@name
+      ALL_BUILDING_BLOCKS[@name] = self
+    rescue Exception => e 
+      puts e
+    end
   end
 
   def complete_init()

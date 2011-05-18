@@ -42,7 +42,13 @@ module HasDependencies
 
     # two-step needed to keep order of dependencies for includes, lib dirs, etc
     depsToCheck.each do |d|
-      ALL_BUILDING_BLOCKS[d].get_transitive_dependencies_internal(deps)
+      begin
+        raise "ERROR: while reading config file for #{self.name}: dependent building block \"#{d}\" was specified but not found!" unless ALL_BUILDING_BLOCKS[d]
+        ALL_BUILDING_BLOCKS[d].get_transitive_dependencies_internal(deps)
+      rescue Exception => e
+        puts e
+        exit
+      end
     end
     deps
 

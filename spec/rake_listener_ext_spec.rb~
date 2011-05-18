@@ -1,4 +1,4 @@
-require 'cxxproject'
+require 'cxxproject/extension/rake_listener_ext.rb'
 
 describe Dependencies do
   it 'should build the right dependency-chain' do

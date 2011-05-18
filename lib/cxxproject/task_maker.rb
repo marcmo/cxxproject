@@ -35,7 +35,6 @@ class TaskMaker
     Rake.application["clean"].prerequisites.include?task
   end
 
-
   # this is the main api for the task_maker
   # it will create the tasks that are needed in order to create
   # one building block
@@ -52,55 +51,100 @@ class TaskMaker
 
     bb.calc_transitive_dependencies()
 
-    objects_multitask = nil
+    res = nil
     if HasSources === bb
-      bb.calc_compiler_strings()
-      object_tasks = create_object_file_tasks(bb)
+      res = create_tasks_for_buildingblock_with_sources(bb)
+    else
+      if (bb.instance_of?(BinaryLibrary)) then
+        res = create_binary_lib_task(bb)
+      elsif (bb.instance_of?(CustomBuildingBlock)) then
+        # todo...
+      elsif (bb.instance_of?(CommandLine)) then
+        res = create_commandline_task(bb)
+      elsif (bb.instance_of?(Makefile)) then
+        res = create_makefile_task(bb)
+      else
+        raise 'unknown building block'
+      end
+    end
+
+    init_show_in_graph_flags(bb)
+    add_building_block_deps_as_prerequisites(bb,res)
+    res
+  end
+
+  private
+
+  def create_tasks_for_buildingblock_with_sources(bb)
+    res = nil
+    bb.calc_compiler_strings()
+    object_tasks, objects_multitask = create_tasks_for_objects(bb)
+    if (bb.instance_of?(SourceLibrary)) then
+      res = create_source_lib(bb, object_tasks, objects_multitask)
+    elsif (bb.instance_of?(Executable)) then
+      res = create_exe_task(bb, object_tasks, objects_multitask)
+    elsif (bb.instance_of?(SingleSource)) then
+      res = create_single_source_task(bb, objects_multitask)
+    elsif (bb.instance_of?(ModuleBuildingBlock)) then
+      res = task bb.get_task_name
+      res.transparent_timestamp = true
+    end
+    res
+  end
+
+  def create_binary_lib_task(bb)
+    res = task bb.get_task_name
+    def res.needed?
+      return false
+    end
+    res.transparent_timestamp = true
+    res
+  end
+
+  def init_show_in_graph_flags(bb)
+    bb.config_files.each do |cf|
+      Rake.application[cf].showInGraph = GraphWriter::NO
+    end
+  end
+
+  # convert building block deps to rake task prerequisites (e.g. exe needs lib)
+  def add_building_block_deps_as_prerequisites(bb,res)
+    bb.dependencies.reverse.each do |d|
+      begin
+        raise "ERROR: tried to add the dependencies of \"#{d}\" to \"#{bb.name}\" but such a building block could not be found!" unless ALL_BUILDING_BLOCKS[d]
+        res.prerequisites.unshift(ALL_BUILDING_BLOCKS[d].get_task_name) 
+      rescue Exception => e
+        puts e
+        exit
+      end
+    end
+  end
+
+  def create_single_source_task(bb, objects_multitask)
+    res = nil
+    if objects_multitask
+      res = objects_multitask
+      namespace "compile" do
+        desc "compile sources in #{bb.name}-configuration"
+        task bb.name => objects_multitask
+      end
+      objects_multitask.add_description("compile sources only")
+    end
+    res
+  end
+
+  def create_tasks_for_objects(bb)
+    object_tasks = create_object_file_tasks(bb)
+    objects_multitask = []
+    if object_tasks.length > 0
       objects_multitask = multitask bb.get_sources_task_name => object_tasks
       def objects_multitask.needed?
         return false
       end
       objects_multitask.transparent_timestamp = true
     end
-
-    res = nil
-    if (bb.instance_of?(SourceLibrary)) then
-      res = create_source_lib(bb, object_tasks, objects_multitask)
-    elsif (bb.instance_of?(Executable)) then
-      res = create_exe_task(bb, object_tasks, objects_multitask)
-    elsif (bb.instance_of?(BinaryLibrary)) then
-      res = task bb.get_task_name
-      def res.needed?
-        return false
-      end
-      res.transparent_timestamp = true
-    elsif (bb.instance_of?(CustomBuildingBlock)) then
-      # todo...
-    elsif (bb.instance_of?(CommandLine)) then
-      res = create_commandline_task(bb)
-    elsif (bb.instance_of?(Makefile)) then
-      res = create_makefile_task(bb)
-    elsif (bb.instance_of?(SingleSource)) then
-      objects_multitask.add_description("compile sources only")
-      res = objects_multitask
-    elsif (bb.instance_of?(ModuleBuildingBlock)) then
-      res = task bb.get_task_name
-      res.transparent_timestamp = true
-    else
-      raise 'unknown building block'
-    end
-    bb.config_files.each do |cf|
-      Rake.application[cf].showInGraph = GraphWriter::NO
-    end
-
-    # convert building block deps to rake task prerequisites (e.g. exe needs lib)
-    bb.dependencies.reverse.each do |d|
-      res.prerequisites.unshift(ALL_BUILDING_BLOCKS[d].get_task_name)
-    end
-    res
+    [object_tasks,objects_multitask]
   end
-
-  private
 
   def convert_depfile(depfile, bb)
     deps = ""
@@ -170,7 +214,6 @@ class TaskMaker
 
       cmd = [compiler[:COMMAND], # g++
         compiler[:COMPILE_FLAGS], # -c
-        compiler[:DEFINES].collect {|d| "#{compiler[:DEFINE_FLAG]}#{d}" }.join(' '),
         depStr,
         compiler[:FLAGS], # -g3
         iString, # -I include

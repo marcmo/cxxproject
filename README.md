@@ -20,12 +20,12 @@ there are three kinds of tests:
 
 * spec files
 * roodi
-* the exa,ples should work with rake clean all
+* the examples: use rake -T to find out about the ways to use
 
 ## prerequisites
 
-gems: rspec, roodi, facets
-libs: cppunit
+gems: rspec, roodi (optional)
+libs: cppunit (only required for some examples)
 
 ## installation
 
