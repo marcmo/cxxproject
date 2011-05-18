@@ -63,16 +63,13 @@ class TaskMaker
         res = create_commandline_task(bb)
       elsif (bb.instance_of?(Makefile)) then
         res = create_makefile_task(bb)
-      elsif (bb.instance_of?(ModuleBuildingBlock)) then
-        res = task bb.get_task_name
-        res.transparent_timestamp = true
       else
         raise 'unknown building block'
       end
     end
 
     init_show_in_graph_flags(bb)
-    res = add_building_block_deps_as_prerequisites(bb,res)
+    add_building_block_deps_as_prerequisites(bb,res)
     res
   end
 
@@ -83,11 +80,14 @@ class TaskMaker
     bb.calc_compiler_strings()
     object_tasks, objects_multitask = create_tasks_for_objects(bb)
     if (bb.instance_of?(SourceLibrary)) then
-      res = create_source_lib(bb, object_tasks, objects_multitask ? objects_multitask : [])
+      res = create_source_lib(bb, object_tasks, objects_multitask)
     elsif (bb.instance_of?(Executable)) then
-      res = create_exe_task(bb, object_tasks, objects_multitask ? objects_multitask : [])
+      res = create_exe_task(bb, object_tasks, objects_multitask)
     elsif (bb.instance_of?(SingleSource)) then
       res = create_single_source_task(bb, objects_multitask)
+    elsif (bb.instance_of?(ModuleBuildingBlock)) then
+      res = task bb.get_task_name
+      res.transparent_timestamp = true
     end
     res
   end
@@ -112,7 +112,6 @@ class TaskMaker
     bb.dependencies.reverse.each do |d|
       res.prerequisites.unshift(ALL_BUILDING_BLOCKS[d].get_task_name)
     end
-    res
   end
 
   def create_single_source_task(bb, objects_multitask)
@@ -130,6 +129,7 @@ class TaskMaker
 
   def create_tasks_for_objects(bb)
     object_tasks = create_object_file_tasks(bb)
+    objects_multitask = []
     if object_tasks.length > 0
       objects_multitask = multitask bb.get_sources_task_name => object_tasks
       def objects_multitask.needed?
@@ -208,7 +208,6 @@ class TaskMaker
 
       cmd = [compiler[:COMMAND], # g++
         compiler[:COMPILE_FLAGS], # -c
-        compiler[:DEFINES].collect {|d| "#{compiler[:DEFINE_FLAG]}#{d}" }.join(' '),
         depStr,
         compiler[:FLAGS], # -g3
         iString, # -I include
