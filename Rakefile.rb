@@ -61,4 +61,3 @@ desc "install gem globally"
 task :install => [:gem] do
   sh "gem install pkg/#{spec.name}-#{spec.version}.gem"
 end
-
