@@ -42,7 +42,7 @@ end
 if self.class.const_defined?(:SpecTask) then
   desc "Run all examples"
   Spec::Rake::SpecTask.new() do |t|
-    t.spec_files = FileList['spec/**/*.rb']
+    t.spec_files = FileList['spec/**/*_spec.rb']
   end
   task :gem => [:spec]
 end
@@ -51,7 +51,7 @@ end
 begin # const_defined? did not work?
   desc "Run all examples"
   RSpec::Core::RakeTask.new() do |t|
-    t.pattern = 'spec/**/*.rb'
+    t.pattern = 'spec/**/*_spec.rb'
   end
   task :gem => [:spec]
 rescue

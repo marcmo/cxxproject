@@ -92,6 +92,8 @@ describe CxxProject2Rake do
       execute_all_tasks(tasks)
       listener.get_exec_count.should == rebuild_build_steps
 
+      # cleanup
+      rm_r 'output' if File.directory?('output')
     end
   end
 
