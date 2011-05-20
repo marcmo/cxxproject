@@ -4,7 +4,6 @@ module Rake
 
   def self.add_listener(l)
     get_listener() << l
-    puts "add->" + @@listener.inspect
   end
 
   def self.get_listener
@@ -12,7 +11,6 @@ module Rake
   end
   def self.remove_listener(l)
     get_listener().delete(l)
-    puts "remove->" + @@listener.inspect
   end
 
   class MultiTask
