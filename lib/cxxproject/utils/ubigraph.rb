@@ -234,5 +234,5 @@ begin
 rescue LoadError => le
   # dont mind if rubigraph is missing
 rescue Exception => e
-  puts e
+  puts "#{e} -- no problem...will do without!"
 end
