@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   EOF
   s.files = PKG_FILES.to_a
   s.require_path = 'lib'
-  s.author = ''
+  s.author = 'oliver mueller'
   s.email = 'oliver.mueller@gmail.com'
   s.homepage = 'https://github.com/marcmo/cxxproject'
   s.add_dependency('highline', '>= 1.6.0')
