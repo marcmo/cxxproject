@@ -21,7 +21,6 @@ end
 desc "Default Task"
 task :default => [:install]
 
-PKG_VERSION = '0.4.5'
 PKG_FILES = FileList[
   'lib/**/*.rb',
   'lib/tools/**/*.template',
@@ -51,6 +50,7 @@ end
 begin # const_defined? did not work?
   desc "Run all examples"
   RSpec::Core::RakeTask.new() do |t|
+    puts Dir.glob 'spec/**/*_spec.rb'
     t.pattern = 'spec/**/*_spec.rb'
   end
   task :gem => [:spec]

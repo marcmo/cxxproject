@@ -1,3 +1,14 @@
+require 'rake'
+
+include FileUtils
+
+PKG_VERSION = '0.4.5'
+PKG_FILES = FileList[
+  'lib/**/*.rb',
+  'lib/tools/**/*.template',
+  'Rakefile.rb',
+  'spec/**/*.rb'
+]
 
 Gem::Specification.new do |s|
   s.name = 'cxxproject'
