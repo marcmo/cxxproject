@@ -231,7 +231,8 @@ begin
       end
     end
   end
-
+rescue LoadError => le
+  # dont mind if rubigraph is missing
 rescue Exception => e
   puts e
 end
