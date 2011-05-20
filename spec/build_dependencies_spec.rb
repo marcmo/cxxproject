@@ -50,7 +50,7 @@ describe CxxProject2Rake do
     ALL_BUILDING_BLOCKS.clear
     Rake.application.clear
     outputdir = 'output'
-    CxxProject2Rake.new(Dir.glob('project.rb'), outputdir, GCCChain)
+    CxxProject2Rake.new(Dir.glob('**/project.rb'), outputdir, GCCChain)
   end
 
   it 'should rebuild only when one file was changed' do
@@ -91,6 +91,72 @@ describe CxxProject2Rake do
       listener.reset_exec_count
       execute_all_tasks(tasks)
       listener.get_exec_count.should == rebuild_build_steps
+
+      # cleanup
+      rm_r 'output' if File.directory?('output')
+    end
+  end
+
+  def rebuild
+    tasks = fresh_cxx.all_tasks
+    execute_all_tasks(tasks)
+  end
+
+  def is_older? fileA, fileB
+    File.mtime(fileA) < File.mtime(fileB)
+  end
+
+  def is_newer? fileA, fileB
+    File.mtime(fileA) > File.mtime(fileB)
+  end
+
+  def check_rebuilding (end_product, prereq_file, should_rebuild = true)
+    sleep(1)
+    FileUtils.touch prereq_file
+    # prereq_file should be newer
+    File.mtime(prereq_file).should > File.mtime(end_product)
+    rebuild
+    if should_rebuild
+      # prereq_file should NOT be newer
+      File.mtime(prereq_file).should <= File.mtime(end_product)
+    else
+      # prereq_file should still be newer
+      File.mtime(prereq_file).should > File.mtime(end_product)
+    end
+  end
+
+  it 'should rebuild when any source file changes' do
+    cd("#{RSPECDIR}/testdata/basic", :verbose => false) do
+      rm_r 'output' if File.directory?('output')
+      tasks = fresh_cxx.all_tasks
+      CLOBBER.each { |fn| rm_r fn rescue nil }
+      execute_all_tasks(tasks)
+
+      # dependencies: exe -> libC -> libB
+
+      headerA = 'exe12/help.h'
+      sourceA = 'exe12/main.cpp'
+      projectA = 'exe12/project.rb'
+      headerB = 'lib1/lib1.h'
+      sourceB = 'lib1/lib1.cpp'
+      projectB = 'lib1/project.rb'
+      headerC = 'lib2/lib2.h'
+      sourceC = 'lib2/lib2.cpp'
+      projectC = 'lib2/project.rb'
+      exe = 'output/basic.exe'
+      libB = 'output/lib1.a'
+      libC = 'output/lib2.a'
+
+      check_rebuilding exe, headerA
+      check_rebuilding exe, sourceA
+      check_rebuilding exe, projectA
+      check_rebuilding exe, headerB
+      check_rebuilding exe, headerC
+      check_rebuilding libB, sourceA, false
+      check_rebuilding libB, sourceB
+
+      check_rebuilding libB, sourceC, false
+      check_rebuilding libC, sourceB
 
       # cleanup
       rm_r 'output' if File.directory?('output')

@@ -76,8 +76,7 @@ class CxxProject2Rake
     ALL_BUILDING_BLOCKS.each do |name,block|
       block.set_tcs(@gcc) unless block.has_tcs?
       block.set_output_dir(Dir.pwd + "/" + build_dir)
-      # block.set_config_files(project_configs)
-      block.set_config_files([])
+      block.set_config_files(project_configs)
       block.complete_init()
     end
 
