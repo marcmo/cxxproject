@@ -103,19 +103,17 @@ module Rake
               end
             end
           end
+          if prereq.failure
+            @failure = true
+          end
         }
       end
+
     end
 
     define_method(:execute) do |arg|
-      # check if a prereq has failed
-      @prerequisites.each { |n|
-        prereq = application[n, @scope]
-        if prereq.failure
-          @failure = true
-        end
-      }
-      break if @failure # if yes, this task cannot be run
+      
+      break if @failure # check if a prereq has failed
 
       begin
         execute_org.bind(self).call(arg)
