@@ -1,5 +1,5 @@
 require 'cxxproject/buildingblocks/has_dependencies_mixin'
-require 'cxxproject/utils/graph'
+require 'cxxproject/utils/dot/graph_writer'
 
 # stores all defined buildingblocks by name (the name should be unique)
 ALL_BUILDING_BLOCKS = {}

@@ -1,4 +1,6 @@
 require 'cxxproject/extensions/stdout_ext'
+require 'cxxproject/utils/dot/graph_writer'
+
 require 'rake'
 require 'stringio'
 

@@ -8,6 +8,7 @@ require 'cxxproject/buildingblocks/custom_building_block'
 require 'cxxproject/buildingblocks/command_line'
 require 'cxxproject/extensions/rake_ext'
 require 'cxxproject/extensions/file_ext'
+require 'cxxproject/utils/dot/graph_writer'
 
 require 'logger'
 require 'yaml'
