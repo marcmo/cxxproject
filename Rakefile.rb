@@ -1,40 +1,29 @@
 require 'rake/gempackagetask'
-begin
-  require 'roodi'
-  require 'roodi_task'
-rescue LoadError # don't bail out when people do not have roodi installed!
-  warn "roodi not installed...will not be checked!"
-end
+
 
 begin
   require 'spec/rake/spectask' # old rspec
 rescue LoadError
   begin
-		require 'rspec/core/rake_task' # rspec 2.5.x
+    require 'rspec/core/rake_task' # rspec 2.5.x
   rescue LoadError
     warn "spec not installed...will not be checked!"
   end
 end
 
-
-
 desc "Default Task"
 task :default => [:install]
 
-PKG_FILES = FileList[
-  'lib/**/*.rb',
-  'lib/tools/**/*.template',
-  'Rakefile.rb',
-  'spec/**/*.rb'
-]
-
-task :gem
 spec = Gem::Specification.load('cxx.gemspec')
-Rake::GemPackageTask.new(spec)
+Rake::GemPackageTask.new(spec) {|pkg|}
 
-if self.class.const_defined?(:RoodiTask) then
-  RoodiTask.new  'roodi', PKG_FILES, 'roodi.yml'
+begin
+  require 'roodi'
+  require 'roodi_task'
+  RoodiTask.new  'roodi', spec.files, 'roodi.yml'
   task :gem => [:roodi]
+rescue LoadError # don't bail out when people do not have roodi installed!
+  warn "roodi not installed...will not be checked!"
 end
 
 # old rspec
@@ -50,17 +39,10 @@ end
 begin # const_defined? did not work?
   desc "Run all examples"
   RSpec::Core::RakeTask.new() do |t|
-    puts Dir.glob 'spec/**/*_spec.rb'
     t.pattern = 'spec/**/*_spec.rb'
   end
   task :gem => [:spec]
 rescue
-end
-
-desc 'build gem only'
-task :gem_only do
-  sh "gem build cxx.gemspec"
-  mv FileList["*.gem"], "pkg"
 end
 
 desc "install gem globally"
