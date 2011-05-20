@@ -1,6 +1,5 @@
 $:.unshift File.join(File.dirname(__FILE__),"..","lib")
 require 'cxxproject'
-require 'rake'
 
 RSPECDIR = File.dirname(__FILE__)
 puts RSPECDIR
@@ -95,6 +94,7 @@ describe CxxProject2Rake do
       # cleanup
       rm_r 'output' if File.directory?('output')
     end
+    Rake::remove_listener(listener)
   end
 
   def rebuild
@@ -160,6 +160,8 @@ describe CxxProject2Rake do
 
       # cleanup
       rm_r 'output' if File.directory?('output')
+      ALL_BUILDING_BLOCKS.clear
+      Rake.application.clear
     end
   end
 

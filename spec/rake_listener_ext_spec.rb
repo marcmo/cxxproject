@@ -3,6 +3,7 @@ require 'cxxproject/extensions/rake_listener_ext.rb'
 describe Rake::Task do
 
   it "should call a listener for prerequisites and execute" do
+    Rake.application.clear
     t = task "test"
 
     l = mock
@@ -15,7 +16,10 @@ describe Rake::Task do
     t.invoke
 
     Rake::remove_listener(l)
+
     t.invoke
+
+    Rake.application.clear
   end
 
 end
