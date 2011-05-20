@@ -122,6 +122,9 @@ class EvalContext
 
     if OS.linux?
       bblock.set_lib_searchpaths(["/usr/local/lib","/usr/lib"])
+    elsif OS.mac?
+      bblock.set_lib_searchpaths(['/usr/lib'])
+      puts "WARNING ... please use correct lib_searchpath in to_rake for mac"
     else
       bblock.set_lib_searchpaths(["C:/tool/cygwin/lib"])
     end
