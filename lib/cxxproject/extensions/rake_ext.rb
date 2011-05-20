@@ -52,7 +52,11 @@ module Rake
 
             s = SyncStringIO.new(m)
             Thread.current[:stdout] = s
-            application[p].invoke_with_call_chain(args, invocation_chain)
+            prereq = application[p]
+            prereq.invoke_with_call_chain(args, invocation_chain)
+            if prereq.failure
+              @failure = true
+            end
             s.sync_flush
           end
         }
@@ -95,6 +99,9 @@ module Rake
             prereq = application[n, @scope]
             prereq_args = task_args.new_scope(prereq.arg_names)
             prereq.invoke_with_call_chain(prereq_args, invocation_chain)
+            if prereq.failure
+              @failure = true
+            end
           rescue
             if @name.length>2 and @name[-2..-1] == ".o" # file found in dep file does not exist anymore
               @prerequisites.delete(n)
@@ -102,9 +109,6 @@ module Rake
                 true
               end
             end
-          end
-          if prereq.failure
-            @failure = true
           end
         }
       end
