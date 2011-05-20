@@ -5,51 +5,12 @@ require 'cxxproject/extensions/rake_ext'
 require 'cxxproject/toolchain/gcc'
 require 'cxxproject/task_maker'
 
-# class which converts cxx-projects to rake-tasks
-# can be used in a rakefile like:
-# require 'cxxproject'
-# CxxProject2Rake.new(Dir.glob('**/project.rb'), OsxCompiler.new('build'))
 class CxxProject2Rake
 
   attr_accessor :base, :all_tasks
-  attr_reader :root_task
 
-  def print_pres(tt)
-    dirty_count = 0
-    inner = lambda do |t,level|
-      s = ""
-      if t.needed? && tt.instance_of?(FileTask) then
-        level.times { s = s + "xxx" }
-        puts "#{s} #{level}.level: #{task2string(t)}, deps:#{t.prerequisites}"
-      else
-        level.times { s = s + "---" }
-        # puts "#{s} #{level}.level: #{task2string(t)}"
-      end
-      dirty_count += 1 unless !(t.instance_of?(FileTask) && t.needed?)
-      prerequisites = prerequisites_if_any(t)
-      prerequisites.each do |p|
-        x = t.application[p, t.scope]
-        inner.call(x,level+1)
-      end
-    end
-    inner.call(tt,0)
-    dirty_count
-  end
-  def prerequisites_if_any(t)
-    if t.respond_to?('prerequisites')
-      t.prerequisites
-    else
-      []
-    end
-  end
-  def task2string(t)
-    if t.instance_of?(FileTask)
-      t.name
-    else
-      File.basename(t.name)
-    end
-  end
-  def initialize(projects, build_dir, toolchain, base='./', logLevel=Logger::ERROR)
+  def initialize(projects, build_dir, toolchain, base='.', logLevel=Logger::ERROR)
+    pwd = `pwd`
     @log = Logger.new(STDOUT)
     @log.formatter = proc { |severity, datetime, progname, msg|
       "#{severity}: #{msg}\n"
@@ -61,12 +22,16 @@ class CxxProject2Rake
     @all_tasks = instantiate_tasks(projects, build_dir, toolchain, base)
   end
 
-  def instantiate_tasks(projects, build_dir, toolchain, base='./')
-    project_configs = projects.map { |p| p.remove_from_start(base) }
+  def instantiate_tasks(project_configs, build_dir, toolchain, base='.')
+    cd base do
+      project_configs.each do |p|
+        abort "project config #{p} cannot be found!" unless File.exists?(p)
+      end
+    end
     @log.debug "project_configs: #{project_configs}"
     register_projects(project_configs)
     define_project_info_task()
-    @gcc = toolchain # Cxxproject::Toolchain::GCCChain
+    @gcc = toolchain
     task_maker = TaskMaker.new(@log)
     task_maker.set_loglevel(@log.level);
     tasks = []
@@ -76,7 +41,8 @@ class CxxProject2Rake
     ALL_BUILDING_BLOCKS.each do |name,block|
       block.set_tcs(@gcc) unless block.has_tcs?
       block.set_output_dir(Dir.pwd + "/" + build_dir)
-      block.set_config_files(project_configs)
+      rel_projects = project_configs.collect { |p| File.join(base,p) }
+      block.set_config_files(rel_projects)
       block.complete_init()
     end
 

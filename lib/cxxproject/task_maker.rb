@@ -104,7 +104,7 @@ class TaskMaker
 
   def init_show_in_graph_flags(bb)
     bb.config_files.each do |cf|
-      Rake.application[cf].showInGraph = GraphWriter::NO
+      # Rake.application[cf].showInGraph = GraphWriter::NO
     end
   end
 
