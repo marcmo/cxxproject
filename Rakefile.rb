@@ -57,6 +57,12 @@ begin # const_defined? did not work?
 rescue
 end
 
+desc 'build gem only'
+task :gem_only do
+  sh "gem build cxx.gemspec"
+  mv FileList["*.gem"], "pkg"
+end
+
 desc "install gem globally"
 task :install => [:gem] do
   sh "gem install pkg/#{spec.name}-#{spec.version}.gem"
