@@ -3,6 +3,7 @@ require 'pp'
 require 'pathname'
 require 'cxxproject/extensions/rake_ext'
 require 'cxxproject/toolchain/gcc'
+require 'cxxproject/toolchain/gcc_osx'
 require 'cxxproject/task_maker'
 
 class CxxProject2Rake
