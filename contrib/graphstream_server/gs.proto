@@ -1,0 +1,16 @@
+package com.flopcode.graphstream.proto;
+
+message Command {
+  enum Type {
+    CLEAR = 1,
+    ADD_VERTEX = 2,
+    ADD_EDGE = 3,
+    SET_STYLESHEET 4
+  }
+
+  required Type type = 1;
+  optional VertexData = 2;
+  optional EdgeData = 3;
+  optional StyleSheetData = 4;
+  
+}

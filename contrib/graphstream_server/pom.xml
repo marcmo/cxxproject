@@ -1,0 +1,19 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.graphstream</groupId>
+  <artifactId>gs-server</artifactId>
+  <version>0.1-SNAPSHOT</version>
+
+   <name>gs server</name>
+   <description>Server like ubigraph for graphstream.</description>
+
+ <dependencies>
+      <dependency>
+         <artifactId>gs-core</artifactId>
+         <groupId>org.graphstream</groupId>
+         <version>1.0</version>
+         <optional>false</optional>
+      </dependency>
+ </dependencies>
+
+</project>

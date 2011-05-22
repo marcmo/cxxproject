@@ -12,6 +12,7 @@ require 'cxxproject/torake/compiler'
 require 'cxxproject/torake/gcccompiler'
 require 'cxxproject/torake/osxcompiler'
 require 'cxxproject/utils/ubigraph'
+require 'cxxproject/utils/graphstream'
 
 include Cxxproject::Toolchain
 

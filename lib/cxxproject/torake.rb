@@ -23,7 +23,7 @@ class CxxProject2Rake
   end
 
   def instantiate_tasks(project_configs, build_dir, toolchain, base='.')
-    cd base do
+    FileUtils.cd base do
       project_configs.each do |p|
         abort "project config #{p} cannot be found!" unless File.exists?(p)
       end
@@ -57,12 +57,12 @@ class CxxProject2Rake
   end
 
   def register_projects(projects)
-    cd(@base,:verbose => false) do |b|
+    FileUtils.cd(@base,:verbose => false) do |b|
       projects.each do |project_file|
         @log.debug "register project #{project_file}"
         dirname = File.dirname(project_file)
         @log.debug "dirname for project was: #{dirname}"
-        cd(dirname,:verbose => false) do | base_dir |
+        FileUtils.cd(dirname,:verbose => false) do | base_dir |
           @log.debug "current dir: #{`pwd`}, #{base_dir}"
           loadContext = EvalContext.new
           loadContext.eval_project(File.read(File.basename(project_file)))
