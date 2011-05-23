@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.graphstream</groupId>
+	<artifactId>gs-deps</artifactId>
+	<version>1.0</version>
+
+	<name>gs-deps</name>
+	<url>http://graphstream-project.org</url>
+
+	<packaging>pom</packaging>
+
+	<developers>
+
+		<developer>
+			<id>gsavin</id>
+			<name>Guilhelm Savin</name>
+			<email>guilhelm.savin@graphstream-project.org</email>
+			<organization>LITIS</organization>
+			<organizationUrl>http://www.litislab.eu</organizationUrl>
+			<roles>
+				<role>developer</role>
+			</roles>
+		</developer>
+
+		<developer>
+			<id>adutot</id>
+			<name>Antoine Dutot</name>
+			<email>antoine.dutot@graphstream-project.org</email>
+			<organization>LITIS</organization>
+			<organizationUrl>http://www.litislab.eu</organizationUrl>
+			<roles>
+				<role>developer</role>
+			</roles>
+		</developer>
+
+		<developer>
+			<id>ypigne</id>
+			<name>Yoann Pigné</name>
+			<email>yoann.pigne@graphstream-project.org</email>
+			<organization>University of Luxembourg</organization>
+			<organizationUrl>http://www.uni.lu</organizationUrl>
+			<roles>
+				<role>developer</role>
+			</roles>
+		</developer>
+
+		<developer>
+			<id>jbaudry</id>
+			<name>Julien Baudry</name>
+			<email>julien.baudry@graphstream-project.org</email>
+			<organization>LITIS</organization>
+			<organizationUrl>http://www.litislab.eu</organizationUrl>
+			<roles>
+				<role>developer</role>
+			</roles>
+		</developer>
+
+	</developers>
+
+	<licenses>
+
+		<license>
+			<name>LGPL3</name>
+			<url>http://www.gnu.org/copyleft/lesser.html</url>
+		</license>
+
+		<license>
+			<name>Cecill-C</name>
+			<url>http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.html
+			</url>
+		</license>
+
+	</licenses>
+
+	<modules>
+	  <module>pherd</module>
+	  <module>mbox2</module>
+	  <module>util</module>
+	</modules>
+</project>

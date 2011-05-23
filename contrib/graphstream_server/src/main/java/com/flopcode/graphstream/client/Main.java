@@ -24,9 +24,10 @@ public class Main {
 		out.println("AddEdge(99,0)");
 		out.flush();
 		
-		Thread.sleep(2000);
+		Thread.sleep(12000);
 
 		out.println("Clear()");
 		out.flush();
+		Thread.sleep(10000);
 	}
 }
