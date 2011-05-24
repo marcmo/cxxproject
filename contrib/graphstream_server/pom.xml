@@ -10,7 +10,7 @@
 	<repositories>
 		<repository>
 			<id>local-graphstream-jars</id>
-			<url>file://{basedir}/mvn-repo</url>
+			<url>file://${project.basedir}/mvn-repo</url>
 		</repository>
 	</repositories>
 
