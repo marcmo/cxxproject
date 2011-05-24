@@ -79,7 +79,7 @@ class BuildingBlock
       raise "building block already exists: #{name}" if ALL_BUILDING_BLOCKS.include?@name
       ALL_BUILDING_BLOCKS[@name] = self
     rescue Exception => e 
-      puts e
+      puts e unless self.instance_of?BinaryLibrary
     end
   end
 
