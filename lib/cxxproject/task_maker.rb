@@ -59,7 +59,7 @@ class TaskMaker
       if (bb.instance_of?(BinaryLibrary)) then
         res = create_binary_lib_task(bb)
       elsif (bb.instance_of?(CustomBuildingBlock)) then
-        # todo...
+        res = create_custom_task(bb)
       elsif (bb.instance_of?(CommandLine)) then
         res = create_commandline_task(bb)
       elsif (bb.instance_of?(Makefile)) then
@@ -91,6 +91,15 @@ class TaskMaker
       res.transparent_timestamp = true
     end
     res
+  end
+
+  def create_custom_task(bb)
+    desc bb.get_task_name
+    task bb.get_task_name do
+      bb.actions.each do |a|
+        a.call
+      end
+    end
   end
 
   def create_binary_lib_task(bb)
@@ -169,13 +178,9 @@ class TaskMaker
       deps = nil
       begin
         deps = YAML.load_file(depfile)
-      rescue
-        deps = nil
-        # may happen if depfile was not converted the last time
-      end
-      if (deps)
         outfileTask.enhance(deps)
-      else
+      rescue
+        # may happen if depfile was not converted the last time
         def outfileTask.needed?
           true
         end
@@ -228,10 +233,11 @@ class TaskMaker
       add_file_to_clean_task(object)
 
       outfileTask = file object => source do
-        puts cmd
+        puts "compiling #{source}"
         puts `#{cmd + " 2>&1"}`
-        raise "System command failed" if $?.to_i != 0
         convert_depfile(depfile, bb) if depStr != ""
+        raise "System command failed" if $?.to_i != 0
+        puts "ERROR with executing: #{cmd}" unless File.exists?object
       end
       outfileTask.showInGraph = GraphWriter::DETAIL
       outfileTask.enhance(bb.config_files)

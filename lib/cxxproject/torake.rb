@@ -24,7 +24,7 @@ class CxxProject2Rake
   end
 
   def instantiate_tasks(project_configs, build_dir, toolchain, base='.')
-    FileUtils.cd base do
+    cd(base, :verbose => false) do
       project_configs.each do |p|
         abort "project config #{p} cannot be found!" unless File.exists?(p)
       end
@@ -70,7 +70,7 @@ class CxxProject2Rake
           loadContext.myblock.call()
           loadContext.all_blocks.each do |p|
             p.set_project_dir(Dir.pwd)
-            if p.sources.instance_of?(Rake::FileList)
+            if p.respond_to?(:sources) && p.sources.instance_of?(Rake::FileList)
               p.set_sources(p.sources.to_a)
             end
           end
@@ -115,19 +115,19 @@ class EvalContext
 
   def exe(name, hash)
     raise "not a hash" unless hash.is_a?(Hash)
-    check_hash hash,[:sources,:includes,:dependencies]
+    check_hash hash,[:sources,:includes,:dependencies,:libpath]
     bblock = Executable.new(name)
     bblock.set_sources(hash[:sources]) if hash.has_key?(:sources)
     bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
     bblock.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
-
-    if OS.linux?
-      bblock.set_lib_searchpaths(["/usr/local/lib","/usr/lib"])
-    elsif OS.mac?
-      bblock.set_lib_searchpaths(['/usr/lib'])
-      puts "WARNING ... please use correct lib_searchpath in to_rake for mac"
-    else
-      bblock.set_lib_searchpaths(["C:/tool/cygwin/lib"])
+    if hash.has_key?(:libpath)
+      bblock.set_lib_searchpaths(hash[:libpath])
+    elsif
+      if OS.linux? || OS.mac?
+        bblock.set_lib_searchpaths(["/usr/local/lib","/usr/lib"])
+      elsif OS.windows?
+        bblock.set_lib_searchpaths(["C:/tool/cygwin/lib"])
+      end
     end
     all_blocks << bblock
   end
@@ -150,6 +150,14 @@ class EvalContext
     bblock = SingleSource.new(name)
     bblock.set_sources(hash[:sources]) if hash.has_key?(:sources)
     bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
+    all_blocks << bblock
+  end
+
+  def custom(name, hash)
+    raise "not a hash" unless hash.is_a?(Hash)
+    check_hash hash,[:execute]
+    bblock = CustomBuildingBlock.new(name)
+    bblock.set_actions(hash[:execute]) if hash.has_key?(:execute)
     all_blocks << bblock
   end
 
