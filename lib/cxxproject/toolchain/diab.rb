@@ -30,7 +30,7 @@ module Cxxproject
     DiabChainDebug[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS]
 
     DiabChainDebug[:ARCHIVER][:COMMAND] = "dar"
-    DiabChainDebug[:ARCHIVER][:ARCHIVE_FLAGS] = "-r"
+    DiabChainDebug[:ARCHIVER][:ARCHIVE_FLAGS] = "-rc"
 
     DiabChainDebug[:LINKER][:COMMAND] = "dcc"
     DiabChainDebug[:LINKER][:SCRIPT] = "-Wm"

@@ -13,6 +13,23 @@ class BuildingBlock
   attr_reader :project_dir
   attr_reader :output_dir
   attr_reader :complete_output_dir
+  
+  @@idei = nil
+  @@verbose = false
+  
+  def self.idei
+  	@@ideo
+  end
+  def self.idei=(value)
+    @@idei = value
+  end
+
+  def self.verbose
+  	@@verbose
+  end
+  def self.verbose=(value)
+    @@verbose = value
+  end
 
   def set_name(x)
     @name = x
@@ -89,5 +106,42 @@ class BuildingBlock
   def get_task_name()
     raise "this method must be implemented by decendants"
   end
+  
+  def create()
+    raise "Must be implemented by descendants"
+  end
+  
+  def add_output_dir_dependency(file, taskOfFile)
+    outputdir = File.dirname(file)
+    directory outputdir
+    taskOfFile.enhance([outputdir])
+  end
+  
+  
+  
+
+  def add_file_to_clean_task(name)
+    CLEAN.include(name)
+  end
+  def add_task_to_clean_task(task)
+    Rake.application["clean"].enhance([task])
+  end
+  def already_added_to_clean?(task)
+    Rake.application["clean"].prerequisites.include?task
+  end
+
+   
+
+
+  def process_console_output(consoleOutput)
+    if not consoleOutput.empty?
+      puts consoleOutput 
+
+      if @idei
+        ep = HasSources === self ? @tcs[:ERROR_PARSER] : nil
+        @idei.set_errors(ep ? ep.scan(consoleOutput) : @idei.scan(consoleOutput))            
+      end
+    end
+  end  
 
 end

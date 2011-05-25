@@ -27,4 +27,16 @@ class CommandLine < BuildingBlock
     "command line (#{@num}): " + get_command_line
   end
 
+  def create()
+  	res = task get_task_name do
+  	  cmd = get_command_line
+      puts cmd
+      consoleOutput = `#{cmd + " 2>&1"}`
+      process_console_output(consoleOutput)
+      raise "System command failed" if $?.to_i != 0
+  	end
+  	res.transparent_timestamp = true
+  	res
+  end
+
 end

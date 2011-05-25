@@ -25,8 +25,6 @@ class IDEInterface < ErrorParser
   end
   
   def connect(port)
-    puts port
-    puts port.class
     @socket = TCPSocket.new('localhost', port)
   end
   
