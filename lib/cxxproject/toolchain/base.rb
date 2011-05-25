@@ -73,6 +73,8 @@ module Cxxproject
           :DIR_FLAG => "-C",
           :CLEAN => "clean"
         },
+        
+        :ERROR_PARSER => nil
 
       }
 

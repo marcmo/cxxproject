@@ -18,8 +18,9 @@ require 'tmpdir'
 # A class which encapsulates the generation of c/cpp artifacts like object-files, libraries and so on
 class TaskMaker
 
-  def initialize(logger)
+  def initialize(logger, idei = nil)
     @log = logger
+    @idei = idei
   end
 
   def set_loglevel(level)
@@ -233,8 +234,8 @@ class TaskMaker
       add_file_to_clean_task(object)
 
       outfileTask = file object => source do
-        puts "compiling #{source}"
-        puts `#{cmd + " 2>&1"}`
+        consoleOutput = `#{cmd + " 2>&1"}`
+        process_console_output(consoleOutput, bb)
         convert_depfile(depfile, bb) if depStr != ""
         raise "System command failed" if $?.to_i != 0
         puts "ERROR with executing: #{cmd}" unless File.exists?object
@@ -420,5 +421,14 @@ class TaskMaker
     end
     lines
   end
+
+  def process_console_output(consoleOutput, bb)
+    puts consoleOutput
+    if @idei
+      ep = bb.tcs[:ERROR_PARSER]
+      @idei.set_errors(ep ? ep.scan(consoleOutput) : @idei.scan(consoleOutput))            
+    end
+  end
+
 
 end
