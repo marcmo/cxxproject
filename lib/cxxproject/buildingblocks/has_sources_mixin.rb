@@ -59,7 +59,7 @@ module HasSources
   end
 
   def get_define_string(tcs, type)
-    @tcs[:COMPILER][type][:DEFINES].map {|k| "#{tcs[:COMPILER][type][:DEFINE_FLAG]}#{k}"}.join(" ")
+    tcs[:COMPILER][type][:DEFINES].map {|k| "#{tcs[:COMPILER][type][:DEFINE_FLAG]}#{k}"}.join(" ")
   end
 
   def get_object_file(source)
@@ -81,5 +81,122 @@ module HasSources
   def get_sources_task_name
     "Sources of #{name}"
   end
+  
+  
+  
+def create_tasks_for_objects()
+    object_tasks = create_object_file_tasks()
+    objects_multitask = []
+    if object_tasks.length > 0
+      objects_multitask = multitask get_sources_task_name => object_tasks
+      def objects_multitask.needed?
+        return false
+      end
+      objects_multitask.transparent_timestamp = true
+    end
+    [object_tasks,objects_multitask]
+  end
+
+  def convert_depfile(depfile)
+    deps = ""
+    File.open(depfile, "r") do |infile|
+      while (line = infile.gets)
+        deps << line
+      end
+    end
+
+    deps = deps.gsub(/\\\n/,'').split()[1..-1]
+    deps.map!{|d| File.expand_path(d)}
+
+    FileUtils.mkpath File.dirname(depfile)
+    File.open(depfile, 'wb') do |f|
+      f.write(deps.to_yaml)
+    end
+  end
+
+  def create_apply_task(depfile,outfileTask)
+    res = task "#{depfile}.apply" do |task|
+      deps = nil
+      begin
+        deps = YAML.load_file(depfile)
+        outfileTask.enhance(deps)
+      rescue
+        # may happen if depfile was not converted the last time
+        def outfileTask.needed?
+          true
+        end
+      end
+    end
+    res.showInGraph = GraphWriter::NO
+    res.transparent_timestamp = true
+    res
+  end
+
+  def create_object_file_tasks()
+    tasks = []
+
+    sources.each do |s|
+      type = get_source_type(s)
+      if type.nil?
+        puts "Warning: no valid source type for #{File.relFromTo(s,@project_dir)}, will be ignored!"
+        next
+      end
+
+      source = File.relFromTo(s,@project_dir)
+      object = get_object_file(s)
+      depfile = get_dep_file(object)
+
+      if tcs4source().include?s
+        the_tcs = tcs4source()[s]
+        iString = get_include_string(tcs, type)
+        dString = get_define_string(tcs, type)
+      else
+        the_tcs = @tcs
+        iString = include_string(type)
+        dString = define_string(type)
+      end
+
+      compiler = the_tcs[:COMPILER][type]
+      depStr = type == :ASM ? "" : (compiler[:DEP_FLAGS] + depfile) # -MMD -MF debug/src/abc.o.d
+
+      cmd = [compiler[:COMMAND], # g++
+        compiler[:COMPILE_FLAGS], # -c
+        depStr,
+        compiler[:FLAGS], # -g3
+        iString, # -I include
+        dString, # -DDEBUG
+        compiler[:OBJECT_FILE_FLAG], # -o
+        object, # debug/src/abc.o
+        source # src/abc.cpp
+      ].reject{|e| e == ""}.join(" ")
+
+      add_file_to_clean_task(depfile) if depStr != ""
+      add_file_to_clean_task(object)
+
+      outfileTask = file object => source do
+        if BuildingBlock.verbose
+        	puts cmd
+        else
+        	puts "Compiling #{source}"
+        end 
+      
+        consoleOutput = `#{cmd + " 2>&1"}`
+        process_console_output(consoleOutput)
+        
+        convert_depfile(depfile) if depStr != ""
+        raise "System command failed" if $?.to_i != 0
+      end
+      outfileTask.showInGraph = GraphWriter::DETAIL
+      outfileTask.enhance(@config_files)
+      add_output_dir_dependency(object, outfileTask)
+      outfileTask.enhance([create_apply_task(depfile,outfileTask)]) if depStr != ""
+      tasks << outfileTask
+    end
+    tasks
+  end
+  
+  
+  
+  
 
 end

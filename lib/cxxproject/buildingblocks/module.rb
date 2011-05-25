@@ -11,4 +11,10 @@ class ModuleBuildingBlock < BuildingBlock
     name
   end
 
-end
+  def create
+    calc_compiler_strings()
+    res = task get_task_name
+    res.transparent_timestamp = true
+    res
+  end
+end  

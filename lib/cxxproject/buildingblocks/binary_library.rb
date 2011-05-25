@@ -13,4 +13,14 @@ class BinaryLibrary < BuildingBlock
     libs_to_search[0]
   end
 
+
+  def create()
+    res = task get_task_name
+    def res.needed?
+      return false
+    end
+    res.transparent_timestamp = true
+    res
+  end
+
 end

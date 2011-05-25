@@ -22,4 +22,15 @@ class CustomBuildingBlock < BuildingBlock
     end
   end
 
+  def create()
+    desc get_task_name
+    task get_task_name do
+      actions.each do |a|
+        a.call
+      end
+    end
+  end
+
+
+
 end

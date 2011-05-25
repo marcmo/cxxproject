@@ -46,4 +46,110 @@ class Executable < BuildingBlock
   end
 
 
+
+
+  # create a task that will link an executable from a set of object files
+  #
+  def create()
+  
+    calc_compiler_strings()
+    objects, object_multitask = create_tasks_for_objects()
+  
+    executable = get_executable_name()
+    add_file_to_clean_task(executable)
+    scriptFile = ""
+    script = ""
+    if @linker_script
+      scriptFile = File.relFromTo(@linker_script, @project_dir)
+      script = "#{@tcs[:LINKER][:SCRIPT]} #{scriptFile}"  # -T xy/xy.dld
+    end
+
+    mapfileString = @mapfile ? "#{@tcs[:LINKER][:MAP_FILE_FLAG]} >#{File.relFromTo(@mapfile, @complete_output_dir)}" : "" # -Wl,-m6 > xy.map
+
+    # calc linkerLibString (two steps for removing duplicates)
+    lib_searchpaths_array = []
+    libs_to_search_array = []
+    user_libs_array = []
+    libs_with_path_array = []
+    deps = all_dependencies
+    deps.each do |e|
+      d = ALL_BUILDING_BLOCKS[e]
+      next if not HasLibraries === d
+      d.lib_searchpaths.each { |k| lib_searchpaths_array << File.relFromTo(k, d.project_dir) }
+      d.libs_to_search.each  { |k| libs_to_search_array  << k }
+      d.user_libs.each       { |k| user_libs_array       << k }
+      d.libs_with_path.each  { |k| libs_with_path_array  << File.relFromTo(k, d.project_dir) }
+    end
+    strArray = []
+    lib_searchpaths_array.uniq.each { |k| strArray << "#{@tcs[:LINKER][:LIB_PATH_FLAG]}#{k}" }
+    libs_to_search_array.uniq.each  { |k| strArray << "#{@tcs[:LINKER][:LIB_FLAG]}#{k}" }
+    user_libs_array.uniq.each       { |k| strArray << "#{@tcs[:LINKER][:USER_LIB_FLAG]}#{k}" }
+    libs_with_path_array.uniq.each  { |k| strArray << "#{k}" }
+    linkerLibString = strArray.reject{|e| e == ""}.join(" ")
+
+    cmd = [@tcs[:LINKER][:COMMAND], # g++
+      @tcs[:LINKER][:MUST_FLAGS], # ??
+      @tcs[:LINKER][:FLAGS], # --all_load
+      @tcs[:LINKER][:EXE_FLAG], # -o
+      executable, # debug/x.o
+      objects.reject{|e| e == ""}.join(" "), # debug/src/abc.o debug/src/xy.o
+      script,
+      mapfileString,
+      @tcs[:LINKER][:LIB_PREFIX_FLAGS], # "-Wl,--whole-archive "
+      linkerLibString,
+      @tcs[:LINKER][:LIB_POSTFIX_FLAGS] # "-Wl,--no-whole-archive "
+    ].reject{|e| e == ""}.join(" ")
+
+    create_run_task(executable, @config_files, @name)
+
+    res = file executable => object_multitask do
+      # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
+      
+      if @@verbose
+        puts cmd
+      else
+        puts "Linking #{executable}"
+      end
+      
+      consoleOutput = `#{cmd + " 2>" + get_temp_filename}`
+      consoleOutput.concat(read_temp_file.join("\n"))
+      process_console_output(consoleOutput)
+      raise "System command failed" if $?.to_i != 0
+    end
+    res.enhance(@config_files)
+    res.enhance([scriptFile]) unless scriptFile==""
+    add_output_dir_dependency(executable, res)
+
+    namespace 'exe' do
+      desc executable
+      task @name => executable
+    end
+    res
+  end
+
+  def create_run_task(executable, configFiles, name)
+    namespace 'run' do
+      desc "run executable #{executable}"
+      task name => executable do
+        sh "#{executable}"
+      end
+    end
+  end
+
+
+
+  def get_temp_filename
+    Dir.tmpdir + "/lake.tmp"
+  end
+
+  def read_temp_file
+    lines = []
+    File.open(get_temp_filename, "r") do |infile|
+      while (line = infile.gets)
+        lines << line
+      end
+    end
+    lines
+  end
+
 end
