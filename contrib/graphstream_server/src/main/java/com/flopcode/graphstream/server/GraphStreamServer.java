@@ -1,5 +1,7 @@
 package com.flopcode.graphstream.server;
 
+import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -16,6 +18,17 @@ import org.graphstream.graph.implementations.DefaultGraph;
 import org.graphstream.graph.implementations.SingleGraph;
 
 import com.flopcode.graphstream.utils.Log;
+import org.graphstream.ui.graphicGraph.GraphicGraph;
+import org.graphstream.ui.layout.Layout;
+import org.graphstream.ui.layout.Layouts;
+import org.graphstream.ui.layout.springbox.SpringBox;
+import org.graphstream.ui.swingViewer.View;
+import org.graphstream.ui.swingViewer.Viewer;
+
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.plaf.basic.BasicSplitPaneUI;
 
 public class GraphStreamServer {
 	public interface Command {
@@ -173,9 +186,61 @@ public class GraphStreamServer {
 	private DefaultGraph fGraph;
 
 	public GraphStreamServer() throws Exception {
-		fGraph = new SingleGraph("Tutorial 1");
-		fGraph.display();
-		ServerSocket s = new ServerSocket(31217);
+    ServerSocket s = new ServerSocket(31217);
+  	fGraph = new SingleGraph("Tutorial 1");
+    final Viewer v = new Viewer(fGraph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+    JFrame root = new JFrame("GraphStream View");
+    root.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+    final View view = v.addDefaultView(false);
+    view.setMinimumSize(new Dimension(300, 300));
+    view.setPreferredSize(new Dimension(300, 300));
+
+    final Layout l = new SpringBox(false) {
+      @Override
+      public double getStabilization() {
+        if(lastElementCount == countElements()) {
+          return Math.max(0.0, 1.0 - 50 * maxMoveLength);
+		    }
+    		lastElementCount = countElements();
+        return 0.0;
+      }
+      private int countElements() {
+        return nodes.getParticleCount()+edges.size();
+      }
+    };
+    l.setStabilizationLimit(0.9);
+    v.enableAutoLayout(l);
+
+    root.getContentPane().add(view, BorderLayout.CENTER);
+
+    Box controls = Box.createHorizontalBox();
+    final JSlider zoomSlider = new JSlider(1, 200, 100);
+    zoomSlider.addChangeListener(new ChangeListener() {
+      @Override
+      public void stateChanged(ChangeEvent changeEvent) {
+        int i = zoomSlider.getValue();
+        view.setViewPercent(100.0/i);
+      }
+    });
+    controls.add(zoomSlider);
+    controls.add(new JButton(new AbstractAction("one step") {
+      @Override
+      public void actionPerformed(ActionEvent actionEvent) {
+        System.out.println("l.getStabilization() = " + l.getStabilization());
+        l.compute();
+      }
+    }));
+    controls.add(new JButton(new AbstractAction("shake") {
+      @Override
+      public void actionPerformed(ActionEvent actionEvent) {
+        System.out.println("l.getStabilization() = " + l.getStabilization());
+        l.shake();
+      }
+    }));
+    root.getContentPane().add(controls, BorderLayout.SOUTH);
+    root.pack();
+    root.setVisible(true);
 		while (true) {
 			Socket clientSocket = s.accept();
 			new GraphStreamServerClient(clientSocket.getInputStream(),
@@ -185,6 +250,5 @@ public class GraphStreamServer {
 
 	public static void main(String args[]) throws Exception {
 		new GraphStreamServer();
-
 	}
 }

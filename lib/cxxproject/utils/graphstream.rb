@@ -9,20 +9,26 @@ begin
     def self.init
       @@server = TCPSocket.open('localhost', 31217)
     end
-    def self.clear
-      @@server.puts('Clear()')
+    def self.send(command)
+#      puts command
+      @@server.puts(command)
     end
+
+    def self.clear
+      send('Clear()')
+    end
+
     def self.set_stylesheet(s)
-      @@server.puts("SetStylesheet(#{s})")
+      send("SetStylesheet(#{s})")
     end
     def self.add_vertex(id)
-      @@server.puts("AddVertex(#{id})")
+      send("AddVertex(#{id})")
     end
     def self.add_edge(from, to)
-      @@server.puts("AddEdge(#{from},#{to})")
+      send("AddEdge(#{from},#{to})")
     end
     def self.set_class(id, clazz)
-      @@server.puts("SetClass(#{id},#{clazz})")
+      send("SetClass(#{id},#{clazz})")
     end
   end
 
@@ -143,7 +149,6 @@ begin
   namespace :graphstream do
     task :init do
       GraphStream.init
-      GraphStream.set_stylesheet('node {fill-color:green;}node.dirty{fill-color:red;}node.before_prerequisites{fill-color:yellow;}node.after_prerequisites{fill-color:orange;}node.before_execute{fill-color:blue;}node.after_execute{fill-color:green;}node.ready{fill-color:black;}')
     end
 
     desc 'clear graphstream'
@@ -153,6 +158,7 @@ begin
 
     desc 'update graphstream'
     task :update => :init do
+      GraphStream.set_stylesheet('node {fill-color:green;}node.dirty{fill-color:red;}node.before_prerequisites{fill-color:yellow;}node.after_prerequisites{fill-color:orange;}node.before_execute{fill-color:blue;}node.after_execute{fill-color:green;}node.ready{fill-color:black;}')
       begin
         require 'cxxproject/extensions/rake_listener_ext'
         require 'cxxproject/extensions/rake_dirty_ext'
