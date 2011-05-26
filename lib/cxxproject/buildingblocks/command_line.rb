@@ -27,7 +27,7 @@ class CommandLine < BuildingBlock
     "command line (#{@num}): " + get_command_line
   end
 
-  def create()
+  def create_internal()
   	res = task get_task_name do
   	  cmd = get_command_line
       puts cmd

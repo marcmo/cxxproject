@@ -36,7 +36,7 @@ class Makefile < BuildingBlock
   
   
   
-def create()
+def create_internal()
     mfile = get_makefile()
     cmd = [@tcs[:MAKE][:COMMAND], # make
       get_target, # all

@@ -1,5 +1,6 @@
 $:.unshift File.join(File.dirname(__FILE__),"..","lib")
 require 'cxxproject'
+require 'cxxproject/utils/cleanup'
 
 RSPECDIR = File.dirname(__FILE__)
 puts RSPECDIR
@@ -46,8 +47,7 @@ describe CxxProject2Rake do
   end
 
   def fresh_cxx
-    ALL_BUILDING_BLOCKS.clear
-    Rake.application.clear
+    Cxxproject.cleanup_rake
     outputdir = 'output'
     CxxProject2Rake.new(Dir.glob('**/project.rb'), outputdir, GCCChain)
   end
@@ -160,8 +160,7 @@ describe CxxProject2Rake do
 
       # cleanup
       rm_r 'output' if File.directory?('output')
-      ALL_BUILDING_BLOCKS.clear
-      Rake.application.clear
+      Cxxproject.cleanup_rake
     end
   end
 

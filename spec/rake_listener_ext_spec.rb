@@ -1,9 +1,12 @@
 require 'cxxproject/extensions/rake_listener_ext.rb'
+require 'cxxproject/utils/cleanup'
 
 describe Rake::Task do
 
   it "should call a listener for prerequisites and execute" do
-    Rake.application.clear
+    
+    Cxxproject.cleanup_rake
+    
     t = task "test"
 
     l = mock
@@ -19,7 +22,7 @@ describe Rake::Task do
 
     t.invoke
 
-    Rake.application.clear
+    Cxxproject.cleanup_rake
   end
 
 end

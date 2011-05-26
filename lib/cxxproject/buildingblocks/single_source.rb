@@ -9,7 +9,7 @@ class SingleSource < BuildingBlock
   end
 
 
-  def create()
+  def create_internal()
   
     calc_compiler_strings()
     object_tasks, objects_multitask = create_tasks_for_objects()

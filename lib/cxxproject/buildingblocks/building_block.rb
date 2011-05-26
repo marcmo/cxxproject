@@ -1,5 +1,8 @@
 require 'cxxproject/buildingblocks/has_dependencies_mixin'
 require 'cxxproject/utils/dot/graph_writer'
+require 'cxxproject/extensions/rake_ext'
+require 'cxxproject/extensions/file_ext'
+
 
 # stores all defined buildingblocks by name (the name should be unique)
 ALL_BUILDING_BLOCKS = {}
@@ -108,7 +111,29 @@ class BuildingBlock
   end
   
   def create()
-    raise "Must be implemented by descendants"
+    puts "Create tasks for #{@name}"
+    CLOBBER.include(complete_output_dir)
+
+    calc_transitive_dependencies()
+    
+    res = create_internal()
+    
+    @config_files.each do |cf|
+      Rake.application[cf].showInGraph = GraphWriter::NO
+    end
+  
+    # convert building block deps to rake task prerequisites (e.g. exe needs lib)
+    dependencies.reverse.each do |d|
+      begin
+        raise "ERROR: tried to add the dependencies of \"#{d}\" to \"#{@name}\" but such a building block could not be found!" unless ALL_BUILDING_BLOCKS[d]
+        res.prerequisites.unshift(ALL_BUILDING_BLOCKS[d].get_task_name) 
+      rescue Exception => e
+        puts e
+        exit
+      end
+    end    
+    
+    res
   end
   
   def add_output_dir_dependency(file, taskOfFile)

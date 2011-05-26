@@ -35,7 +35,7 @@ class SourceLibrary < BuildingBlock
 
   # task that will link the given object files to a static lib
   #
-  def create()
+  def create_internal()
   
     calc_compiler_strings()
     objects, object_multitask = create_tasks_for_objects()

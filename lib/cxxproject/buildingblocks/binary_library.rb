@@ -14,7 +14,7 @@ class BinaryLibrary < BuildingBlock
   end
 
 
-  def create()
+  def create_internal()
     res = task get_task_name
     def res.needed?
       return false
