@@ -18,7 +18,7 @@ end
 
 desc "Run all examples"
 begin
-  SPEC_PATTERN ='spec/**/*_spec.rb'
+  SPEC_PATTERN ='spec/**/*_spec.rb' 
   require 'rspec/core/rake_task'
   RSpec::Core::RakeTask.new() do |t|
     t.pattern = SPEC_PATTERN
