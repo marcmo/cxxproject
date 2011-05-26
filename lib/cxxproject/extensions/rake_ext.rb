@@ -118,7 +118,7 @@ module Rake
     end
 
     define_method(:execute) do |arg|
-      
+
       break if @failure # check if a prereq has failed
 
       begin

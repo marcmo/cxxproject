@@ -83,10 +83,10 @@ module HasSources
   def get_sources_task_name
     "Sources of #{name}"
   end
-  
-  
-  
-def create_tasks_for_objects()
+
+
+
+  def create_tasks_for_objects()
     object_tasks = create_object_file_tasks()
     objects_multitask = []
     if object_tasks.length > 0
@@ -177,14 +177,14 @@ def create_tasks_for_objects()
 
       outfileTask = file object => source do
         if BuildingBlock.verbose
-        	puts cmd
+          puts cmd
         else
-        	puts "Compiling #{source}"
-        end 
-      
+          puts "Compiling #{source}"
+        end
+
         consoleOutput = `#{cmd + " 2>&1"}`
         process_console_output(consoleOutput)
-        
+
         convert_depfile(depfile) if depStr != ""
         raise "System command failed" if $?.to_i != 0
       end
@@ -196,9 +196,9 @@ def create_tasks_for_objects()
     end
     tasks
   end
-  
-  
-  
-  
+
+
+
+
 
 end

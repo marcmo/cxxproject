@@ -2,11 +2,11 @@ require 'rake'
 
 project_string = 'cxx_configuration "debug" do
   exe "basic",
-    :sources => FileList.new("**/*.cpp"),
-    :dependencies => ["2"]
+  :sources => FileList.new("**/*.cpp"),
+  :dependencies => ["2"]
   exe "debug",
-    :sources => FileList.new("**/*.cpp"),
-    :dependencies => ["abc"]
+  :sources => FileList.new("**/*.cpp"),
+  :dependencies => ["abc"]
 end'
 # project_string = 'cxx_configuration "debug" do
 #   [exe ("basic", :sources => FileList.new("**/*.cpp")),

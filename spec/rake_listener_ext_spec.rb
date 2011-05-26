@@ -4,9 +4,9 @@ require 'cxxproject/utils/cleanup'
 describe Rake::Task do
 
   it "should call a listener for prerequisites and execute" do
-    
+
     Cxxproject.cleanup_rake
-    
+
     t = task "test"
 
     l = mock

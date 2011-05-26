@@ -6,7 +6,7 @@ module Cxxproject
   module Toolchain
 
     diabErrorParser = DiabErrorParser.new
-    
+
     DiabChainDebug = Provider.add("Diab_Debug")
 
     DiabChainDebug[:COMPILER][:C].update({
@@ -41,12 +41,12 @@ module Cxxproject
     DiabChainDebug[:LINKER][:MAP_FILE_FLAG] = "-Wl,-m6" # no map file if this string is empty, otherwise -Wl,-m6>abc.map
     DiabChainDebug[:LINKER][:FLAGS] = "-ulink_date_time -uResetConfigurationHalfWord -Wl,-Xstop-on-redeclaration -Wl,-Xstop-on-warning -tPPCE200Z6VEN:simple -Wl,-Xremove-unused-sections -Wl,-Xunused-sections-list"
     DiabChainDebug[:LINKER][:OUTPUT_ENDING] = ".elf"
-    
+
     DiabChainDebug[:ERROR_PARSER] = diabErrorParser
 
     DiabChainRelease = Provider.add("Diab_Release", "Diab_Debug")
     DiabChainRelease[:COMPILER][:C][:FLAGS] = "-tPPCE200Z6VEN:simple -XO -Xsize-opt -Xsmall-const=0 -Xenum-is-best -Xsection-split -Xforce-declarations"
     DiabChainRelease[:COMPILER][:CPP][:FLAGS] = "-tPPCE200Z6VEN:simple -XO -Xsize-opt -Xsmall-const=0 -Xenum-is-best -Xrtti-off -Xexceptions-off -Xsection-split"
-    
+
   end
 end

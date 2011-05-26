@@ -31,15 +31,15 @@ class SourceLibrary < BuildingBlock
 
 
 
-  
+
 
   # task that will link the given object files to a static lib
   #
   def create_internal()
-  
+
     calc_compiler_strings()
     objects, object_multitask = create_tasks_for_objects()
-  
+
     archive = get_archive_name()
 
     cmd = [@tcs[:ARCHIVER][:COMMAND], # ar
@@ -55,7 +55,7 @@ class SourceLibrary < BuildingBlock
       else
         puts "Creating #{archive}"
       end
-      
+
       consoleOutput = `#{cmd + " 2>&1"}`
       process_console_output(consoleOutput)
       raise "System command failed" if $?.to_i != 0

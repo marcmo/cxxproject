@@ -16,19 +16,19 @@ class BuildingBlock
   attr_reader :project_dir
   attr_reader :output_dir
   attr_reader :complete_output_dir
-  
+
   @@idei = nil
   @@verbose = false
-  
+
   def self.idei
-  	@@ideo
+    @@ideo
   end
   def self.idei=(value)
     @@idei = value
   end
 
   def self.verbose
-  	@@verbose
+    @@verbose
   end
   def self.verbose=(value)
     @@verbose = value
@@ -43,7 +43,7 @@ class BuildingBlock
     @tcs = x
     self
   end
-  
+
   def has_tcs?
     @tcs != nil
   end
@@ -98,7 +98,7 @@ class BuildingBlock
     begin
       raise "building block already exists: #{name}" if ALL_BUILDING_BLOCKS.include?@name
       ALL_BUILDING_BLOCKS[@name] = self
-    rescue Exception => e 
+    rescue Exception => e
       puts e unless self.instance_of?BinaryLibrary
     end
   end
@@ -109,41 +109,41 @@ class BuildingBlock
   def get_task_name()
     raise "this method must be implemented by decendants"
   end
-  
+
   def create()
     puts "Create tasks for #{@name}"
     CLOBBER.include(complete_output_dir)
 
     calc_transitive_dependencies()
-    
+
     res = create_internal()
-    
+
     @config_files.each do |cf|
       Rake.application[cf].showInGraph = GraphWriter::NO
     end
-  
+
     # convert building block deps to rake task prerequisites (e.g. exe needs lib)
     dependencies.reverse.each do |d|
       begin
         raise "ERROR: tried to add the dependencies of \"#{d}\" to \"#{@name}\" but such a building block could not be found!" unless ALL_BUILDING_BLOCKS[d]
-        res.prerequisites.unshift(ALL_BUILDING_BLOCKS[d].get_task_name) 
+        res.prerequisites.unshift(ALL_BUILDING_BLOCKS[d].get_task_name)
       rescue Exception => e
         puts e
         exit
       end
-    end    
-    
+    end
+
     res
   end
-  
+
   def add_output_dir_dependency(file, taskOfFile)
     outputdir = File.dirname(file)
     directory outputdir
     taskOfFile.enhance([outputdir])
   end
-  
-  
-  
+
+
+
 
   def add_file_to_clean_task(name)
     CLEAN.include(name)
@@ -155,18 +155,18 @@ class BuildingBlock
     Rake.application["clean"].prerequisites.include?task
   end
 
-   
+
 
 
   def process_console_output(consoleOutput)
     if not consoleOutput.empty?
-      puts consoleOutput 
+      puts consoleOutput
 
       if @idei
         ep = HasSources === self ? @tcs[:ERROR_PARSER] : nil
-        @idei.set_errors(ep ? ep.scan(consoleOutput) : @idei.scan(consoleOutput))            
+        @idei.set_errors(ep ? ep.scan(consoleOutput) : @idei.scan(consoleOutput))
       end
     end
-  end  
+  end
 
 end

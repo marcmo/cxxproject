@@ -24,7 +24,7 @@ Testprojects = [
   # 'ckLayout', => needs to be fixed
   'dependency_tests',
   'simpleUnitTest',
-  'three_tests']
+'three_tests']
 def run_rakefiles()
   Testprojects.each do |p|
     cd p do

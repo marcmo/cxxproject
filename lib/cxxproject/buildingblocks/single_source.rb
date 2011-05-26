@@ -10,10 +10,10 @@ class SingleSource < BuildingBlock
 
 
   def create_internal()
-  
+
     calc_compiler_strings()
     object_tasks, objects_multitask = create_tasks_for_objects()
-  
+
     res = nil
     if objects_multitask
       res = objects_multitask
