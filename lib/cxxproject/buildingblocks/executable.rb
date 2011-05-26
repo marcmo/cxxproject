@@ -53,10 +53,10 @@ class Executable < BuildingBlock
   # create a task that will link an executable from a set of object files
   #
   def create_internal()
-  
+
     calc_compiler_strings()
     objects, object_multitask = create_tasks_for_objects()
-  
+
     executable = get_executable_name()
     add_file_to_clean_task(executable)
     scriptFile = ""
@@ -106,13 +106,13 @@ class Executable < BuildingBlock
 
     res = file executable => object_multitask do
       # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
-      
+
       if @@verbose
         puts cmd
       else
         puts "Linking #{executable}"
       end
-      
+
       consoleOutput = `#{cmd + " 2>" + get_temp_filename}`
       consoleOutput.concat(read_temp_file.join("\n"))
       process_console_output(consoleOutput)

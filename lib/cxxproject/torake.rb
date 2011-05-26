@@ -40,7 +40,7 @@ class CxxProject2Rake
     register_projects(project_configs)
     define_project_info_task()
     @gcc = toolchain
-    
+
     tasks = []
 
     #todo: sort ALL_BUILDING_BLOCKS (circular deps)

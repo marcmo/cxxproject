@@ -17,4 +17,4 @@ class ModuleBuildingBlock < BuildingBlock
     res.transparent_timestamp = true
     res
   end
-end  
+end

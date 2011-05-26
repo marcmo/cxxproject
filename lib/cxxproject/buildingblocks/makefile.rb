@@ -31,12 +31,12 @@ class Makefile < BuildingBlock
   def get_task_name()
     get_makefile+"_"+get_target
   end
-  
-  
-  
-  
-  
-def create_internal()
+
+
+
+
+
+  def create_internal()
     mfile = get_makefile()
     cmd = [@tcs[:MAKE][:COMMAND], # make
       get_target, # all
@@ -74,10 +74,10 @@ def create_internal()
       add_task_to_clean_task(mfileCleanTask)
     end
     mfileTask
-  end  
-  
-  
-  
-  
+  end
+
+
+
+
 
 end

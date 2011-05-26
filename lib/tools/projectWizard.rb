@@ -4,7 +4,7 @@ require 'erb'
 def prepare_project(d)
   require 'highline/import'
   if agree("This will create a new cxx-project config in dir \"#{d}\" \nAre you sure you want to continue? [yn] ")
-    bb = nil 
+    bb = nil
     choose do |menu|
       menu.prompt = "what building block do you want to start with?"
 
