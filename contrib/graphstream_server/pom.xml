@@ -1,0 +1,36 @@
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.graphstream</groupId>
+	<artifactId>gs-server</artifactId>
+	<version>0.1-SNAPSHOT</version>
+
+	<name>gs server</name>
+	<description>Server like ubigraph for graphstream.</description>
+
+	<repositories>
+		<repository>
+			<id>local-graphstream-jars</id>
+			<url>file://${project.basedir}/mvn-repo</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<dependency>
+			<artifactId>gs-core</artifactId>
+			<groupId>org.graphstream</groupId>
+			<version>1.1-SNAPSHOT</version>
+			<optional>false</optional>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
