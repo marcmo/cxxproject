@@ -4,7 +4,14 @@ require 'pathname'
 require 'cxxproject/extensions/rake_ext'
 require 'cxxproject/toolchain/gcc'
 require 'cxxproject/toolchain/gcc_osx'
-require 'cxxproject/task_maker'
+require 'cxxproject/buildingblocks/module'
+require 'cxxproject/buildingblocks/makefile'
+require 'cxxproject/buildingblocks/executable'
+require 'cxxproject/buildingblocks/source_library'
+require 'cxxproject/buildingblocks/single_source'
+require 'cxxproject/buildingblocks/binary_library'
+require 'cxxproject/buildingblocks/custom_building_block'
+require 'cxxproject/buildingblocks/command_line'
 
 class CxxProject2Rake
 
@@ -33,8 +40,7 @@ class CxxProject2Rake
     register_projects(project_configs)
     define_project_info_task()
     @gcc = toolchain
-    task_maker = TaskMaker.new(@log)
-    task_maker.set_loglevel(@log.level);
+    
     tasks = []
 
     #todo: sort ALL_BUILDING_BLOCKS (circular deps)
@@ -49,7 +55,7 @@ class CxxProject2Rake
 
     ALL_BUILDING_BLOCKS.each do |name,block|
       @log.debug "creating task for block: #{block.name}/taskname: #{block.get_task_name} (#{block})"
-      t = task_maker.create_tasks_for_building_block(block)
+      t = block.create()
       if (t != nil)
         tasks << { :task => t, :name => name }
       end

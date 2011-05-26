@@ -2,6 +2,8 @@ require 'cxxproject/buildingblocks/building_block'
 require 'cxxproject/buildingblocks/has_libraries_mixin'
 require 'cxxproject/buildingblocks/has_sources_mixin'
 
+require 'tmpdir'
+
 class Executable < BuildingBlock
   include HasLibraries
   include HasSources
@@ -50,7 +52,7 @@ class Executable < BuildingBlock
 
   # create a task that will link an executable from a set of object files
   #
-  def create()
+  def create_internal()
   
     calc_compiler_strings()
     objects, object_multitask = create_tasks_for_objects()

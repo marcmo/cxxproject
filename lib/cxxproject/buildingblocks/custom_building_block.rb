@@ -22,7 +22,7 @@ class CustomBuildingBlock < BuildingBlock
     end
   end
 
-  def create()
+  def create_internal()
     desc get_task_name
     task get_task_name do
       actions.each do |a|

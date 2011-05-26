@@ -1,5 +1,6 @@
 $:.unshift File.join(File.dirname(__FILE__),"..","lib")
 require 'cxxproject'
+require 'cxxproject/utils/cleanup'
 
 RSPECDIR = File.dirname(__FILE__)
 
@@ -13,8 +14,7 @@ describe CxxProject2Rake do
   end
 
   def fresh_cxx(outputdir,base)
-    ALL_BUILDING_BLOCKS.clear
-    Rake.application.clear
+    Cxxproject.cleanup_rake
     project_configs = nil
     cd base do # have to be relative to base
       project_configs = Dir.glob('**/project.rb')
@@ -49,8 +49,7 @@ describe CxxProject2Rake do
 
     # cleanup
     rm_r outputdir if File.directory?(outputdir)
-    ALL_BUILDING_BLOCKS.clear
-    Rake.application.clear
+    Cxxproject.cleanup_rake
   end
 
   it 'should resolve paths on different levels' do
