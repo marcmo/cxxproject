@@ -1,11 +1,13 @@
 require 'cxxproject/toolchain/base'
 require 'cxxproject/utils/utils'
 require 'cxxproject/errorparser/diab_error_parser'
+require 'cxxproject/errorparser/diab_linker_error_parser'
 
 module Cxxproject
   module Toolchain
 
     diabErrorParser = DiabErrorParser.new
+    diabLinkerErrorParser = DiabLinkerErrorParser.new
 
     DiabChainDebug = Provider.add("Diab_Debug")
 
@@ -16,7 +18,8 @@ module Cxxproject
       :OBJECT_FILE_FLAG => "-o",
       :INCLUDE_PATH_FLAG => "-I",
       :COMPILE_FLAGS => "-c",
-      :DEP_FLAGS => "-Xmake-dependency=6 -Xmake-dependency-savefile="
+      :DEP_FLAGS => "-Xmake-dependency=6 -Xmake-dependency-savefile=",
+      :ERROR_PARSER => diabErrorParser
     })
 
     DiabChainDebug[:COMPILER][:CPP] = Utils.deep_copy(DiabChainDebug[:COMPILER][:C])
@@ -31,6 +34,7 @@ module Cxxproject
 
     DiabChainDebug[:ARCHIVER][:COMMAND] = "dar"
     DiabChainDebug[:ARCHIVER][:ARCHIVE_FLAGS] = "-rc"
+    DiabChainDebug[:ARCHIVER][:ERROR_PARSER] = diabErrorParser
 
     DiabChainDebug[:LINKER][:COMMAND] = "dcc"
     DiabChainDebug[:LINKER][:SCRIPT] = "-Wm"
@@ -41,8 +45,7 @@ module Cxxproject
     DiabChainDebug[:LINKER][:MAP_FILE_FLAG] = "-Wl,-m6" # no map file if this string is empty, otherwise -Wl,-m6>abc.map
     DiabChainDebug[:LINKER][:FLAGS] = "-ulink_date_time -uResetConfigurationHalfWord -Wl,-Xstop-on-redeclaration -Wl,-Xstop-on-warning -tPPCE200Z6VEN:simple -Wl,-Xremove-unused-sections -Wl,-Xunused-sections-list"
     DiabChainDebug[:LINKER][:OUTPUT_ENDING] = ".elf"
-
-    DiabChainDebug[:ERROR_PARSER] = diabErrorParser
+    DiabChainDebug[:LINKER][:ERROR_PARSER] = diabLinkerErrorParser
 
     DiabChainRelease = Provider.add("Diab_Release", "Diab_Debug")
     DiabChainRelease[:COMPILER][:C][:FLAGS] = "-tPPCE200Z6VEN:simple -XO -Xsize-opt -Xsmall-const=0 -Xenum-is-best -Xsection-split -Xforce-declarations"

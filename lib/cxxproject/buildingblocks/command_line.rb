@@ -15,6 +15,15 @@ class CommandLine < BuildingBlock
     @target
   end
 
+  def set_defined_in_file(x)
+    @defined_in = x
+    self
+  end
+  
+  def get_defined_in_file
+    @defined_in
+  end
+
   @@command_line_num = 0
   def initialize(name)
     super(name)
@@ -37,6 +46,21 @@ class CommandLine < BuildingBlock
     end
     res.transparent_timestamp = true
     res
+  end
+
+  def process_console_output(consoleOutput)
+    if not consoleOutput.empty?
+      puts consoleOutput
+
+      if BuildingBlock.idei and $?.to_i != 0
+        res = []
+        res << (@defined_in ? @defined_in : @project_dir)
+        res << 0
+        res << 2
+        res << "Command \"#{get_command_line}\" failed" 
+        BuildingBlock.idei.set_errors([res])
+      end
+    end
   end
 
 end

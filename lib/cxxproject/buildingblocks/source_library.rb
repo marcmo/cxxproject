@@ -57,7 +57,7 @@ class SourceLibrary < BuildingBlock
       end
 
       consoleOutput = `#{cmd + " 2>&1"}`
-      process_console_output(consoleOutput)
+      process_console_output(consoleOutput, @tcs[:ARCHIVER][:ERROR_PARSER])
       raise "System command failed" if $?.to_i != 0
     end
     add_file_to_clean_task(archive)

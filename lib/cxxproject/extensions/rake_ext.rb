@@ -120,6 +120,7 @@ module Rake
     define_method(:execute) do |arg|
 
       break if @failure # check if a prereq has failed
+      break if BuildingBlock.idei and BuildingBlock.idei.get_abort
 
       begin
         execute_org.bind(self).call(arg)

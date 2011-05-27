@@ -115,7 +115,7 @@ class Executable < BuildingBlock
 
       consoleOutput = `#{cmd + " 2>" + get_temp_filename}`
       consoleOutput.concat(read_temp_file.join("\n"))
-      process_console_output(consoleOutput)
+      process_console_output(consoleOutput, @tcs[:LINKER][:ERROR_PARSER])
       raise "System command failed" if $?.to_i != 0
     end
     res.enhance(@config_files)

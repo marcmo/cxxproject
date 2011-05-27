@@ -21,7 +21,7 @@ class BuildingBlock
   @@verbose = false
 
   def self.idei
-    @@ideo
+    @@idei
   end
   def self.idei=(value)
     @@idei = value
@@ -143,8 +143,6 @@ class BuildingBlock
   end
 
 
-
-
   def add_file_to_clean_task(name)
     CLEAN.include(name)
   end
@@ -155,18 +153,5 @@ class BuildingBlock
     Rake.application["clean"].prerequisites.include?task
   end
 
-
-
-
-  def process_console_output(consoleOutput)
-    if not consoleOutput.empty?
-      puts consoleOutput
-
-      if @idei
-        ep = HasSources === self ? @tcs[:ERROR_PARSER] : nil
-        @idei.set_errors(ep ? ep.scan(consoleOutput) : @idei.scan(consoleOutput))
-      end
-    end
-  end
 
 end

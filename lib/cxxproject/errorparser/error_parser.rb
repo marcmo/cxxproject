@@ -1,6 +1,6 @@
 class ErrorParser
 
-  def scan(consoleOutput)
+  def scan(consoleOutput, proj_dir)
     raise "Use specialized classes only"
   end
 

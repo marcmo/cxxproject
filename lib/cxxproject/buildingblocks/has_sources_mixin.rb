@@ -183,7 +183,7 @@ module HasSources
         end
 
         consoleOutput = `#{cmd + " 2>&1"}`
-        process_console_output(consoleOutput)
+        process_console_output(consoleOutput, compiler[:ERROR_PARSER])
 
         convert_depfile(depfile) if depStr != ""
         raise "System command failed" if $?.to_i != 0
@@ -198,7 +198,15 @@ module HasSources
   end
 
 
+  def process_console_output(consoleOutput, ep)
+    if not consoleOutput.empty?
+      puts consoleOutput
 
+      if BuildingBlock.idei and ep
+        BuildingBlock.idei.set_errors(ep.scan(consoleOutput, @project_dir)) if ep
+      end
+    end
+  end
 
 
 end

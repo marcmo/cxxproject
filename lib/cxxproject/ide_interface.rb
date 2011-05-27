@@ -20,8 +20,7 @@ class IDEInterface < ErrorParser
   def initialize()
     @socket = nil
     @abort = false
-    @number_of_projects = 1
-    @finished_projects = 0
+    @mutex = Mutex.new
   end
 
   def connect(port)
@@ -29,8 +28,11 @@ class IDEInterface < ErrorParser
   end
 
   def disconnect()
-    @socket.close if @socket
-    @socket = nil
+    if @socket
+      sleep 0.1 # hack to let ruby send all data via streams before closing
+      @socket.close 
+      @socket = nil
+    end
   end
 
   def set_errors(error_array)
@@ -73,34 +75,60 @@ class IDEInterface < ErrorParser
         (1..4).each { |i| packet[i] = (l & 0xFF); l = l >> 256 } # ruby < 1.9
       end
 
-      @socket.write packet
+	  @mutex.synchronize { @socket.write packet }
 
     end
 
   end
 
+  def set_project(name)
+    
+    packet = ""
+    packet.force_encoding("binary") if packet.respond_to?("force_encoding") # for ruby >= 1.9
+    name.force_encoding("binary") if name.respond_to?("force_encoding") # for ruby >= 1.9
+    
+    l = name.length
+    
+    packet << 11 # name type
+    
+    packet << (l % 256)
+    packet << (l / 256)
+    packet << 0
+    packet << 0
+  
+    packet << name
+  
+    @mutex.synchronize { @socket.write packet }
+  end
+
   def set_number_of_projects(num)
-    @number_of_projects = num
-  end
+  
+    packet = ""
+    packet.force_encoding("binary") if packet.respond_to?("force_encoding") # for ruby >= 1.9
+  
+    packet << 10 # num type
 
-  def reset_project_finished()
-    @finished_projects = 0
-  end
-
-  def project_finished()
-    @finished_projects = @finished_projects + 1
-    # todo: send % due to progress monitor
+    packet << 2 
+    packet << 0
+    packet << 0
+    packet << 0
+    
+    packet << (num % 256)
+    packet << (num / 256)
+  
+    @mutex.synchronize { @socket.write packet }
   end
 
 
   def get_abort()
-
     if @socket
-      begin
-        @socket.recv_nonblock(1)
-        @abort = true # currently this is the only possible input
-      rescue IO::WaitReadable
-      end
+      @mutex.synchronize {
+        begin
+          @socket.recv_nonblock(1)
+          @abort = true # currently this is the only possible input
+        rescue IO::WaitReadable
+        end
+      }
     end
 
     @abort
@@ -109,11 +137,6 @@ class IDEInterface < ErrorParser
   def set_abort(value)
     @abort = value
   end
-
-  def scan(consoleOutput)
-    raise "todo"
-  end
-
 
 end
 

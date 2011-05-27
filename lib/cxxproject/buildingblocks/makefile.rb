@@ -76,7 +76,24 @@ class Makefile < BuildingBlock
     mfileTask
   end
 
+  def process_console_output(consoleOutput)
+    if not consoleOutput.empty?
+      puts consoleOutput
 
+      if BuildingBlock.idei and $?.to_i != 0
+        res = []
+        res << @project_dir + "/" + get_makefile()
+        res << 1
+        res << 2
+        if get_target != ""
+          res << "Target \"#{get_target}\" failed"
+        else
+          res << "Failed"
+        end
+        BuildingBlock.idei.set_errors([res])
+      end
+    end
+  end
 
 
 

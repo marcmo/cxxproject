@@ -15,7 +15,8 @@ module Cxxproject
             :DEFINES => [],
             :FLAGS => "",
             :SOURCE_FILE_ENDINGS => [".cxx", ".cpp", ".c++", ".cc", ".C"],
-            :DEP_FLAGS => ""
+            :DEP_FLAGS => "",
+            :ERROR_PARSER => nil
           },
           :C => {
             :COMMAND => "",
@@ -26,7 +27,8 @@ module Cxxproject
             :DEFINES => [],
             :FLAGS => "",
             :SOURCE_FILE_ENDINGS => [".c"],
-            :DEP_FLAGS => ""
+            :DEP_FLAGS => "",
+            :ERROR_PARSER => nil
           },
           :ASM => {
             :COMMAND => "",
@@ -37,7 +39,8 @@ module Cxxproject
             :DEFINES => [],
             :FLAGS => "",
             :SOURCE_FILE_ENDINGS => [".asm", ".s", ".S"],
-            :DEP_FLAGS => ""
+            :DEP_FLAGS => "",
+            :ERROR_PARSER => nil
           }
         },
 
@@ -45,7 +48,8 @@ module Cxxproject
         {
           :COMMAND => "",
           :ARCHIVE_FLAGS => "",
-          :FLAGS => ""
+          :FLAGS => "",
+          :ERROR_PARSER => nil
         },
 
         :LINKER =>
@@ -62,6 +66,7 @@ module Cxxproject
           :FLAGS => "",
           :MAP_FILE_FLAG => "",
           :OUTPUT_ENDING => ".exe", # or .elf
+          :ERROR_PARSER => nil
         },
 
         :MAKE =>
@@ -73,8 +78,6 @@ module Cxxproject
           :DIR_FLAG => "-C",
           :CLEAN => "clean"
         },
-
-        :ERROR_PARSER => nil
 
       }
 
