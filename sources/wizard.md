@@ -5,18 +5,24 @@ Cxxproject comes with a little helper command-line tool that helps with
 - creating a basic building-block description (project.rb)
 - creating a rudimentary rakefile that instantiates the project
 
-    cxx tmp
+<pre class="terminal">
+  $ cxx tmp
+</pre>
 
 start the setuptool using for a project in the tmp directory
 
-    This will create a new cxx-project config in dir "tmp" 
-    Are you sure you want to continue? [yn] 
+<pre class="terminal">
+  This will create a new cxx-project config in dir "tmp" 
+  Are you sure you want to continue? [yn] 
+</pre>
 
 You can of course also use an existing directory. If the directory doesn't exist, it will be created.
 
-    1. exe
-    2. lib
-    what building block do you want to start with?
+<pre class="terminal">
+  1. exe
+  2. lib
+  what building block do you want to start with?
+</pre>
 
 So now you have the option to create a building block for either an executable or source-library.
 Let's say we select the exe option, now we get 2 files:
