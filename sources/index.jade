@@ -1,0 +1,131 @@
+!!! 5
+html
+  head
+    title Cxxproject
+    link(rel='stylesheet', href='main.css')
+    meta(http-equiv='Content-Type', content='text/html; charset=utf-8')
+  body
+    #container
+      h1 
+        a(href='http://github.com/marcmo/cxxproject') Cxxproject
+      p.tagline 
+        em.simple Simple, 
+        em.flexible flexible, 
+        em.c_cpp C/C++ 
+        em.buildsystem Buildsystem
+      #ribbon
+        a(href='http://github.com/marcmo/cxxproject') Fork me on GitHub
+      ul#menu
+        li: a(href='index.html') Index
+        li: a(href='docs/basic_usage.html') Basic Usage
+        li: a(href='docs/whyruby.html') Why Ruby?
+        li: a(href='docs/tutorial.html') Tutorial
+        li: a(href='docs/wizard.html') Setup-Tool
+      #content
+        .example
+          h2 Simple buildsystem for C/C++ projects
+
+          p
+            | Building C/C++ projects is often done with make or an ide backed system a la visual studio/eclipse etc.
+            | Makefiles are the most flexible solution, IDEs offer some comfort but configurations are often not very accessible.
+
+          pre
+            | cxx_configuration do
+            |   exe "basic",
+            |     :sources => FileList['**/*.cpp'],
+            |     :dependencies => ['2']
+            |   exe "debug",
+            |     :sources => FileList['**/*.cpp'],
+            |     :dependencies => ['2_debug']
+            | end
+
+          img(src="images/down.png")
+
+
+        .example.closing
+
+
+          h2 Start using cxxproject
+          pre.terminal $ gem install cxxproject
+          p
+            | If you want an simple css language for nodejs with these
+            | features or the features listed below, head over to
+            a(href='http://github.com/marcmo/cxxproject') GitHub 
+            | for more information.
+
+          h2 Installation from source
+          pre.terminal $ rake install
+          p
+            | should install the freshly built gem (if you need sudo,
+            | please install the package by hand via rake package)
+          pre.terminal $ sudo gem install pkg/...
+
+          h2 Running the examples
+          pre.terminal $ cd examples; rake 
+          p
+            | should compile all examples and run the resulting executables
+
+          h2 Prerequisites
+          :markdown
+            - gems: [rspec](http://rspec.info/), [roodi](http://roodi.rubyforge.org) (optional)
+            - libs: cppunit (only required for some examples)
+
+          p
+
+          .features
+            h2 Features
+            ul
+              li gcc-compiler-toolchain
+              li diab-compiler-toolchain
+              li tested on Linux, Window, MacOS
+              li multi-threaded build (similar to make -j)
+          p
+
+          h2 Authors
+          ul
+            li Christian Koestlin (christian.koestlin@gmail.com) 
+            li Oliver Mueller (oliver.mueller@gmail.com) 
+          p
+
+          h2 Contributers
+          ul
+            li Alexander Schaal
+            li Martin Thiede
+            li Kevin Russ
+          p
+
+          h2 Contact
+          ul
+            li oliver.mueller@gmail.com
+            li christian.koestlin@gmail.com 
+          p
+
+          h2 Get Sources
+          pre.terminal $ git clone git://github.com/marcmo/cxxproject
+          p
+
+          h2 Licence
+          pre.
+            Copyright (c) 2010, All rights reserved.
+
+            Redistribution and use in source and binary forms, with or without
+            modification, are permitted provided that the following conditions are met:
+                * Redistributions of source code must retain the above copyright
+                  notice, this list of conditions and the following disclaimer.
+                * Redistributions in binary form must reproduce the above copyright
+                  notice, this list of conditions and the following disclaimer in the
+                  documentation and/or other materials provided with the distribution.
+
+            THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+            "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+            LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+            A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+            OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+            SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+            LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+            DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+            THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+            (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+            OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+

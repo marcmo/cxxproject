@@ -1,137 +1,32 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset='utf-8'>
-
-  <title>marcmo/cxxproject @ GitHub</title>
-
-  <style type="text/css">
-    body {
-      margin-top: 1.0em;
-      background-color: #6cd161;
-      font-family: Helvetica, Arial, FreeSans, san-serif;
-      color: #000000;
-    }
-    #container {
-      margin: 0 auto;
-      width: 700px;
-    }
-    h1 { font-size: 3.8em; color: #932e9e; margin-bottom: 3px; }
-    h1 .small { font-size: 0.4em; }
-    h1 a { text-decoration: none }
-    h2 { font-size: 1.5em; color: #932e9e; }
-    h3 { text-align: center; color: #932e9e; }
-    a { color: #932e9e; }
-    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
-    .download { float: right; }
-    pre { background: #000; color: #fff; padding: 15px;}
-    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
-    .footer { text-align:center; padding-top:30px; font-style: italic; }
-  </style>
-</head>
-
-<body>
-  <a href="http://github.com/marcmo/cxxproject"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
-
-  <div id="container">
-
-    <div class="download">
-      <a href="http://github.com/marcmo/cxxproject/zipball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
-      <a href="http://github.com/marcmo/cxxproject/tarball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
-    </div>
-
-    <h1><a href="http://github.com/marcmo/cxxproject">cxxproject</a>
-      <span class="small">by <a href="http://github.com/marcmo">marcmo</a></span></h1>
-
-    <div class="description">
-      build and manage c++ projects
-    </div>
-
-    <p># cxxproject
-
-Building c/c++ projects is often done with make or an ide backed system a la visual studio/eclipse etc.
+<!DOCTYPE html><html><head><title>Cxxproject</title><link rel="stylesheet" href="main.css"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="container"><h1><a href="http://github.com/marcmo/cxxproject">Cxxproject</a></h1><p class="tagline"><em class="simple">Simple, </em><em class="flexible">flexible, </em><em class="c_cpp">C/C++ </em><em class="buildsystem">Buildsystem</em></p><div id="ribbon"><a href="http://github.com/marcmo/cxxproject">Fork me on GitHub</a></div><ul id="menu"><li><a href="index.html">Index</a></li><li><a href="docs/basic_usage.html">Basic Usage</a></li><li><a href="docs/whyruby.html">Why Ruby?</a></li><li><a href="docs/tutorial.html">Tutorial</a></li><li><a href="docs/wizard.html">Setup-Tool</a></li></ul><div id="content"><div class="example"><h2>Simple buildsystem for C/C++ projects</h2><p>Building C/C++ projects is often done with make or an ide backed system a la visual studio/eclipse etc.
 Makefiles are the most flexible solution, IDEs offer some comfort but configurations are often not very accessible.
-
-cxxproject is a utility library that aims for a simple but still powerful make-alternative for c++ projects.
-It is heavily based on [rake](http://rake.rubyforge.org) and project configurations are formulated as Ruby EDSL, e.g.:
-
-    cxx_configuration do
-      exe "basic",
-        :sources => FileList['**/*.cpp'],
-        :dependencies => ['2']
-      exe "debug",
-        :sources => FileList['**/*.cpp'],
-        :dependencies => ['2_debug']
-    end
-
-The base of each cxxproject are a set of building-blocks.
-One ore more building-blocks are described by a small project.rb file which specifies which
-
-  * sources are to compile
-  * includes to add
-  * defines to use
-  * ...
-
-A typically rakefile that uses this system simply collects all project.rb files and feeds them into the CxxProject2Rake-helper.
-
-    require 'cxxproject'
-
-    BuildDir="build"
-    CxxProject2Rake.new(['basic/project.rb','lib1/project.rb'], BuildDir, GCCChain)
-
-### Why Ruby?
-
-Ruby makes for a nice syntax of the project configurations and gives you the power of a first-class scripting language for any additional things you want to achieve using cxxproject.
-Of course, EDSLs suffer the drawback that they can be a little awkward to use for non-programmers... but since cxxproject is aimed at programmers that is not an issue for us :)
-and...not to forget: rake makes a simple but very powerful basis.
-
-### Examples
-
-see [examples directory](https://github.com/marcmo/cxxproject/tree/master/example) for some examples of the cxxproject.
-
-* basic - shows you the basic usage of sourcelibraries, executables and dependencies
-* three_tests - shows you an "real life" example of two test-suites that are linked together to three executable (suite1-exe, suite2-exe and suite1+suite2-exe)
-
-### Tests
-
-There are three kinds of tests:
-
-* [spec files](https://github.com/marcmo/cxxproject/tree/master/spec)
-* roodi
-* the [examples](https://github.com/marcmo/cxxproject/tree/master/example): use rake -T to find out about the ways to use
-
-### Prerequisites
-
-gems: [rspec](http://rspec.info/), [roodi](http://roodi.rubyforge.org) (optional)
-libs: cppunit (only required for some examples)
-
-</p><h2>Dependencies</h2>
-<p>rspec,roodi</p>
-<h2>Install</h2>
-<p>
-    rake install
-
-should install the freshly built gem (if you need sudo, please install the package by hand via rake package; sudo gem install pkg/...)
-
-    cd examples; rake 
-
-should compile all examples and let the executables run
-</p>
-<h2>License</h2>
-<p>Copyright (c) 2010, All rights reserved.
+</p><pre>cxx_configuration do
+  exe &quot;basic&quot;,
+    :sources =&gt; FileList['**/*.cpp'],
+    :dependencies =&gt; ['2']
+  exe &quot;debug&quot;,
+    :sources =&gt; FileList['**/*.cpp'],
+    :dependencies =&gt; ['2_debug']
+end
+</pre><img src="images/down.png"></div><div class="example closing"><h2>Start using cxxproject</h2><pre class="terminal">$ gem install cxxproject</pre><p>If you want an simple css language for nodejs with these
+features or the features listed below, head over to
+<a href="http://github.com/marcmo/cxxproject">GitHub </a>for more information.
+</p><h2>Installation from source</h2><pre class="terminal">$ rake install</pre><p>should install the freshly built gem (if you need sudo,
+please install the package by hand via rake package)
+</p><pre class="terminal">$ sudo gem install pkg/...</pre><h2>Running the examples</h2><pre class="terminal">$ cd examples; rake </pre><p>should compile all examples and run the resulting executables
+</p><h2>Prerequisites</h2><ul><li>gems: <a href="http://rspec.info/">rspec</a>, <a href="http://roodi.rubyforge.org">roodi</a> (optional)</li><li>libs: cppunit (only required for some examples)</li></ul><p></p><div class="features"><h2>Features</h2><ul><li>gcc-compiler-toolchain</li><li>diab-compiler-toolchain</li><li>tested on Linux, Window, MacOS</li><li>multi-threaded build (similar to make -j)</li></ul></div><p></p><h2>Authors</h2><ul><li>Christian Koestlin (christian.koestlin@gmail.com) </li><li>Oliver Mueller (oliver.mueller@gmail.com) </li></ul><p></p><h2>Contributers</h2><ul><li>Alexander Schaal</li><li>Martin Thiede</li><li>Kevin Russ</li></ul><p></p><h2>Contact</h2><ul><li>oliver.mueller@gmail.com</li><li>christian.koestlin@gmail.com </li></ul><p></p><h2>Get Sources</h2><pre class="terminal">$ git clone git://github.com/marcmo/cxxproject</pre><p></p><h2>Licence</h2><pre>Copyright (c) 2010, All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
+  * Redistributions of source code must retain the above copyright  
+    notice, this list of conditions and the following disclaimer.  
+  * Redistributions in binary form must reproduce the above copyright  
+    notice, this list of conditions and the following disclaimer in the  
+  documentation and/or other materials provided with the distribution.  
+  
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+&quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
 A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
 OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
@@ -141,32 +36,6 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-</p>
-<h2>Authors</h2>
-<p>Christian Koestlin (christian.koestlin@gmail.com)<br/>oliver mueller (oliver.mueller@gmail.com)<br/><br/>      </p>
-<h2>Contact</h2>
-<p> (oliver.mueller@gmail.com,christian.koestlin@gmail.com)<br/>      </p>
 
 
-    <h2>Download</h2>
-    <p>
-      You can download this project in either
-      <a href="http://github.com/marcmo/cxxproject/zipball/master">zip</a> or
-      <a href="http://github.com/marcmo/cxxproject/tarball/master">tar</a> formats.
-    </p>
-    <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
-      by running:
-      <pre>$ git clone git://github.com/marcmo/cxxproject</pre>
-    </p>
-
-    <div class="footer">
-      get the source code on GitHub : <a href="http://github.com/marcmo/cxxproject">marcmo/cxxproject</a>
-    </div>
-
-  </div>
-
-  <p>
-    For a small presentation check <a href="docs/cxxproject.svg">here</a>.
-  </p>    
-</body>
-</html>
+</pre></div></div></div></body></html>

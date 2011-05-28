@@ -1,0 +1,54 @@
+<!DOCTYPE html><html><head><title>Cxxproject</title><link rel="stylesheet" href="../main.css"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="container"><h1><a href="http://github.com/marcmo/cxxproject">Cxxproject</a></h1><p class="tagline"><em class="simple">Simple, </em><em class="flexible">flexible, </em><em class="c_cpp">C/C++ </em><em class="buildsystem">Buildsystem</em></p><div id="ribbon"><a href="http://github.com/marcmo/cxxproject">Fork me on GitHub</a></div><ul id="menu"><li><a href="../index.html">Index</a></li><li><a href="../docs/basic_usage.html">Basic Usage</a></li><li><a href="../docs/whyruby.html">Why Ruby?</a></li><li><a href="../docs/tutorial.html">Tutorial</a></li><li><a href="../docs/wizard.html">Setup-Tool</a></li></ul><div id="content">
+<h2>Basic Usage</h2>
+
+<p>cxxproject is a utility library that aims for a simple but still powerful make-alternative for c++ projects.
+It is heavily based on <a href="http://rake.rubyforge.org">rake</a> and project configurations are formulated as Ruby EDSL, e.g.:</p>
+
+<pre><code>cxx_configuration do
+  exe "basic",
+    :sources =&gt; FileList['**/*.cpp'],
+    :dependencies =&gt; ['2']
+  exe "debug",
+    :sources =&gt; FileList['**/*.cpp'],
+    :dependencies =&gt; ['2_debug']
+end
+</code></pre>
+
+<p>The base of each cxxproject are a set of building-blocks.
+One ore more building-blocks are described by a small project.rb file which specifies which</p>
+
+<ul>
+<li>sources are to compile</li>
+<li>includes to add</li>
+<li>defines to use</li>
+<li>...</li>
+</ul>
+
+<p>A typically rakefile that uses this system simply collects all project.rb files and feeds them into the CxxProject2Rake-helper.</p>
+
+<pre><code>require 'cxxproject'
+
+BuildDir="build"
+CxxProject2Rake.new(
+  FileList['**/project.rb'], BuildDir, GCCChain)
+</code></pre>
+
+<h3>Examples</h3>
+
+<p>see <a href="https://github.com/marcmo/cxxproject/tree/master/example">examples directory</a> for some examples of the cxxproject.</p>
+
+<ul>
+<li>basic - shows you the basic usage of sourcelibraries, executables and dependencies</li>
+<li>three_tests - shows you an "real life" example of two test-suites that are linked together to three executable (suite1-exe, suite2-exe and suite1+suite2-exe)</li>
+</ul>
+
+<h3>Tests</h3>
+
+<p>There are three kinds of tests:</p>
+
+<ul>
+<li><a href="https://github.com/marcmo/cxxproject/tree/master/spec">spec files</a></li>
+<li>roodi</li>
+<li>the <a href="https://github.com/marcmo/cxxproject/tree/master/example">examples</a>: use rake -T to find out about the ways to use</li>
+</ul>
+</div></div></body></html>

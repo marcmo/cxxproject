@@ -1,0 +1,19 @@
+<!DOCTYPE html><html><head><title>Cxxproject</title><link rel="stylesheet" href="../main.css"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="container"><h1><a href="http://github.com/marcmo/cxxproject">Cxxproject</a></h1><p class="tagline"><em class="simple">Simple, </em><em class="flexible">flexible, </em><em class="c_cpp">C/C++ </em><em class="buildsystem">Buildsystem</em></p><div id="ribbon"><a href="http://github.com/marcmo/cxxproject">Fork me on GitHub</a></div><ul id="menu"><li><a href="../index.html">Index</a></li><li><a href="../docs/basic_usage.html">Basic Usage</a></li><li><a href="../docs/whyruby.html">Why Ruby?</a></li><li><a href="../docs/tutorial.html">Tutorial</a></li><li><a href="../docs/wizard.html">Setup-Tool</a></li></ul><div id="content">
+<h2>Why Ruby?</h2>
+
+<p>Ruby makes for a nice syntax of the project configurations and gives you the power of a first-class scripting language for any additional things you want to achieve using cxxproject.
+Of course, EDSLs suffer the drawback that they can be a little awkward to use for non-programmers... but since cxxproject is aimed at programmers that is not an issue for us :)</p>
+
+<p>and...not to forget: <em>rake</em></p>
+
+<p>rake provides a simple yet very powerful dependency system that we use extensively.
+All the building blocks that make up the applications that we want to build can have dependencies to either each other or any other files.
+rake has built in support for describing dependency based tasks that will be executeded when they are invoked...an ideal starting point for us.</p>
+
+<p>example rake task:</p>
+
+<pre><code>task :rebuild =&gt; :clean do
+  # execute some build stuff
+end
+</code></pre>
+</div></div></body></html>
