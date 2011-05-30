@@ -33,9 +33,6 @@ class CxxProject2Rake
     @log.debug "initializing for build_dir: \"#{build_dir}\", base: \"#{base}\""
     @base = base
     @all_tasks = instantiate_tasks(projects, build_dir, toolchain, base)
-    task :mytask do
-      puts "mytask"
-    end
     desc "execute all with filter"
     namespace :run do
       task :all, :filter do |t, args|
