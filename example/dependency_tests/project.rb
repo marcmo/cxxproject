@@ -1,4 +1,3 @@
-cxx_configuration "dependency_test" do
-  exe 'dependency_test',
-    :sources => FileList['**/*.cpp']
+cxx_configuration do
+  exe 'dependency_test', :sources => FileList['**/*.cpp']
 end

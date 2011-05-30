@@ -9,4 +9,4 @@ else
 	toolchain = GCCChain
 end
 
-CxxProject2Rake.new(['basic/project.rb','lib1/project.rb','lib2/project.rb'] , BuildDir, toolchain,".",Logger::DEBUG)
+CxxProject2Rake.new(['basic/project.rb','lib1/project.rb','lib2/project.rb'] , BuildDir, toolchain,".")

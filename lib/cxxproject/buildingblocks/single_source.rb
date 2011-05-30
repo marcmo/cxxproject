@@ -10,8 +10,7 @@ class SingleSource < BuildingBlock
 
 
   def convert_to_rake()
-
-    calc_compiler_strings()
+    calc_compiler_strings(calc_transitive_dependencies)
     object_tasks, objects_multitask = create_tasks_for_objects()
 
     res = nil

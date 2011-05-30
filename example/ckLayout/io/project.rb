@@ -1,4 +1,5 @@
-cxx_configuration "lang" do
+cxx_configuration do
   source_lib "lang",
-    :sources => FileList['**/*.cpp']
+    :sources => FileList['**/*.cpp'],
+    :includes => ".."
 end

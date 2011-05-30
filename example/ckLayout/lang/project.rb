@@ -1,6 +1,5 @@
-cxx_configuration "" do
+cxx_configuration do
   files = FileList['**/*.cpp']
-  source_lib "io",
-    :sources => files
+  source_lib "io", :sources => files, :includes => ".."
 end
-        
+

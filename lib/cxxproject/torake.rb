@@ -17,14 +17,19 @@ class CxxProject2Rake
 
   attr_accessor :base, :all_tasks
 
-  def initialize(projects, build_dir, toolchain, base='.', logLevel=Logger::ERROR)
+  def initialize(projects, build_dir, toolchain, base='.')
     pwd = `pwd`
     @log = Logger.new(STDOUT)
     @log.formatter = proc { |severity, datetime, progname, msg|
       "#{severity}: #{msg}\n"
     }
-
-    @log.level = logLevel
+    # Logger loglevels: fatal, error, warn, info, debug
+    # Rake --verbose -> info
+    # Rake --trace -> debug
+    @log.level = Logger::ERROR
+    @log.level = Logger::INFO if RakeFileUtils.verbose == true
+    BuildingBlock.verbose = true if RakeFileUtils.verbose == true
+    @log.level = Logger::DEBUG if Rake::application.options.trace
     @log.debug "initializing for build_dir: \"#{build_dir}\", base: \"#{base}\""
     @base = base
     @all_tasks = instantiate_tasks(projects, build_dir, toolchain, base)
@@ -73,7 +78,12 @@ class CxxProject2Rake
           pwd = `pwd`
           @log.debug "register project #{project_file} from within directory: #{pwd.chomp}"
           loadContext = EvalContext.new
-          loadContext.eval_project(File.read(File.basename(project_file)))
+          begin
+            loadContext.eval_project(File.read(File.basename(project_file)))
+          rescue Exception => e
+            puts "problems with #{File.join(b, project_file)}"
+            raise e
+          end
           loadContext.myblock.call()
           loadContext.all_blocks.each do |p|
             p.set_project_dir(Dir.pwd)

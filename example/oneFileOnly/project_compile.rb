@@ -1,4 +1,3 @@
 cxx_configuration do
-  compile "basic",
-  :sources => FileList.new('*.cpp')
+  compile "basic", :sources => ['main.cpp']
 end
