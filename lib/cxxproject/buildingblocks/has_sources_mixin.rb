@@ -35,12 +35,12 @@ module HasSources
     @define_string[type] ||= ""
   end
 
-  def calc_compiler_strings()
+  def calc_compiler_strings(dependencies)
     @include_string = {}
     @define_string = {}
 
     @incArray = []
-    all_dependencies.each do |e|
+    dependencies.each do |e|
       d = ALL_BUILDING_BLOCKS[e]
       next if not HasSources === d
       if d.includes.length == 0
@@ -83,8 +83,6 @@ module HasSources
   def get_sources_task_name
     "Sources of #{name}"
   end
-
-
 
   def create_tasks_for_objects()
     object_tasks = create_object_file_tasks()
@@ -172,8 +170,10 @@ module HasSources
         source # src/abc.cpp
       ].reject{|e| e == ""}.join(" ")
 
-      add_file_to_clean_task(depfile) if depStr != ""
-      add_file_to_clean_task(object)
+      if (self.instance_of?(SingleSource))
+        add_file_to_clean_task(depfile) if depStr != ""
+        add_file_to_clean_task(object)
+      end
 
       outfileTask = file object => source do
         if BuildingBlock.verbose

@@ -9,7 +9,7 @@ class SingleSource < BuildingBlock
   end
 
 
-  def create_internal()
+  def convert_to_rake()
 
     calc_compiler_strings()
     object_tasks, objects_multitask = create_tasks_for_objects()
@@ -23,6 +23,9 @@ class SingleSource < BuildingBlock
       end
       objects_multitask.add_description("compile sources only")
     end
+
+    setup_cleantask
+    setup_rake_dependencies(res)
     res
   end
 

@@ -14,12 +14,14 @@ class BinaryLibrary < BuildingBlock
   end
 
 
-  def create_internal()
+  def convert_to_rake()
     res = task get_task_name
     def res.needed?
       return false
     end
     res.transparent_timestamp = true
+    setup_cleantask
+    setup_rake_dependencies(res)
     res
   end
 

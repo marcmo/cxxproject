@@ -22,13 +22,16 @@ class CustomBuildingBlock < BuildingBlock
     end
   end
 
-  def create_internal()
+  def convert_to_rake()
     desc get_task_name
-    task get_task_name do
+    res = task get_task_name do
       actions.each do |a|
         a.call
       end
     end
+    setup_cleantask
+    setup_rake_dependencies(res)
+    res
   end
 
 

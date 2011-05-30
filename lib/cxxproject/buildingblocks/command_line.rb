@@ -36,7 +36,7 @@ class CommandLine < BuildingBlock
     "command line (#{@num}): " + get_command_line
   end
 
-  def create_internal()
+  def convert_to_rake()
     res = task get_task_name do
       cmd = get_command_line
       puts cmd
@@ -45,6 +45,8 @@ class CommandLine < BuildingBlock
       raise "System command failed" if $?.to_i != 0
     end
     res.transparent_timestamp = true
+    setup_cleantask
+    setup_rake_dependencies(res)
     res
   end
 

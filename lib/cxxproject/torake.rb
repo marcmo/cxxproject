@@ -25,7 +25,7 @@ class CxxProject2Rake
     }
 
     @log.level = logLevel
-    @log.debug "starting..."
+    @log.debug "initializing for build_dir: \"#{build_dir}\", base: \"#{base}\""
     @base = base
     @all_tasks = instantiate_tasks(projects, build_dir, toolchain, base)
   end
@@ -36,17 +36,17 @@ class CxxProject2Rake
         abort "project config #{p} cannot be found!" unless File.exists?(p)
       end
     end
-    @log.debug "project_configs: #{project_configs}"
+    @log.debug "project_configs:"
+    project_configs.each { |c| @log.debug " *  #{c}" }
     register_projects(project_configs)
     define_project_info_task()
-    @gcc = toolchain
 
     tasks = []
 
     #todo: sort ALL_BUILDING_BLOCKS (circular deps)
 
     ALL_BUILDING_BLOCKS.each do |name,block|
-      block.set_tcs(@gcc) unless block.has_tcs?
+      block.set_tcs(toolchain) unless block.has_tcs?
       block.set_output_dir(Dir.pwd + "/" + build_dir)
       rel_projects = project_configs.collect { |p| File.join(base,p) }
       block.set_config_files(rel_projects)
@@ -55,7 +55,7 @@ class CxxProject2Rake
 
     ALL_BUILDING_BLOCKS.each do |name,block|
       @log.debug "creating task for block: #{block.name}/taskname: #{block.get_task_name} (#{block})"
-      t = block.create()
+      t = block.convert_to_rake()
       if (t != nil)
         tasks << { :task => t, :name => name }
       end
@@ -64,13 +64,14 @@ class CxxProject2Rake
   end
 
   def register_projects(projects)
-    FileUtils.cd(@base,:verbose => false) do |b|
+    cd(@base,:verbose => false) do |b|
       projects.each do |project_file|
         @log.debug "register project #{project_file}"
         dirname = File.dirname(project_file)
         @log.debug "dirname for project was: #{dirname}"
-        FileUtils.cd(dirname,:verbose => false) do | base_dir |
-          @log.debug "current dir: #{`pwd`}, #{base_dir}"
+        cd(dirname,:verbose => false) do | base_dir |
+          pwd = `pwd`
+          @log.debug "register project #{project_file} from within directory: #{pwd.chomp}"
           loadContext = EvalContext.new
           loadContext.eval_project(File.read(File.basename(project_file)))
           loadContext.myblock.call()

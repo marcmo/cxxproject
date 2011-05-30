@@ -32,11 +32,7 @@ class Makefile < BuildingBlock
     get_makefile+"_"+get_target
   end
 
-
-
-
-
-  def create_internal()
+  def convert_to_rake()
     mfile = get_makefile()
     cmd = [@tcs[:MAKE][:COMMAND], # make
       get_target, # all
@@ -73,6 +69,9 @@ class Makefile < BuildingBlock
       end
       add_task_to_clean_task(mfileCleanTask)
     end
+
+    setup_cleantask
+    setup_rake_dependencies(mfileTask)
     mfileTask
   end
 

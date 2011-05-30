@@ -110,30 +110,29 @@ class BuildingBlock
     raise "this method must be implemented by decendants"
   end
 
-  def create()
-    puts "Create tasks for #{@name}"
-    CLOBBER.include(complete_output_dir)
-
-    calc_transitive_dependencies()
-
-    res = create_internal()
-
+  def setup_cleantask
+    if (! self.instance_of?(SingleSource)) 
+      CLEAN.include(@complete_output_dir) unless CLEAN.include?(@complete_output_dir)
+    end
     @config_files.each do |cf|
       Rake.application[cf].showInGraph = GraphWriter::NO
     end
+  end
 
-    # convert building block deps to rake task prerequisites (e.g. exe needs lib)
+  ##
+  # convert all dependencies of a building block to rake task prerequisites (e.g. exe needs lib)
+  #
+  def setup_rake_dependencies(task)
     dependencies.reverse.each do |d|
       begin
         raise "ERROR: tried to add the dependencies of \"#{d}\" to \"#{@name}\" but such a building block could not be found!" unless ALL_BUILDING_BLOCKS[d]
-        res.prerequisites.unshift(ALL_BUILDING_BLOCKS[d].get_task_name)
+        task.prerequisites << ALL_BUILDING_BLOCKS[d].get_task_name
       rescue Exception => e
         puts e
         exit
       end
     end
-
-    res
+    task
   end
 
   def add_output_dir_dependency(file, taskOfFile)

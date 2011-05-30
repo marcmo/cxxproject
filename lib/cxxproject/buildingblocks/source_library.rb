@@ -28,16 +28,11 @@ class SourceLibrary < BuildingBlock
     get_archive_name
   end
 
-
-
-
-
-
   # task that will link the given object files to a static lib
   #
-  def create_internal()
+  def convert_to_rake()
 
-    calc_compiler_strings()
+    calc_compiler_strings(calc_transitive_dependencies)
     objects, object_multitask = create_tasks_for_objects()
 
     archive = get_archive_name()
@@ -60,13 +55,14 @@ class SourceLibrary < BuildingBlock
       process_console_output(consoleOutput, @tcs[:ARCHIVER][:ERROR_PARSER])
       raise "System command failed" if $?.to_i != 0
     end
-    add_file_to_clean_task(archive)
     res.enhance(@config_files)
     add_output_dir_dependency(archive, res)
     namespace 'lib' do
       desc archive
       task @name => archive
     end
+    setup_cleantask
+    setup_rake_dependencies(res)
     res
   end
 

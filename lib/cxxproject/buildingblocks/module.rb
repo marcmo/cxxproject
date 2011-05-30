@@ -11,10 +11,13 @@ class ModuleBuildingBlock < BuildingBlock
     name
   end
 
-  def create_internal()
+  def convert_to_rake()
     calc_compiler_strings()
     res = task get_task_name
     res.transparent_timestamp = true
+
+    setup_cleantask
+    setup_rake_dependencies(res)
     res
   end
 end

@@ -52,13 +52,12 @@ class Executable < BuildingBlock
 
   # create a task that will link an executable from a set of object files
   #
-  def create_internal()
+  def convert_to_rake()
 
-    calc_compiler_strings()
+    calc_compiler_strings(calc_transitive_dependencies)
     objects, object_multitask = create_tasks_for_objects()
 
     executable = get_executable_name()
-    add_file_to_clean_task(executable)
     scriptFile = ""
     script = ""
     if @linker_script
@@ -73,7 +72,7 @@ class Executable < BuildingBlock
     libs_to_search_array = []
     user_libs_array = []
     libs_with_path_array = []
-    deps = all_dependencies
+    deps = calc_transitive_dependencies()
     deps.each do |e|
       d = ALL_BUILDING_BLOCKS[e]
       next if not HasLibraries === d
@@ -126,6 +125,8 @@ class Executable < BuildingBlock
       desc executable
       task @name => executable
     end
+    setup_cleantask
+    setup_rake_dependencies(res)
     res
   end
 
