@@ -23,5 +23,6 @@ Gem::Specification.new do |s|
   s.email = 'oliver.mueller@gmail.com'
   s.homepage = 'https://github.com/marcmo/cxxproject'
   s.add_dependency('highline', '>= 1.6.0')
+  s.add_dependency('rainbow')
   s.executables = ["cxx"]
 end

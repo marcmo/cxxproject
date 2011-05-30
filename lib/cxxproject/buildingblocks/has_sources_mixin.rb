@@ -198,12 +198,17 @@ module HasSources
   end
 
 
-  def process_console_output(consoleOutput, ep)
-    if not consoleOutput.empty?
-      puts consoleOutput
+  def process_console_output(console_output, ep)
+    if not console_output.empty?
+      highlighter = @tcs[:CONSOLE_HIGHLIGHTER]
+      if (highlighter)
+        puts highlighter.format(console_output)
+      else
+        puts console_output
+      end
 
       if BuildingBlock.idei and ep
-        BuildingBlock.idei.set_errors(ep.scan(consoleOutput, @project_dir)) if ep
+        BuildingBlock.idei.set_errors(ep.scan(console_output, @project_dir)) if ep
       end
     end
   end
