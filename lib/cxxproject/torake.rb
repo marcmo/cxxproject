@@ -33,6 +33,28 @@ class CxxProject2Rake
     @log.debug "initializing for build_dir: \"#{build_dir}\", base: \"#{base}\""
     @base = base
     @all_tasks = instantiate_tasks(projects, build_dir, toolchain, base)
+    task :mytask do
+      puts "mytask"
+    end
+    desc "execute all with filter"
+    namespace :run do
+      task :all, :filter do |t, args|
+        if args[:filter]
+          filter = Regexp.new("run:#{args[:filter]}")
+        else
+          filter = Regexp.new("run:.*")
+        end
+        Rake::Task.tasks.each do |to_check|
+          name = to_check.name
+          if ("run:all" != name)
+            match = filter.match(name)
+            if match
+              to_check.invoke
+            end
+          end
+        end
+      end
+    end
   end
 
   def instantiate_tasks(project_configs, build_dir, toolchain, base='.')
