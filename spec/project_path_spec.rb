@@ -19,7 +19,7 @@ describe CxxProject2Rake do
     cd base do # have to be relative to base
       project_configs = Dir.glob('**/project.rb')
     end
-    CxxProject2Rake.new(project_configs, outputdir, GCCChain, base, Logger::DEBUG)
+    CxxProject2Rake.new(project_configs, outputdir, GCCChain, base)
   end
 
 
