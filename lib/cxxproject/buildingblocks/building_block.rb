@@ -136,7 +136,7 @@ class BuildingBlock
     directory outputdir
     taskOfFile.enhance([outputdir])
     if addDirToCleanTask
-      CLEAN.include(outputdir) unless CLEAN.include?(outputdir)
+      CLEAN.include(@complete_output_dir) unless CLEAN.include?(@complete_output_dir)
     end
   end
 
