@@ -51,8 +51,7 @@ class Executable < BuildingBlock
   #
   def convert_to_rake()
 
-    deps = calc_transitive_dependencies()
-    calc_compiler_strings(deps)
+    calc_compiler_strings()
     objects, object_multitask = create_tasks_for_objects()
 
     executable = get_executable_name()
@@ -70,7 +69,7 @@ class Executable < BuildingBlock
     libs_to_search_array = []
     user_libs_array = []
     libs_with_path_array = []
-    deps.each do |e|
+    all_dependencies.each do |e|
       d = ALL_BUILDING_BLOCKS[e]
       next if not HasLibraries === d
       d.lib_searchpaths.each { |k| lib_searchpaths_array << File.relFromTo(k, d.project_dir) }
@@ -114,15 +113,15 @@ class Executable < BuildingBlock
       process_console_output(consoleOutput, @tcs[:LINKER][:ERROR_PARSER])
       raise "System command failed" if $?.to_i != 0
     end
+    res.type = Rake::Task::EXECUTABLE
     res.enhance(@config_files)
     res.enhance([scriptFile]) unless scriptFile==""
-    add_output_dir_dependency(executable, res)
+    add_output_dir_dependency(executable, res, true)
 
     namespace 'exe' do
       desc executable
       task @name => executable
     end
-    setup_cleantask
     setup_rake_dependencies(res)
     res
   end
@@ -130,9 +129,11 @@ class Executable < BuildingBlock
   def create_run_task(executable, configFiles, name)
     namespace 'run' do
       desc "run executable #{executable}"
-      task name => executable do
+      res = task name => executable do
         sh "#{executable}"
       end
+      res.type = Rake::Task::RUN
+      res
     end
   end
 

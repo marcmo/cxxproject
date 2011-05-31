@@ -29,7 +29,7 @@ class CustomBuildingBlock < BuildingBlock
         a.call
       end
     end
-    setup_cleantask
+    res.type = Rake::Task::CUSTOM
     setup_rake_dependencies(res)
     res
   end

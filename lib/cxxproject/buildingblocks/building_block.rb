@@ -55,6 +55,11 @@ class BuildingBlock
 
   def set_config_files(x)
     @config_files = x
+
+    @config_files.each do |cf|
+      Rake.application[cf].type = Rake::Task::CONFIG
+    end
+    
     self
   end
 
@@ -110,15 +115,6 @@ class BuildingBlock
     raise "this method must be implemented by decendants"
   end
 
-  def setup_cleantask
-    if (! self.instance_of?(SingleSource)) 
-      CLEAN.include(@complete_output_dir) unless CLEAN.include?(@complete_output_dir)
-    end
-    @config_files.each do |cf|
-      Rake.application[cf].showInGraph = GraphWriter::NO
-    end
-  end
-
   ##
   # convert all dependencies of a building block to rake task prerequisites (e.g. exe needs lib)
   #
@@ -126,7 +122,7 @@ class BuildingBlock
     dependencies.reverse.each do |d|
       begin
         raise "ERROR: tried to add the dependencies of \"#{d}\" to \"#{@name}\" but such a building block could not be found!" unless ALL_BUILDING_BLOCKS[d]
-        task.prerequisites << ALL_BUILDING_BLOCKS[d].get_task_name
+        task.prerequisites.unshift(ALL_BUILDING_BLOCKS[d].get_task_name)
       rescue Exception => e
         puts e
         exit
@@ -135,22 +131,13 @@ class BuildingBlock
     task
   end
 
-  def add_output_dir_dependency(file, taskOfFile)
+  def add_output_dir_dependency(file, taskOfFile, addDirToCleanTask)
     outputdir = File.dirname(file)
     directory outputdir
     taskOfFile.enhance([outputdir])
+    if addDirToCleanTask
+      CLEAN.include(outputdir) unless CLEAN.include?(outputdir)
+    end
   end
-
-
-  def add_file_to_clean_task(name)
-    CLEAN.include(name)
-  end
-  def add_task_to_clean_task(task)
-    Rake.application["clean"].enhance([task])
-  end
-  def already_added_to_clean?(task)
-    Rake.application["clean"].prerequisites.include?task
-  end
-
 
 end

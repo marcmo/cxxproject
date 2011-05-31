@@ -14,9 +14,9 @@ class ModuleBuildingBlock < BuildingBlock
   def convert_to_rake()
     calc_compiler_strings()
     res = task get_task_name
+    res.type = Rake::Task::MODULE
     res.transparent_timestamp = true
 
-    setup_cleantask
     setup_rake_dependencies(res)
     res
   end

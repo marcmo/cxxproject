@@ -75,7 +75,7 @@ class IDEInterface < ErrorParser
         (1..4).each { |i| packet[i] = (l & 0xFF); l = l >> 256 } # ruby < 1.9
       end
 
-	  @mutex.synchronize { @socket.write packet }
+	  @mutex.synchronize { @socket.write(packet) if @socket }
 
     end
 
@@ -98,7 +98,7 @@ class IDEInterface < ErrorParser
   
     packet << name
   
-    @mutex.synchronize { @socket.write packet }
+    @mutex.synchronize { @socket.write(packet) if @socket }
   end
 
   def set_number_of_projects(num)
@@ -116,7 +116,7 @@ class IDEInterface < ErrorParser
     packet << (num % 256)
     packet << (num / 256)
   
-    @mutex.synchronize { @socket.write packet }
+    @mutex.synchronize { @socket.write(packet) if @socket }
   end
 
 

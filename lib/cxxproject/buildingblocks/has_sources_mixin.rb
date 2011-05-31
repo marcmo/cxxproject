@@ -35,12 +35,12 @@ module HasSources
     @define_string[type] ||= ""
   end
 
-  def calc_compiler_strings(dependencies)
+  def calc_compiler_strings()
     @include_string = {}
     @define_string = {}
 
     @incArray = []
-    dependencies.each do |e|
+    all_dependencies.each do |e|
       d = ALL_BUILDING_BLOCKS[e]
       next if not HasSources === d
       if d.includes.length == 0
@@ -92,6 +92,7 @@ module HasSources
       def objects_multitask.needed?
         return false
       end
+      objects_multitask.type = Rake::Task::SOURCEMULTI
       objects_multitask.transparent_timestamp = true
     end
     [object_tasks,objects_multitask]
@@ -127,7 +128,7 @@ module HasSources
         end
       end
     end
-    res.showInGraph = GraphWriter::NO
+    res.type = Rake::Task::APPLY
     res.transparent_timestamp = true
     res
   end
@@ -170,9 +171,9 @@ module HasSources
         source # src/abc.cpp
       ].reject{|e| e == ""}.join(" ")
 
-      if (self.instance_of?(SingleSource))
-        add_file_to_clean_task(depfile) if depStr != ""
-        add_file_to_clean_task(object)
+      if (@addOnlyFilesToCleanTask)
+        CLEAN.include(depfile) if depStr != ""
+        CLEAN.include(object) 
       end
 
       outfileTask = file object => source do
@@ -188,9 +189,9 @@ module HasSources
         convert_depfile(depfile) if depStr != ""
         raise "System command failed" if $?.to_i != 0
       end
-      outfileTask.showInGraph = GraphWriter::DETAIL
+      outfileTask.type = Rake::Task::OBJECT
       outfileTask.enhance(@config_files)
-      add_output_dir_dependency(object, outfileTask)
+      add_output_dir_dependency(object, outfileTask, (not @addOnlyFilesToCleanTask))
       outfileTask.enhance([create_apply_task(depfile,outfileTask)]) if depStr != ""
       tasks << outfileTask
     end
@@ -201,7 +202,7 @@ module HasSources
   def process_console_output(console_output, ep)
     if not console_output.empty?
       highlighter = @tcs[:CONSOLE_HIGHLIGHTER]
-      if (highlighter)
+      if (highlighter and highlighter.is_enabled)
         puts highlighter.format(console_output)
       else
         puts console_output

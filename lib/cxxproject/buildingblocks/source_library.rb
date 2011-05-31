@@ -32,7 +32,7 @@ class SourceLibrary < BuildingBlock
   #
   def convert_to_rake()
 
-    calc_compiler_strings(calc_transitive_dependencies)
+    calc_compiler_strings()
     objects, object_multitask = create_tasks_for_objects()
 
     archive = get_archive_name()
@@ -56,12 +56,12 @@ class SourceLibrary < BuildingBlock
       raise "System command failed" if $?.to_i != 0
     end
     res.enhance(@config_files)
-    add_output_dir_dependency(archive, res)
+    res.type = Rake::Task::LIBRARY
+    add_output_dir_dependency(archive, res, true)
     namespace 'lib' do
       desc archive
       task @name => archive
     end
-    setup_cleantask
     setup_rake_dependencies(res)
     res
   end

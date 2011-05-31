@@ -4,13 +4,18 @@ require 'cxxproject/buildingblocks/has_sources_mixin'
 class SingleSource < BuildingBlock
   include HasSources
 
+  def initialize(name)
+    super(name)
+    @addOnlyFilesToCleanTask = true
+  end
+
   def get_task_name()
     get_sources_task_name
   end
 
 
   def convert_to_rake()
-    calc_compiler_strings(calc_transitive_dependencies)
+    calc_compiler_strings()
     object_tasks, objects_multitask = create_tasks_for_objects()
 
     res = nil
@@ -23,7 +28,6 @@ class SingleSource < BuildingBlock
       objects_multitask.add_description("compile sources only")
     end
 
-    setup_cleantask
     setup_rake_dependencies(res)
     res
   end

@@ -2,8 +2,8 @@ require 'cxxproject/utils/dot/graph_writer'
 
 class TaskGraphWriter < GraphWriter
 
-  def write_graph(filename,startNodes,detailTasks = false)
-    @detailTasks = detailTasks ? GraphWriter::DETAIL : GraphWriter::YES
+  def write_graph(filename,startNodes,showTypes)
+    @showTypes = showTypes
     super(filename,startNodes)
   end
 
@@ -11,11 +11,11 @@ class TaskGraphWriter < GraphWriter
 
   def get_deps(node)
     deps = []
-    if node.showInGraph == GraphWriter::YES
+    if (@showTypes & node.type != 0)
       node.prerequisites.each do |p|
         task = Rake.application.lookup(p)
         if (task)
-          next if task.showInGraph < @detailTasks
+          next if (@showTypes & task.type == 0)
           deps << task
         end
       end

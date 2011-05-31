@@ -50,10 +50,11 @@ class Makefile < BuildingBlock
       raise "System command failed" if $?.to_i != 0
     end
     mfileTask.transparent_timestamp = true
+    mfileTask.type = Rake::Task::MAKE
     mfileTask.enhance(@config_files)
 
     # generate the clean task
-    if not already_added_to_clean?(mfile+"Clean")
+    if not Rake.application["clean"].prerequisites.include?(mfile+"Clean")
       cmdClean = [@tcs[:MAKE][:COMMAND], # make
         @tcs[:MAKE][:CLEAN], # clean
         @tcs[:MAKE][:DIR_FLAG], # -C
@@ -67,10 +68,9 @@ class Makefile < BuildingBlock
         process_console_output(consoleOutput)
         raise "System command failed" if $?.to_i != 0
       end
-      add_task_to_clean_task(mfileCleanTask)
+      Rake.application["clean"].enhance([mfileCleanTask])
     end
 
-    setup_cleantask
     setup_rake_dependencies(mfileTask)
     mfileTask
   end

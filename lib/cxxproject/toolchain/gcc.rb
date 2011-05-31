@@ -1,4 +1,4 @@
-require 'cxxproject/toolchain/base'
+require 'cxxproject/toolchain/provider'
 require 'cxxproject/toolchain/colorizing_formatter'
 require 'cxxproject/utils/utils'
 

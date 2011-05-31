@@ -20,7 +20,7 @@ class BinaryLibrary < BuildingBlock
       return false
     end
     res.transparent_timestamp = true
-    setup_cleantask
+    res.type = Rake::Task::BINARY
     setup_rake_dependencies(res)
     res
   end

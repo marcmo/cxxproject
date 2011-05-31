@@ -74,9 +74,27 @@ module Rake
   class Task
     attr_accessor :failure # specified if that task has failed
     attr_accessor :deps # used to store deps by depfile task for the apply task (no re-read of depsfile)
-    attr_accessor :showInGraph
+    attr_accessor :type
     attr_accessor :transparent_timestamp
     attr_accessor :dismissed_prerequisites
+
+    UNKNOWN     = 0x0000 #
+    OBJECT      = 0x0001 #
+    SOURCEMULTI = 0x0002 # x
+    DEPFILE     = 0x0004 #
+    LIBRARY     = 0x0008 # x
+    EXECUTABLE  = 0x0010 # x
+    CONFIG      = 0x0020 #
+    APPLY       = 0x0040 # 
+    UTIL        = 0x0080 #
+    BINARY      = 0x0100 # x
+    MODULE      = 0x0200 # x
+    MAKE        = 0x0400 # x    
+    RUN         = 0x0800 #
+    CUSTOM      = 0x1000 # x
+    COMMANDLINE = 0x2000 # x
+    
+    STANDARD    = 0x371A # x above means included in STANDARD
 
     execute_org = self.instance_method(:execute)
     initialize_org = self.instance_method(:initialize)
@@ -85,7 +103,7 @@ module Rake
 
     define_method(:initialize) do |task_name, app|
       initialize_org.bind(self).call(task_name, app)
-      @showInGraph = GraphWriter::YES
+      @type = UNKNOWN
       @deps = nil
       @transparent_timestamp = false
       @dismissed_prerequisites = []

@@ -1,4 +1,4 @@
-require 'cxxproject/toolchain/base'
+require 'cxxproject/toolchain/provider'
 require 'cxxproject/utils/utils'
 require 'cxxproject/errorparser/diab_error_parser'
 require 'cxxproject/errorparser/diab_linker_error_parser'

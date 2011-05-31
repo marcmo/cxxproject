@@ -20,9 +20,8 @@ module HasDependencies
   end
 
   # inclusive self!!
-  def calc_transitive_dependencies
-    deps = [self.name]
-    @all_dependencies ||= get_transitive_dependencies_internal(deps)
+  def all_dependencies
+    @all_dependencies ||= get_transitive_dependencies_internal([self.name])
     @all_dependencies
   end
 

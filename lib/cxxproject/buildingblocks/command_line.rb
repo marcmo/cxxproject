@@ -45,7 +45,7 @@ class CommandLine < BuildingBlock
       raise "System command failed" if $?.to_i != 0
     end
     res.transparent_timestamp = true
-    setup_cleantask
+    res.type = Rake::Task::COMMANDLINE 
     setup_rake_dependencies(res)
     res
   end
