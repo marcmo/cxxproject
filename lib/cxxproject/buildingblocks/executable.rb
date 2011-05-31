@@ -47,14 +47,12 @@ class Executable < BuildingBlock
     get_executable_name()
   end
 
-
-
-
   # create a task that will link an executable from a set of object files
   #
   def convert_to_rake()
 
-    calc_compiler_strings(calc_transitive_dependencies)
+    deps = calc_transitive_dependencies()
+    calc_compiler_strings(deps)
     objects, object_multitask = create_tasks_for_objects()
 
     executable = get_executable_name()
@@ -72,7 +70,6 @@ class Executable < BuildingBlock
     libs_to_search_array = []
     user_libs_array = []
     libs_with_path_array = []
-    deps = calc_transitive_dependencies()
     deps.each do |e|
       d = ALL_BUILDING_BLOCKS[e]
       next if not HasLibraries === d

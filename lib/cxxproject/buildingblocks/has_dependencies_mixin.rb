@@ -19,11 +19,6 @@ module HasDependencies
     @helper_dependencies = deps.map { |dep| dep.instance_of?(String) ? dep : dep.name }
   end
 
-  # # will be calculated at the beginning of creating the building block task
-  # def all_dependencies
-  #   @all_dependencies ||= []
-  # end
-
   # inclusive self!!
   def calc_transitive_dependencies
     deps = [self.name]
