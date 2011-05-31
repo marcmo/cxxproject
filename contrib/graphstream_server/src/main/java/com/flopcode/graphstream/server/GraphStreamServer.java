@@ -1,6 +1,7 @@
 package com.flopcode.graphstream.server;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -13,22 +14,23 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.AbstractAction;
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JSlider;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.DefaultGraph;
 import org.graphstream.graph.implementations.SingleGraph;
-
-import com.flopcode.graphstream.utils.Log;
-import org.graphstream.ui.graphicGraph.GraphicGraph;
 import org.graphstream.ui.layout.Layout;
-import org.graphstream.ui.layout.Layouts;
 import org.graphstream.ui.layout.springbox.SpringBox;
 import org.graphstream.ui.swingViewer.View;
 import org.graphstream.ui.swingViewer.Viewer;
 
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.plaf.basic.BasicSplitPaneUI;
+import com.flopcode.graphstream.utils.Log;
 
 public class GraphStreamServer {
 	public interface Command {
@@ -185,6 +187,7 @@ public class GraphStreamServer {
 
 	private DefaultGraph fGraph;
 
+	@SuppressWarnings("serial")
 	public GraphStreamServer() throws Exception {
     ServerSocket s = new ServerSocket(31217);
   	fGraph = new SingleGraph("Tutorial 1");

@@ -10,7 +10,7 @@ begin
       @@server = TCPSocket.open('localhost', 31217)
     end
     def self.send(command)
-#      puts command
+      #      puts command
       @@server.puts(command)
     end
 
@@ -79,40 +79,11 @@ begin
 
     end
 
-#    def update_colors
-#      @vertices.each_key do |k|
-#        set_attributes(v, k)
-#      end
-#    end
-
     def set_attributes(name, task)
       GraphStream.set_class(name, state2color(task))
-#      v.v.color = state2color(name)
-#      v.v.shape = name2shape(name)
-#      v.v.size = name2size(name)
     end
 
- #   def name2shape(name)
- #     if object?(name)
- #       return 'cube'
- #     elsif exe?(name)
- #       return 'sphere'
- #     elsif multitask?(name)
- #       return 'torus'
- #     else
- #       return 'octahedron'
- #     end
- #   end
- #   def name2size(name)
- #     if object?(name)
- #       return 0.7
- #     elsif exe?(name)
- #       return 1.2
- #     else
- #       return 1.0
- #     end
- #   end
-   def state2color(t)
+    def state2color(t)
       begin
         if t.dirty?
           return 'dirty'
@@ -158,7 +129,7 @@ begin
 
     desc 'update graphstream'
     task :update => :init do
-      GraphStream.set_stylesheet('node {fill-color:green;}node.dirty{fill-color:red;}node.before_prerequisites{fill-color:yellow;}node.after_prerequisites{fill-color:orange;}node.before_execute{fill-color:blue;}node.after_execute{fill-color:green;}node.ready{fill-color:black;}')
+      GraphStream.set_stylesheet('node {fill-color:green;}node.dirty{fill-color:red;}node.before_prerequisites{fill-color:yellow;}node.after_prerequisites{fill-color:orange;}node.before_execute{fill-color:blue;}node.after_execute{fill-color:green;}node.ready{fill-color:green;}')
       begin
         require 'cxxproject/extensions/rake_listener_ext'
         require 'cxxproject/extensions/rake_dirty_ext'
