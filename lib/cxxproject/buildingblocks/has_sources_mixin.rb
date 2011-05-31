@@ -115,22 +115,17 @@ module HasSources
     end
   end
 
-  def create_apply_task(depfile,outfileTask)
-    res = task "#{depfile}.apply" do |task|
-      deps = nil
-      begin
-        deps = YAML.load_file(depfile)
-        outfileTask.enhance(deps)
-      rescue
-        # may happen if depfile was not converted the last time
-        def outfileTask.needed?
-          true
-        end
+  def apply_depfile(depfile,outfileTask)
+    deps = nil
+    begin
+      deps = YAML.load_file(depfile)
+      outfileTask.enhance(deps)
+    rescue
+      # may happen if depfile was not converted the last time
+      def outfileTask.needed?
+        true
       end
     end
-    res.type = Rake::Task::APPLY
-    res.transparent_timestamp = true
-    res
   end
 
   def create_object_file_tasks()
@@ -192,7 +187,7 @@ module HasSources
       outfileTask.type = Rake::Task::OBJECT
       outfileTask.enhance(@config_files)
       add_output_dir_dependency(object, outfileTask, (not @addOnlyFilesToCleanTask))
-      outfileTask.enhance([create_apply_task(depfile,outfileTask)]) if depStr != ""
+      apply_depfile(depfile,outfileTask) if depStr != ""
       tasks << outfileTask
     end
     tasks
