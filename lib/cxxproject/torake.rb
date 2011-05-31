@@ -33,21 +33,38 @@ class CxxProject2Rake
     @log.debug "initializing for build_dir: \"#{build_dir}\", base: \"#{base}\""
     @base = base
     @all_tasks = instantiate_tasks(projects, build_dir, toolchain, base)
-    desc "execute all with filter"
-    namespace :run do
-      task :all, :filter do |t, args|
-        if args[:filter]
-          filter = Regexp.new("run:#{args[:filter]}")
-        else
-          filter = Regexp.new("run:.*")
-        end
-        Rake::Task.tasks.each do |to_check|
-          name = to_check.name
-          if ("run:all" != name)
-            match = filter.match(name)
-            if match
-              to_check.invoke
-            end
+
+    create_generic_tasks
+  end
+
+  def create_generic_tasks
+    [:lib, :exe, :run, nil].each { |i| create_filter_task_with_namespace(i) }
+  end
+  def create_filter_task_with_namespace(basename)
+    if basename
+      
+      desc "invoke #{basename} with filter"
+      namespace basename do
+        create_filter_task("#{basename}:")
+      end
+    else
+      desc "invoke with filter"
+      create_filter_task("")
+    end
+  end
+  def create_filter_task(basename)
+    task :filter, :filter do |t, args|
+      filter = ".*"
+      if args[:filter]
+        filter = "#{args[:filter]}"
+      end
+      filter = Regexp.new("#{basename}#{filter}")
+      Rake::Task.tasks.each do |to_check|
+        name = to_check.name
+        if ("#{basename}:filter" != name)
+          match = filter.match(name)
+          if match
+            to_check.invoke
           end
         end
       end
