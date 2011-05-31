@@ -1,35 +1,9 @@
 require 'cxxproject/toolchain/base'
+require 'cxxproject/toolchain/colorizing_formatter'
 require 'cxxproject/utils/utils'
-require 'rainbow'
 
 module Cxxproject
   module Toolchain
-    FILE_PATTERN = '(.*?:\d+:\d*: )'
-    ERROR_REGEXP = Regexp.new("#{FILE_PATTERN}(error: .*)")
-    WARNING_REGEXP = Regexp.new("#{FILE_PATTERN}(warning: .*)")
-    RED = [255, 0, 0]
-    YELLOW = [255, 255, 0]
-
-    class ColorizingFormatter
-      def format(compiler_output)
-        res = ""
-        compiler_output.each_line do |l|
-          md = ERROR_REGEXP.match(l)
-          color = RED
-          if !md
-            md = WARNING_REGEXP.match(l)
-            color = YELLOW
-          end
-          if md
-            res = res + md[1] + md[2].color(color) + "\n"
-          else
-            res = res + l
-          end
-        end
-        res
-      end
-    end
-
     GCCChain = Provider.add("GCC")
 
     GCCChain[:COMPILER][:CPP].update({

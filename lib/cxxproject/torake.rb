@@ -2,8 +2,6 @@ require 'logger'
 require 'pp'
 require 'pathname'
 require 'cxxproject/extensions/rake_ext'
-require 'cxxproject/toolchain/gcc'
-require 'cxxproject/toolchain/gcc_osx'
 require 'cxxproject/buildingblocks/module'
 require 'cxxproject/buildingblocks/makefile'
 require 'cxxproject/buildingblocks/executable'
@@ -42,7 +40,6 @@ class CxxProject2Rake
   end
   def create_filter_task_with_namespace(basename)
     if basename
-      
       desc "invoke #{basename} with filter"
       namespace basename do
         create_filter_task("#{basename}:")
