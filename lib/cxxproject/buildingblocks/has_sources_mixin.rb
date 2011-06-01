@@ -182,7 +182,7 @@ module HasSources
         process_console_output(consoleOutput, compiler[:ERROR_PARSER])
 
         convert_depfile(depfile) if depStr != ""
-        raise "System command failed" if $?.to_i != 0
+        raise "System command failed: #{cmd}" if $?.to_i != 0
       end
       outfileTask.type = Rake::Task::OBJECT
       outfileTask.enhance(@config_files)
