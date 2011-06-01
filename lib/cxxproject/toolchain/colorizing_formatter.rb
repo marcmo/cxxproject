@@ -44,7 +44,14 @@ module Cxxproject
     end
 
   rescue LoadError
+
     # dont do anything if you dont have rainbow
+    class ColorizingFormatter
+      def enabled?
+        false
+      end
+    end
+
   end
 
 end
