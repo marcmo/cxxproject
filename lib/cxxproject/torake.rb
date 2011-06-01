@@ -126,24 +126,28 @@ class CxxProject2Rake
         cd(dirname,:verbose => false) do | base_dir |
           pwd = `pwd`
           @log.debug "register project #{project_file} from within directory: #{pwd.chomp}"
-          loadContext = EvalContext.new
-          begin
-            loadContext.eval_project(File.read(File.basename(project_file)))
-          rescue Exception => e
-            puts "problems with #{File.join(b, project_file)}"
-            raise e
-          end
-          loadContext.myblock.call()
-          loadContext.all_blocks.each do |p|
-            p.set_project_dir(Dir.pwd)
-            if p.respond_to?(:sources) && p.sources.instance_of?(Rake::FileList)
-              p.set_sources(p.sources.to_a)
-            end
-          end
+          eval_file(b, File.basename(project_file))
         end
       end
     end
   end
+  def eval_file(b, project_file)
+    loadContext = EvalContext.new
+    begin
+      loadContext.eval_project(File.read(File.basename(project_file)))
+    rescue Exception => e
+      puts "problems with #{File.join(b, project_file)}"
+      raise e
+    end
+    loadContext.myblock.call()
+    loadContext.all_blocks.each do |p|
+      p.set_project_dir(Dir.pwd)
+      if p.respond_to?(:sources) && p.sources.instance_of?(Rake::FileList)
+        p.set_sources(p.sources.to_a)
+      end
+    end
+  end
+
   def define_project_info_task
     desc "shows your defined projects"
     task :project_info do
@@ -200,13 +204,14 @@ class EvalContext
 
   def source_lib(name, hash)
     raise "not a hash" unless hash.is_a?(Hash)
-    check_hash hash,[:sources,:includes,:dependencies,:toolchain]
+    check_hash hash,[:sources, :includes, :dependencies, :toolchain, :file_dependencies]
     raise ":sources need to be defined" unless hash.has_key?(:sources)
     bblock = SourceLibrary.new(name)
     bblock.set_sources(hash[:sources])
     bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
     bblock.set_tcs(hash[:toolchain]) if hash.has_key?(:toolchain)
     bblock.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
+    bblock.file_dependencies = hash[:file_dependencies] if hash.has_key?(:file_dependencies)
     all_blocks << bblock
   end
 

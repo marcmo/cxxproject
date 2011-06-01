@@ -85,15 +85,15 @@ module Rake
     LIBRARY     = 0x0008 # x
     EXECUTABLE  = 0x0010 # x
     CONFIG      = 0x0020 #
-    APPLY       = 0x0040 # 
+    APPLY       = 0x0040 #
     UTIL        = 0x0080 #
     BINARY      = 0x0100 # x
     MODULE      = 0x0200 # x
-    MAKE        = 0x0400 # x    
+    MAKE        = 0x0400 # x
     RUN         = 0x0800 #
     CUSTOM      = 0x1000 # x
     COMMANDLINE = 0x2000 # x
-    
+
     STANDARD    = 0x371A # x above means included in STANDARD
 
     execute_org = self.instance_method(:execute)
@@ -123,11 +123,13 @@ module Rake
               @failure = true
             end
           rescue
-            if @name.length>2 and @name[-2..-1] == ".o" # file found in dep file does not exist anymore
+            if @type == Rake::Task::OBJECT
               @prerequisites.delete(n)
               def self.needed?
                 true
               end
+            else
+              raise
             end
           end
         }

@@ -3,3 +3,9 @@ pkg
 .project
 tags
 id_cache
+out
+.idea
+*.iml
+*_output_dir
+testdata
+*~

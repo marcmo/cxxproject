@@ -2,6 +2,11 @@ require 'yaml'
 
 module HasSources
 
+  attr_writer :file_dependencies
+  def file_dependencies
+    @file_dependencies ||= []
+  end
+
   def sources
     @sources ||= []
   end
@@ -186,6 +191,7 @@ module HasSources
       end
       outfileTask.type = Rake::Task::OBJECT
       outfileTask.enhance(@config_files)
+      outfileTask.enhance(file_dependencies)
       add_output_dir_dependency(object, outfileTask, (not @addOnlyFilesToCleanTask))
       apply_depfile(depfile,outfileTask) if depStr != ""
       tasks << outfileTask
