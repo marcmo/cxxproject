@@ -3,8 +3,8 @@ $:.unshift File.join(File.dirname(__FILE__),"..","lib")
 
 require 'tools/projectWizard'
 
-if ARGV.size < 1 
-	puts "usage: cxx project-dir" 
+if ARGV.size < 1
+	puts "usage: cxx project-dir"
 	exit 0
 end
 prepare_project(ARGV[0])
