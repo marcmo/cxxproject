@@ -10,6 +10,7 @@ require 'cxxproject/buildingblocks/single_source'
 require 'cxxproject/buildingblocks/binary_library'
 require 'cxxproject/buildingblocks/custom_building_block'
 require 'cxxproject/buildingblocks/command_line'
+require 'cxxproject/toolchain/colorizing_formatter'
 
 class CxxProject2Rake
 
@@ -33,11 +34,25 @@ class CxxProject2Rake
     @all_tasks = instantiate_tasks(projects, build_dir, toolchain, base)
 
     create_generic_tasks
+    handle_console_colorization
+  end
+
+  def handle_console_colorization
+    # default is on
+    Cxxproject::ColorizingFormatter.enabled = true
+    desc 'Toggle colorization of console output (use true|t|yes|y|1 for true ... everything else is false)'
+    task :toggle_colorize, :on_off do |t, args|
+      arg = args[:on_off] || 'false'
+      on_off = arg.match(/(true|t|yes|y|1)$/) != nil
+      puts on_off
+      Cxxproject::ColorizingFormatter.enabled = on_off
+    end
   end
 
   def create_generic_tasks
     [:lib, :exe, :run, nil].each { |i| create_filter_task_with_namespace(i) }
   end
+
   def create_filter_task_with_namespace(basename)
     if basename
       desc "invoke #{basename} with filter"
@@ -45,10 +60,11 @@ class CxxProject2Rake
         create_filter_task("#{basename}:")
       end
     else
-      desc "invoke with filter"
-      create_filter_task("")
+      desc 'invoke with filter'
+      create_filter_task('')
     end
   end
+
   def create_filter_task(basename)
     task :filter, :filter do |t, args|
       filter = ".*"

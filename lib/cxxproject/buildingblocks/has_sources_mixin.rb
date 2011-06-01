@@ -197,7 +197,7 @@ module HasSources
   def process_console_output(console_output, ep)
     if not console_output.empty?
       highlighter = @tcs[:CONSOLE_HIGHLIGHTER]
-      if (highlighter and highlighter.is_enabled)
+      if (highlighter and highlighter.enabled?)
         puts highlighter.format(console_output)
       else
         puts console_output
