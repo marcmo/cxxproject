@@ -9,6 +9,11 @@ ALL_BUILDING_BLOCKS = {}
 
 class BuildingBlock
   include HasDependencies
+  begin
+    include Rake::DSL
+  rescue
+    puts 'please update your rake installation'
+  end
 
   attr_reader :name
   attr_reader :graph_name

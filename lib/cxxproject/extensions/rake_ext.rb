@@ -3,6 +3,7 @@ require 'cxxproject/utils/dot/graph_writer'
 
 require 'rake'
 require 'stringio'
+require 'thread'
 
 module Rake
 

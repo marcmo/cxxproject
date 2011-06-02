@@ -13,6 +13,11 @@ require 'cxxproject/buildingblocks/command_line'
 require 'cxxproject/toolchain/colorizing_formatter'
 
 class CxxProject2Rake
+  begin
+    include Rake::DSL
+  rescue
+    puts 'please update your rake installation'
+  end
 
   attr_accessor :base, :all_tasks
 

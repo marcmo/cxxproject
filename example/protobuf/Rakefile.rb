@@ -23,14 +23,12 @@ PROTOC = File.join(PROTOBUF_TMP, 'src', 'protoc')
 PROTOBUF_CONFIG_H=File.join(PROTOBUF_TMP, 'config.h')
 
 PROTOBUF_LITE_SOURCES=YAML.load(IO.read('protobuf.files')).map{ | i | File.join(PROTOBUF_BASE, 'src', i)}
-PROTOBUF_LITE_SOURCES.each do |path|
-  file path => PROTOBUF_DOWNLOAD do |t|
-    command = "tar xzf #{PROTOBUF_DOWNLOAD}"
-    sh command
-    command = "find #{PROTOBUF_BASE}/ -exec touch {} \\;"
-    sh command
-    sleep(2) # wait for file timestamps to matter
-  end
+file PROTOBUF_LITE_SOURCES[0] => PROTOBUF_DOWNLOAD do |t|
+  command = "/usr/bin/tar xf #{PROTOBUF_DOWNLOAD}"
+  sh command
+  command = "find #{PROTOBUF_BASE}/ -exec touch {} \\;"
+  sh command
+  sleep(2) # wait for file timestamps to matter
 end
 
 directory PROTOBUF_TMP
@@ -45,7 +43,7 @@ end
 desc 'build protoc'
 file PROTOC => [PROTOBUF_CONFIG_H] do
   cd PROTOBUF_TMP do
-    command = 'make -j'
+    command = 'make'
     sh command
   end
 end
