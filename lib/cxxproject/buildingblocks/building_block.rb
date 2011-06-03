@@ -44,6 +44,15 @@ class BuildingBlock
     self
   end
 
+
+  def includes
+    @includes ||= []
+  end
+  def set_includes(x)
+    @includes = x
+    self
+  end
+
   def set_tcs(x)
     @tcs = x
     self

@@ -15,14 +15,6 @@ module HasSources
     self
   end
 
-  def includes
-    @includes ||= []
-  end
-  def set_includes(x)
-    @includes = x
-    self
-  end
-
   # used when a source file shall have different tcs than the project default
   def tcs4source
     @tcs4source ||= {}
@@ -47,7 +39,7 @@ module HasSources
     @incArray = []
     all_dependencies.each do |e|
       d = ALL_BUILDING_BLOCKS[e]
-      next if not HasSources === d
+#      next if not HasSources === d
       if d.includes.length == 0
         @incArray << File.relFromTo("include", d.project_dir)
       else
