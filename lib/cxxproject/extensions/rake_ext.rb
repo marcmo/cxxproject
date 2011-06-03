@@ -52,7 +52,6 @@ module Rake
             p = nil
             m.synchronize { p = jq.shift }
             break unless p
-
             s = SyncStringIO.new(m)
             Thread.current[:stdout] = s
             prereq = application[p]
@@ -125,13 +124,15 @@ module Rake
             end
           rescue
             if @type == Rake::Task::OBJECT
-              @prerequisites.delete(n)
-              def self.needed?
-                true
+              if n.downcase =~ /.*(\.h|\.hpp)$/
+                @prerequisites.delete(n)
+                def self.needed?
+                  true
+                end
+                next
               end
-            else
-              raise
             end
+            raise
           end
         }
       end
@@ -148,7 +149,7 @@ module Rake
         @failure = false
       rescue Exception => ex1 # todo: no rescue to stop on first error
         # todo: debug log, no puts here!
-        puts "Error: #{@name} not built/cleaned correctly: #{ex1.message}"
+        puts "Error for task: #{@name} #{ex1.message}"
         begin
           FileUtils.rm(@name) if File.exists?(@name) # todo: error parsing?
         rescue Exception => ex2
@@ -159,7 +160,6 @@ module Rake
       end
 
       Thread.current[:stdout].sync_flush if Thread.current[:stdout]
-
     end
 
     define_method(:timestamp) do

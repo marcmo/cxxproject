@@ -110,7 +110,6 @@ module HasSources
         deps << line
       end
     end
-
     deps = deps.gsub(/\\\n/,'').split()[1..-1]
     deps.map!{|d| File.expand_path(d)}
 
@@ -173,7 +172,7 @@ module HasSources
 
       if (@addOnlyFilesToCleanTask)
         CLEAN.include(depfile) if depStr != ""
-        CLEAN.include(object) 
+        CLEAN.include(object)
       end
 
       outfileTask = file object => source do
@@ -185,9 +184,9 @@ module HasSources
 
         consoleOutput = `#{cmd + " 2>&1"}`
         process_console_output(consoleOutput, compiler[:ERROR_PARSER])
+        raise "System command failed: #{cmd}" if $?.to_i != 0
 
         convert_depfile(depfile) if depStr != ""
-        raise "System command failed: #{cmd}" if $?.to_i != 0
       end
       outfileTask.type = Rake::Task::OBJECT
       outfileTask.enhance(@config_files)
