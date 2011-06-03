@@ -10,7 +10,22 @@ Rake::GemPackageTask.new(spec) {|pkg|}
 begin
   require 'roodi'
   require 'roodi_task'
-  RoodiTask.new  'roodi', spec.files, 'roodi.yml'
+  class RoodiTask
+    def define
+      desc "Check for design issues in: #{patterns.join(', ')}"
+      task name do
+        runner = Roodi::Core::Runner.new
+        runner.config = config if config
+        patterns.each do |pattern|
+          Dir.glob(pattern).each { |file| runner.check_file(file) }
+        end
+        runner.errors.each {|error| puts error}
+#        raise "Found #{runner.errors.size} errors." unless runner.errors.empty?
+      end
+      self
+    end
+  end
+  RoodiTask.new('roodi', spec.files, 'roodi.yml')
   task :gem => [:roodi]
 rescue LoadError # don't bail out when people do not have roodi installed!
   warn "roodi not installed...will not be checked!"
@@ -18,7 +33,7 @@ end
 
 desc "Run all examples"
 begin
-  SPEC_PATTERN ='spec/**/*_spec.rb' 
+  SPEC_PATTERN ='spec/**/*_spec.rb'
   require 'rspec/core/rake_task'
   RSpec::Core::RakeTask.new() do |t|
     t.pattern = SPEC_PATTERN
