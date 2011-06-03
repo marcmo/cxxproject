@@ -7,7 +7,7 @@ module Cxxproject
   end
 
   begin
-    require 'rainbow'
+    require 'colored'
 
     # simple class to colorize compiler output
     # the class depends on the rainbow gem
@@ -23,13 +23,13 @@ module Cxxproject
         res = ""
         compiler_output.each_line do |l|
           md = ERROR_REGEXP.match(l)
-          color = RED
+          color = :red
           if !md
             md = WARNING_REGEXP.match(l)
-            color = YELLOW
+            color = :yellow
           end
           if md
-            res = res + md[1] + md[2].color(color) + "\n"
+            res = res + md[1] + md[2].send(color) + "\n"
           else
             res = res + l
           end
