@@ -82,6 +82,7 @@ describe Rake::Task do
     Cxxproject.cleanup_rake
     FileUtils.rm_rf('build')
     FileUtils.rm_rf('test.cc')
+    FileUtils.rm_rf('test.h')
   end
 
 end
