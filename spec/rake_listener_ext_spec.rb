@@ -1,17 +1,20 @@
 require 'cxxproject/extensions/rake_listener_ext.rb'
-require 'cxxproject/utils/cleanup'
 
 describe Rake::Task do
 
+  include Rake::DSL
   it "should call a listener for prerequisites and execute" do
 
-    Cxxproject.cleanup_rake
-
-    t = task "test"
+    task "mypre" 
+    t = task "test" => "mypre"
 
     l = mock
     Rake::add_listener(l)
 
+    l.should_receive(:before_execute).with('mypre')
+    l.should_receive(:after_execute).with('mypre')
+    l.should_receive(:before_prerequisites).with('mypre')
+    l.should_receive(:after_prerequisites).with('mypre')
     l.should_receive(:before_prerequisites).with('test')
     l.should_receive(:after_prerequisites).with('test')
     l.should_receive(:before_execute).with('test')
@@ -22,7 +25,6 @@ describe Rake::Task do
 
     t.invoke
 
-    Cxxproject.cleanup_rake
   end
 
 end

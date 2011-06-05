@@ -2,6 +2,7 @@ $:.unshift File.join(File.dirname(__FILE__),"..","lib")
 require 'cxxproject'
 require 'cxxproject/utils/cleanup'
 
+include Rake::DSL
 RSPECDIR = File.dirname(__FILE__)
 puts RSPECDIR
 class SpecTaskListener
@@ -79,7 +80,7 @@ describe CxxProject2Rake do
 
       # rebuild after header changed
       listener.reset_exec_count
-      sleep(0.1)
+      sleep(1)
       files2touch = Dir.glob('help.h')
       FileUtils.touch files2touch
       execute_all_tasks(fresh_cxx.all_tasks)
