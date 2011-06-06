@@ -7,7 +7,11 @@ begin
 
   class GraphStream
     def self.init
-      @@server = TCPSocket.open('localhost', 31217)
+      begin
+        @@server = TCPSocket.open('localhost', 31217)
+      rescue Exception => bang
+        puts bang
+      end
     end
     def self.send(command)
       #      puts command
@@ -129,7 +133,7 @@ begin
 
     desc 'update graphstream'
     task :update => :init do
-      GraphStream.set_stylesheet('node {fill-color:green;}node.dirty{fill-color:red;}node.before_prerequisites{fill-color:yellow;}node.after_prerequisites{fill-color:orange;}node.before_execute{fill-color:blue;}node.after_execute{fill-color:green;}node.ready{fill-color:green;}')
+      GraphStream.set_stylesheet('node {fill-color:green;}node.dirty{fill-color:red;}node.before_prerequisites{fill-color:yellow;}node.after_prerequisites{fill-color:orange;}node.before_execute{fill-color:blue;}node.after_execute{fill-color:green;}node.ready{fill-color:yellow;}')
       begin
         require 'cxxproject/extensions/rake_listener_ext'
         require 'cxxproject/extensions/rake_dirty_ext'

@@ -1,5 +1,0 @@
-build with
-mvn package
-
-run with
-java -jar target/gs-server-0.1-SNAPSHOT-jar-with-dependencies.jar
