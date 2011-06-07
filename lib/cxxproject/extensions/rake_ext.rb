@@ -179,9 +179,11 @@ module Rake
       end
       ts
     end
+    
+    def ignore_missing_file
+      @ignore = true
+    end    
+    
   end
 
-  def ignore_missing_file
-    @ignore = true
-  end
 end
