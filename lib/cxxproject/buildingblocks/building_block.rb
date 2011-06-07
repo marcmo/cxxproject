@@ -44,15 +44,6 @@ class BuildingBlock
     self
   end
 
-
-  def includes
-    @includes ||= []
-  end
-  def set_includes(x)
-    @includes = x
-    self
-  end
-
   def set_tcs(x)
     @tcs = x
     self
@@ -73,7 +64,7 @@ class BuildingBlock
     @config_files.each do |cf|
       Rake.application[cf].type = Rake::Task::CONFIG
     end
-    
+
     self
   end
 

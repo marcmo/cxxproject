@@ -1,12 +1,14 @@
 require 'cxxproject/buildingblocks/building_block'
 require 'cxxproject/buildingblocks/has_libraries_mixin'
 require 'cxxproject/buildingblocks/has_sources_mixin'
+require 'cxxproject/buildingblocks/has_includes_mixin'
 
 require 'tmpdir'
 
 class Executable < BuildingBlock
   include HasLibraries
   include HasSources
+  include HasIncludes
 
   attr_reader :linker_script
   attr_reader :mapfile

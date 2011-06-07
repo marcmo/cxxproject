@@ -1,11 +1,14 @@
 require 'cxxproject/buildingblocks/building_block'
 require 'cxxproject/buildingblocks/has_libraries_mixin'
 require 'cxxproject/buildingblocks/has_sources_mixin'
+require 'cxxproject/buildingblocks/has_includes_mixin'
+
 
 # can be used as wrapper for other tasks
 class ModuleBuildingBlock < BuildingBlock
   include HasLibraries
   include HasSources
+  include HasIncludes
 
   def get_task_name()
     name

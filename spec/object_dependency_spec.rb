@@ -20,22 +20,9 @@ describe Rake::Task do
     sl = SourceLibrary.new('testlib').set_sources(['test.cc'])
     CxxProject2Rake.new([], 'build', GCCChain)
 
-
-    l = mock
-    testlib = 'build/libtestlib.a'
-    objects_of_testlib = 'Sources of testlib'
-    testlib_build_dir = 'build/testlib'
-    l.should_receive(:before_prerequisites).with(testlib)
-    l.should_receive(:before_prerequisites).with(objects_of_testlib)
-    l.should_receive(:before_prerequisites).with('build/testlib/test.cc.o')
-    l.should_receive(:before_prerequisites).with('test.cc')
-
-    Rake::add_listener(l)
-
     task = Rake::application['build/libtestlib.a']
-    lambda {task.invoke}.should raise_error(RuntimeError)
-
-    Rake::remove_listener(l)
+    task.invoke
+    task.failure.should eq(true)
 
     Cxxproject.cleanup_rake
     FileUtils.rm_rf('build')
@@ -45,32 +32,50 @@ describe Rake::Task do
   it 'should not fail if include-dependency of object is missing' do
     Cxxproject.cleanup_rake
 
-    file 'test.cc' => 'build' do
-      sh 'touch test.cc'
+    File.open('test.cc', 'w') do |io|
+      io.puts('#include "test.h"')
+    end
+
+    File.open('test.h', 'w') do |io|
     end
 
     sl = SourceLibrary.new('testlib').set_sources(['test.cc'])
     CxxProject2Rake.new([], 'build', GCCChain)
 
     task = Rake::application['build/libtestlib.a']
-    obj = Rake::application['build/testlib/test.cc.o']
-    obj.enhance(['test.h', 'test.hpp', 'test.H', 'test.Hpp'])
-
     task.invoke
 
+    task.failure.should eq(false)
+
     Cxxproject.cleanup_rake
-    FileUtils.rm_rf('build')
+
+    FileUtils.rm_rf('test.h')
+    File.open('test.cc', 'w') do |io|
+    end
+
+
+    sl = SourceLibrary.new('testlib').set_sources(['test.cc'])
+    CxxProject2Rake.new([], 'build', GCCChain)
+
+    task = Rake::application['build/libtestlib.a']
+    task.invoke
+    task.failure.should eq(false)
+
+    Cxxproject.cleanup_rake
     FileUtils.rm_rf('test.cc')
   end
 
-  it 'should fail if generated headerfile is missing' do
+  it 'should not fail if generated headerfile is missing' do
     Cxxproject.cleanup_rake
 
     file 'test.h' do
       sh 'touch test.h'
     end
-    file 'test.cc' => 'test.h' do
-      sh 'echo "#include \"test.h\"" > test.cc'
+
+    file 'test.cc' => 'test.h' do |t|
+      File.open(t.name, 'w') do |io|
+        io.puts('#include "test.h"')
+      end
     end
 
     sl = SourceLibrary.new('testlib').set_sources(['test.cc'])
@@ -78,6 +83,7 @@ describe Rake::Task do
 
     task = Rake::application['build/libtestlib.a']
     task.invoke
+    task.failure.should eq(false)
 
     Cxxproject.cleanup_rake
     FileUtils.rm_rf('build')

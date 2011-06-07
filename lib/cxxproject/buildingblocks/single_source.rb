@@ -1,8 +1,10 @@
 require 'cxxproject/buildingblocks/building_block'
 require 'cxxproject/buildingblocks/has_sources_mixin'
+require 'cxxproject/buildingblocks/has_includes_mixin'
 
 class SingleSource < BuildingBlock
   include HasSources
+  include HasIncludes
 
   def initialize(name)
     super(name)

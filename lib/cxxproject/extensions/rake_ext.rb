@@ -57,7 +57,7 @@ module Rake
             prereq = application[p]
             prereq.invoke_with_call_chain(args, invocation_chain)
             if prereq.failure
-              @failure = true
+              set_failed
             end
             s.sync_flush
           end
@@ -95,7 +95,7 @@ module Rake
     COMMANDLINE = 0x2000 # x
 
     STANDARD    = 0x371A # x above means included in STANDARD
-
+    attr_reader :ignore
     execute_org = self.instance_method(:execute)
     initialize_org = self.instance_method(:initialize)
     timestamp_org = self.instance_method(:timestamp)
@@ -108,45 +108,50 @@ module Rake
       @transparent_timestamp = false
       @dismissed_prerequisites = []
       @neededStored = nil # cache result for performance
+      @ignore = false
+      @failure = false
     end
 
     define_method(:invoke_prerequisites) do |task_args, invocation_chain|
       orgLength = 0
       while @prerequisites.length > orgLength do
         orgLength = @prerequisites.length
-        @prerequisites.dup.each { |n| # dup needed when apply tasks changes that array
+        @prerequisites.dup.each do |n| # dup needed when apply tasks changes that array
           begin
             prereq = application[n, @scope]
             prereq_args = task_args.new_scope(prereq.arg_names)
             prereq.invoke_with_call_chain(prereq_args, invocation_chain)
             if prereq.failure
-              @failure = true
+              set_failed
             end
-          rescue
-            if @type == Rake::Task::OBJECT
-              if n.downcase =~ /.*(\.h|\.hpp)$/
+          rescue Exception => e
+            begin
+              if Rake::Task[n].ignore
                 @prerequisites.delete(n)
                 def self.needed?
                   true
                 end
                 next
               end
+            rescue => e
+              puts "Error #{name}: #{e.message}"
             end
-            raise
+            set_failed
           end
-        }
+        end
       end
+    end
 
+    def set_failed(arg="")
+      @failure = true
     end
 
     define_method(:execute) do |arg|
-
       break if @failure # check if a prereq has failed
       break if BuildingBlock.idei and BuildingBlock.idei.get_abort
 
       begin
         execute_org.bind(self).call(arg)
-        @failure = false
       rescue Exception => ex1 # todo: no rescue to stop on first error
         # todo: debug log, no puts here!
         puts "Error for task: #{@name} #{ex1.message}"
@@ -156,7 +161,7 @@ module Rake
           # todo: debug log, no puts here!
           puts "Error: Could not delete #{@name}: #{ex2.message}"
         end
-        @failure = true
+        set_failed
       end
 
       Thread.current[:stdout].sync_flush if Thread.current[:stdout]
@@ -174,7 +179,9 @@ module Rake
       end
       ts
     end
-
   end
 
+  def ignore_missing_file
+    @ignore = true
+  end
 end

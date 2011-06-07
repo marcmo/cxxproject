@@ -39,7 +39,7 @@ module HasSources
     @incArray = []
     all_dependencies.each do |e|
       d = ALL_BUILDING_BLOCKS[e]
-#      next if not HasSources === d
+      next if not HasIncludes === d
       if d.includes.length == 0
         @incArray << File.relFromTo("include", d.project_dir)
       else
@@ -115,6 +115,10 @@ module HasSources
     deps = nil
     begin
       deps = YAML.load_file(depfile)
+      deps.each do |d|
+        f = file d
+        f.ignore_missing_file
+      end
       outfileTask.enhance(deps)
     rescue
       # may happen if depfile was not converted the last time
@@ -176,8 +180,8 @@ module HasSources
 
         consoleOutput = `#{cmd + " 2>&1"}`
         process_console_output(consoleOutput, compiler[:ERROR_PARSER])
-        raise "System command failed: #{cmd}" if $?.to_i != 0
 
+        raise "System command failed: #{cmd}" if $?.to_i != 0
         convert_depfile(depfile) if depStr != ""
       end
       outfileTask.type = Rake::Task::OBJECT
