@@ -3,17 +3,14 @@ require 'cxxproject/utils/dot/graph_writer'
 require 'cxxproject/extensions/rake_ext'
 require 'cxxproject/extensions/file_ext'
 
+# no deprecated warning for rake >= 0.9.x
+include Rake::DSL if defined?(Rake::DSL)
 
 # stores all defined buildingblocks by name (the name should be unique)
 ALL_BUILDING_BLOCKS = {}
 
 class BuildingBlock
   include HasDependencies
-  begin
-    include Rake::DSL
-  rescue
-    puts 'please update your rake installation'
-  end
 
   attr_reader :name
   attr_reader :graph_name

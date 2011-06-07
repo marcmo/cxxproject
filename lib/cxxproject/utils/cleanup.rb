@@ -3,13 +3,6 @@ require 'rake/clean'
 require 'cxxproject/extensions/filelist'
 
 module Cxxproject
-  begin
-    class << self
-      include Rake::DSL
-    end
-  rescue
-    puts 'update rake'
-  end
 
   def self.cleanup_rake()
     ALL_BUILDING_BLOCKS.clear
