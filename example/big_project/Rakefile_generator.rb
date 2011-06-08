@@ -1,9 +1,9 @@
 require 'fileutils'
 require 'rake/clean'
 
-NR_OF_PROJECTS = 10
+NR_OF_PROJECTS = 100
 PROJECTS = {}
-MAX_SOURCES = 10
+MAX_SOURCES = 20
 
 directory 'gen'
 

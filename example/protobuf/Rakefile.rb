@@ -24,7 +24,7 @@ PROTOBUF_CONFIG_H=File.join(PROTOBUF_TMP, 'config.h')
 
 PROTOBUF_LITE_SOURCES=YAML.load(IO.read('protobuf.files')).map{ | i | File.join(PROTOBUF_BASE, 'src', i)}
 file PROTOBUF_LITE_SOURCES[0] => PROTOBUF_DOWNLOAD do |t|
-  command = "/usr/bin/tar xf #{PROTOBUF_DOWNLOAD}"
+  command = "tar xf #{PROTOBUF_DOWNLOAD}"
   sh command
   command = "find #{PROTOBUF_BASE}/ -exec touch {} \\;"
   sh command

@@ -42,7 +42,7 @@ class Executable < BuildingBlock
 
 
   def get_executable_name()
-    File.relFromTo(@complete_output_dir + "/" + @name + @tcs[:LINKER][:OUTPUT_ENDING], @project_dir)
+    File.relFromTo(File.join(@complete_output_dir, 'exes', "#{@name}#{@tcs[:LINKER][:OUTPUT_ENDING]}"), @project_dir)
   end
 
   def get_task_name()
@@ -84,7 +84,7 @@ class Executable < BuildingBlock
     libs_to_search_array.uniq.each  { |k| strArray << "#{@tcs[:LINKER][:LIB_FLAG]}#{k}" }
     user_libs_array.uniq.each       { |k| strArray << "#{@tcs[:LINKER][:USER_LIB_FLAG]}#{k}" }
     libs_with_path_array.uniq.each  { |k| strArray << "#{k}" }
-    linkerLibString = strArray.reject{|e| e == ""}.join(" ")
+    linkerLibString = strArray.reverse.reject{|e| e == ""}.join(" ")
 
     cmd = [@tcs[:LINKER][:COMMAND], # g++
       @tcs[:LINKER][:MUST_FLAGS], # ??
