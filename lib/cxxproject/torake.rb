@@ -167,7 +167,9 @@ class CxxProject2Rake
     begin
       loadContext.eval_project(File.read(File.basename(project_file)))
     rescue Exception => e
-      puts "problems with #{File.join(b, project_file)}"
+      pwd = `pwd`
+      warn "problems with #{File.join(b, project_file)} in dir: #{pwd}"
+      warn {e.inspect}
       raise e
     end
     loadContext.myblock.call()
