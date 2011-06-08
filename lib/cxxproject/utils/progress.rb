@@ -24,6 +24,7 @@ begin
     end
   end
 
+
   class ProgressListener
     def initialize
       @todo = 0.0
@@ -100,9 +101,28 @@ begin
     end
   end
 
+
+  require 'benchmark'
+  class BenchmarkedProgressListener < ProgressListener
+    def initialize
+      Benchmark.bm do |x|
+        x.report('ProgressListener.initialize') do
+          super
+        end
+      end
+    end
+  end
+
+
+  desc 'show a progressbar for the build (use with -s for best results)'
   task :progress do
     require 'cxxproject/extensions/rake_listener_ext'
     Rake::add_listener(ProgressListener.new)
+  end
+
+  task :benchmark_progress do
+    require 'cxxproject/extensions/rake_listener_ext'
+    Rake::add_listener(BenchmarkedProgressListener.new)
   end
 
 rescue
