@@ -62,7 +62,14 @@ module HasSources
   end
 
   def get_object_file(source)
-    File.relFromTo(source, File.join(@complete_output_dir, 'objects', @output_dir_abs ? ("/" + @name) : "")) + ".o"
+    parts = [@complete_output_dir]
+    
+    if @output_dir_abs
+      parts << 'objects' 
+      parts << @name
+    end
+    
+    File.relFromTo(source, File.join(parts)) + ".o"
   end
 
   def get_dep_file(object)

@@ -42,7 +42,11 @@ class Executable < BuildingBlock
 
 
   def get_executable_name()
-    File.relFromTo(File.join(@complete_output_dir, 'exes', "#{@name}#{@tcs[:LINKER][:OUTPUT_ENDING]}"), @project_dir)
+    parts = [@complete_output_dir]
+    parts << 'exes' if @output_dir_abs
+    parts << "#{@name}#{@tcs[:LINKER][:OUTPUT_ENDING]}"
+    
+    File.relFromTo(File.join(parts), @project_dir)
   end
 
   def get_task_name()
@@ -66,25 +70,48 @@ class Executable < BuildingBlock
 
     mapfileString = @mapfile ? "#{@tcs[:LINKER][:MAP_FILE_FLAG]} >#{File.relFromTo(@mapfile, @complete_output_dir)}" : "" # -Wl,-m6 > xy.map
 
-    # calc linkerLibString (two steps for removing duplicates)
+    # calc linkerLibString - order is important, duplicates are removed
     lib_searchpaths_array = []
     libs_to_search_array = []
     user_libs_array = []
     libs_with_path_array = []
+    strArray = []
     all_dependencies.each do |e|
       d = ALL_BUILDING_BLOCKS[e]
       next if not HasLibraries === d
-      d.lib_searchpaths.each { |k| lib_searchpaths_array << File.relFromTo(k, d.project_dir) }
-      d.libs_to_search.each  { |k| libs_to_search_array  << k }
-      d.user_libs.each       { |k| user_libs_array       << k }
-      d.libs_with_path.each  { |k| libs_with_path_array  << File.relFromTo(k, d.project_dir) }
+      
+      d.lib_searchpaths.each do |k|
+        tmp = File.relFromTo(k, d.project_dir)
+        if not lib_searchpaths_array.include?tmp
+          lib_searchpaths_array << tmp
+          strArray << "#{@tcs[:LINKER][:LIB_PATH_FLAG]}#{tmp}"
+        end
+      end 
+
+      d.libs_to_search.each do |k|
+        if not libs_to_search_array.include?k
+          libs_to_search_array << k
+          strArray << "#{@tcs[:LINKER][:LIB_FLAG]}#{k}"
+        end 
+      end
+      
+      d.user_libs.each do |k|
+        if not user_libs_array.include?k
+          user_libs_array << k
+          strArray << "#{@tcs[:LINKER][:USER_LIB_FLAG]}#{k}"
+        end 
+      end
+
+      d.libs_with_path.each do |k|
+        tmp = File.relFromTo(k, d.project_dir)
+        if not libs_with_path_array.include?tmp
+          libs_with_path_array << tmp
+          strArray << tmp
+        end 
+      end
     end
-    strArray = []
-    lib_searchpaths_array.uniq.each { |k| strArray << "#{@tcs[:LINKER][:LIB_PATH_FLAG]}#{k}" }
-    libs_to_search_array.uniq.each  { |k| strArray << "#{@tcs[:LINKER][:LIB_FLAG]}#{k}" }
-    user_libs_array.uniq.each       { |k| strArray << "#{@tcs[:LINKER][:USER_LIB_FLAG]}#{k}" }
-    libs_with_path_array.uniq.each  { |k| strArray << "#{k}" }
-    linkerLibString = strArray.reverse.reject{|e| e == ""}.join(" ")
+    
+    linkerLibString = strArray.reject{|e| e == ""}.join(" ")
 
     cmd = [@tcs[:LINKER][:COMMAND], # g++
       @tcs[:LINKER][:MUST_FLAGS], # ??
