@@ -9,5 +9,6 @@ require 'cxxproject/torake'
 require 'cxxproject/utils/ubigraph'
 require 'cxxproject/utils/graphstream'
 require 'cxxproject/toolchain/provider'
+require 'cxxproject/utils/progress'
 
 include Cxxproject::Toolchain

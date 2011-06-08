@@ -3,9 +3,9 @@ require 'rake/clean'
 desc "Default Task"
 task :default => [:install]
 
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 spec = Gem::Specification.load('cxx.gemspec')
-Rake::GemPackageTask.new(spec) {|pkg|}
+Gem::PackageTask.new(spec){|pkg|}
 
 begin
   require 'roodi'

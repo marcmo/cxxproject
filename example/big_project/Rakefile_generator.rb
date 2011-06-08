@@ -54,12 +54,14 @@ task :create_main => [:create_projects, :gen] do
     NR_OF_PROJECTS.times do |i|
       io.puts("#include \"lib_#{i}.h\"")
     end
+    io.puts('#include <stdio.h>')
     io.puts('int main(int argc, char** args) {')
     NR_OF_PROJECTS.times do |name|
       PROJECTS[name].times do |i|
         io.puts("  print_#{name}_#{i}();")
       end
     end
+    io.puts('  printf("\\n");')
     io.puts('}')
   end
   deps = []

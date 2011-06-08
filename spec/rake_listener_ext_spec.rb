@@ -5,7 +5,7 @@ describe Rake::Task do
   include Rake::DSL
   it "should call a listener for prerequisites and execute" do
 
-    task "mypre" 
+    task "mypre"
     t = task "test" => "mypre"
 
     l = mock

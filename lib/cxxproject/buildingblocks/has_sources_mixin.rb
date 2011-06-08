@@ -175,7 +175,7 @@ module HasSources
         if BuildingBlock.verbose
           puts cmd
         else
-          puts "Compiling #{source}"
+          puts "Compiling #{source}" unless Rake::application.options.silent
         end
 
         consoleOutput = `#{cmd + " 2>&1"}`
@@ -185,6 +185,7 @@ module HasSources
         convert_depfile(depfile) if depStr != ""
       end
       outfileTask.type = Rake::Task::OBJECT
+      outfileTask.progress_count = 1
       outfileTask.enhance(@config_files)
       outfileTask.enhance(file_dependencies)
       add_output_dir_dependency(object, outfileTask, (not @addOnlyFilesToCleanTask))

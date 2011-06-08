@@ -83,11 +83,13 @@ final class GraphPaintListener implements PaintListener {
         gc.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_BLACK));
         gc.fillOval(p.x - WIDTH / 2, p.y - WIDTH / 2, WIDTH, WIDTH);
         gc.drawOval(p.x - WIDTH / 2, p.y - WIDTH / 2, WIDTH, WIDTH);
+        /*
         String label = (String) gn.getAttribute("ui.label");
         if (label != null) {
           Point labelPos = new Point(p.x + 5, p.y + 5);
           gc.drawText(label, labelPos.x, labelPos.y, true);
         }
+        */
       }
       break;
     case EDGE:

@@ -24,5 +24,6 @@ Gem::Specification.new do |s|
   s.homepage = 'https://github.com/marcmo/cxxproject'
   s.add_dependency('highline', '>= 1.6.0')
   s.add_dependency('colored')
-  s.executables = ["cxx"]
+  s.add_dependency('progressbar')
+  s.executables = ['cxx']
 end

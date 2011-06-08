@@ -23,7 +23,7 @@ module Cxxproject
     GCCChain[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS]
 
     GCCChain[:ARCHIVER][:COMMAND] = "ar"
-    GCCChain[:ARCHIVER][:ARCHIVE_FLAGS] = "-r"
+    GCCChain[:ARCHIVER][:ARCHIVE_FLAGS] = "-rc"
 
     GCCChain[:LINKER][:COMMAND] = "g++"
     GCCChain[:LINKER][:SCRIPT] = "-T"

@@ -50,7 +50,7 @@ class SourceLibrary < BuildingBlock
       if @@verbose
         puts cmd
       else
-        puts "Creating #{archive}"
+        puts "Creating #{archive}" unless Rake::application.options.silent
       end
 
       consoleOutput = `#{cmd + " 2>&1"}`
@@ -59,6 +59,7 @@ class SourceLibrary < BuildingBlock
     end
     res.enhance(@config_files)
     res.type = Rake::Task::LIBRARY
+    res.progress_count = 1
     add_output_dir_dependency(archive, res, true)
     namespace 'lib' do
       desc archive

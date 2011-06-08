@@ -77,6 +77,7 @@ module Rake
     attr_accessor :type
     attr_accessor :transparent_timestamp
     attr_accessor :dismissed_prerequisites
+    attr_accessor :progress_count
 
     UNKNOWN     = 0x0000 #
     OBJECT      = 0x0001 #
@@ -108,6 +109,7 @@ module Rake
       @transparent_timestamp = false
       @dismissed_prerequisites = []
       @neededStored = nil # cache result for performance
+      progress_count = 0
       @ignore = false
       @failure = false
     end

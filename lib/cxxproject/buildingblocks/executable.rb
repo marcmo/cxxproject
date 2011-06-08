@@ -107,7 +107,7 @@ class Executable < BuildingBlock
       if @@verbose
         puts cmd
       else
-        puts "Linking #{executable}"
+        puts "Linking #{executable}" unless Rake::application.options.silent
       end
 
       consoleOutput = `#{cmd + " 2>" + get_temp_filename}`
@@ -116,6 +116,7 @@ class Executable < BuildingBlock
       raise "System command failed" if $?.to_i != 0
     end
     res.type = Rake::Task::EXECUTABLE
+    res.progress_count = 1
     res.enhance(@config_files)
     res.enhance([scriptFile]) unless scriptFile==""
     add_output_dir_dependency(executable, res, true)
