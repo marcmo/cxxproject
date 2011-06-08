@@ -1,5 +1,6 @@
 begin
   require 'socket'
+  require 'thread'
 
   def apply?(name)
     name.match(/.*\.apply\Z/) != nil
@@ -9,13 +10,19 @@ begin
     def self.init
       begin
         @@server = TCPSocket.open('localhost', 31217)
+        @@queue = Queue.new
+        Thread.new do
+          while true
+            command = @@queue.pop
+            @@server.puts(command)
+          end
+        end
       rescue Exception => bang
         puts bang
       end
     end
     def self.send(command)
-      #      puts command
-      @@server.puts(command)
+      @@queue << command
     end
 
     def self.clear
@@ -134,13 +141,9 @@ begin
     desc 'update graphstream'
     task :update => :init do
       GraphStream.set_stylesheet('node {fill-color:green;}node.dirty{fill-color:red;}node.before_prerequisites{fill-color:yellow;}node.after_prerequisites{fill-color:orange;}node.before_execute{fill-color:blue;}node.after_execute{fill-color:green;}node.ready{fill-color:yellow;}')
-      begin
-        require 'cxxproject/extensions/rake_listener_ext'
-        require 'cxxproject/extensions/rake_dirty_ext'
-        Rake::add_listener(GraphStreamSupport.new)
-      rescue StandardError => e
-        puts e
-      end
+      require 'cxxproject/extensions/rake_listener_ext'
+      require 'cxxproject/extensions/rake_dirty_ext'
+      Rake::add_listener(GraphStreamSupport.new)
     end
   end
 rescue Exception => e
