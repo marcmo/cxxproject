@@ -7,6 +7,8 @@ require 'thread'
 
 module Rake
 
+  $exit_code = 0
+
   class SyncStringIO < StringIO
     def initialize(mutex)
       super()
@@ -118,8 +120,11 @@ module Rake
     end
 
     define_method(:invoke) do
+      $exit_code = 0
       invoke_org.bind(self).call()
-      exit(1) if @failure or BuildingBlock.idei.get_abort
+      if @failure or BuildingBlock.idei.get_abort
+        $exit_code = 1
+      end
     end
 
     define_method(:invoke_prerequisites) do |task_args, invocation_chain|
@@ -201,4 +206,9 @@ module Rake
 
   end
 
+  at_exit do
+    exit($exit_code)
+  end
+
 end
+
