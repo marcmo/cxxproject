@@ -32,6 +32,18 @@ module HasDependencies
       if not deps.include?d
         deps << d
         depsToCheck << d
+
+        # deps in modules may be splitted into its contents
+        bb = ALL_BUILDING_BLOCKS[d]
+        if ModuleBuildingBlock === bb
+          bb.content.each do |c|
+            if not deps.include?c.name
+              deps << c.name
+              depsToCheck << c.name
+            end
+          end
+        end
+        
       end
     end
 

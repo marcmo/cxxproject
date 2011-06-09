@@ -10,6 +10,13 @@ class ModuleBuildingBlock < BuildingBlock
   include HasSources
   include HasIncludes
 
+  attr_accessor :content
+
+  def initialize(name)
+    super
+    content = []
+  end
+
   def get_task_name()
     name
   end
