@@ -125,5 +125,5 @@ begin
     Rake::add_listener(BenchmarkedProgressListener.new)
   end
 
-rescue
+rescue LoadError => e
 end
