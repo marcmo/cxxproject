@@ -103,6 +103,7 @@ module Rake
     initialize_org = self.instance_method(:initialize)
     timestamp_org = self.instance_method(:timestamp)
     invoke_prerequisites_org = self.instance_method(:invoke_prerequisites)
+    invoke_org = self.instance_method(:invoke)
 
     define_method(:initialize) do |task_name, app|
       initialize_org.bind(self).call(task_name, app)
@@ -114,6 +115,11 @@ module Rake
       progress_count = 0
       @ignore = false
       @failure = false
+    end
+
+    define_method(:invoke) do
+      invoke_org.bind(self).call()
+      exit(1) if @failure or BuildingBlock.idei.get_abort
     end
 
     define_method(:invoke_prerequisites) do |task_args, invocation_chain|
