@@ -10,6 +10,10 @@ include Rake::DSL if defined?(Rake::DSL)
 # stores all defined buildingblocks by name (the name should be unique)
 ALL_BUILDING_BLOCKS = {}
 
+trap("INT") do
+  BuildingBlock.idei.set_abort(true)
+end
+
 class BuildingBlock
   include HasDependencies
 

@@ -161,7 +161,9 @@ module Rake
         execute_org.bind(self).call(arg)
       rescue Exception => ex1 # todo: no rescue to stop on first error
         # todo: debug log, no puts here!
-        puts "Error for task: #{@name} #{ex1.message}"
+        if not BuildingBlock.idei.get_abort()
+          puts "Error for task: #{@name} #{ex1.message}"
+        end
         begin
           FileUtils.rm(@name) if File.exists?(@name) # todo: error parsing?
         rescue Exception => ex2
