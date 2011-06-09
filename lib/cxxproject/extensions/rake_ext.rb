@@ -45,6 +45,7 @@ module Rake
       jobqueue = @prerequisites.dup
       m = Mutex.new
       numThreads = [jobqueue.length, @@max_parallel_tasks].min
+      puts numThreads
       threads = []
       numThreads.times {
         threads << Thread.new(jobqueue) { |jq|
@@ -132,6 +133,7 @@ module Rake
       while @prerequisites.length > orgLength do
         orgLength = @prerequisites.length
         @prerequisites.dup.each do |n| # dup needed when apply tasks changes that array
+          break if BuildingBlock.idei.get_abort
           begin
             prereq = application[n, @scope]
             prereq_args = task_args.new_scope(prereq.arg_names)

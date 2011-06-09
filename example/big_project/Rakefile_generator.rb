@@ -4,6 +4,7 @@ require 'rake/clean'
 NR_OF_PROJECTS = 100
 PROJECTS = {}
 MAX_SOURCES = 20
+MAX_FAK = 18
 
 directory 'gen'
 
@@ -14,7 +15,7 @@ def create_project(name)
   PROJECTS[name] = sources
   sources.times do |i|
     File.open(File.join(base, "#{name}_file_#{i}.cxx"), 'w') do |io|
-      io.puts("#include <stdio.h>\nvoid print_#{name}_#{i}() {printf(\"#{name}_#{i}\");}")
+      io.puts("#include <stdio.h>\n#include \"../../fak.h\"\nvoid print_#{name}_#{i}() {printf(\"%ld\\n\", fakultaet<#{rand(MAX_FAK)+1}>::value);}")
     end
   end
   File.open(File.join(base, "lib_#{name}.h"), 'w') do |io|

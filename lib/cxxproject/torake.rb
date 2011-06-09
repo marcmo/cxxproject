@@ -60,8 +60,8 @@ class CxxProject2Rake
 
   def create_multitask
     desc 'set parallelization of multitask'
-    task :multitask, :nr_of_threads do |t, args|
-      arg = args[:nr_of_threads]
+    task :multitask, :threads do |t, args|
+      arg = args.threads
       if arg
         Rake::MultiTask.set_max_parallel_tasks(arg.to_i)
       end
