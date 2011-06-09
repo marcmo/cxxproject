@@ -34,12 +34,12 @@ class EvalContext
   end
   def calc_lib_searchpath(hash)
     if hash.has_key?(:libpath)
-      bblock.set_lib_searchpaths(hash[:libpath])
+      hash[:libpath]
     elsif
       if OS.linux? || OS.mac?
-        bblock.set_lib_searchpaths(["/usr/local/lib","/usr/lib"])
+        ["/usr/local/lib","/usr/lib"]
       elsif OS.windows?
-        bblock.set_lib_searchpaths(["C:/tool/cygwin/lib"])
+        ["C:/tool/cygwin/lib"]
       end
     end
   end
