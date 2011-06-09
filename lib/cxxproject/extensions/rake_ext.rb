@@ -42,9 +42,7 @@ module Rake
 
       jobqueue = @prerequisites.dup
       m = Mutex.new
-
-      numThreads = jobqueue.length > @@max_parallel_tasks ? @@max_parallel_tasks : jobqueue.length
-
+      numThreads = [jobqueue.length, @@max_parallel_tasks].min
       threads = []
       numThreads.times {
         threads << Thread.new(jobqueue) { |jq|
@@ -181,11 +179,11 @@ module Rake
       end
       ts
     end
-    
+
     def ignore_missing_file
       @ignore = true
-    end    
-    
+    end
+
   end
 
 end

@@ -40,8 +40,18 @@ class CxxProject2Rake
 
     create_generic_tasks
     handle_console_colorization
+    handle_multitask
   end
-
+  def handle_multitask
+    desc 'set parallelization of multitask'
+    task :multitask, :nr_of_threads do |t, args|
+      puts args
+      arg = args[:nr_of_threads]
+      if arg
+        Rake::MultiTask.set_max_parallel_tasks(arg.to_i)
+      end
+    end
+  end
   def handle_console_colorization
     # default is on
     Cxxproject::ColorizingFormatter.enabled = true
