@@ -17,15 +17,15 @@ class SourceLibrary < BuildingBlock
       libs_to_search << @name
       lib_searchpaths << File.join(@output_dir, 'libs')
     else
-      libs_with_path << File.join(@output_dir,"lib#{@name}.a")    
+      libs_with_path << File.join(@output_dir,"lib#{@name}.a")
     end
   end
 
   def get_archive_name()
-    parts = [@complete_output_dir]
+    parts = [complete_output_dir]
     parts << 'libs' if @output_dir_abs
     parts << "lib#{@name}.a"
-    
+
     File.relFromTo(File.join(parts), @project_dir)
   end
 

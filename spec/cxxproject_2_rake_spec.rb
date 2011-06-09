@@ -5,6 +5,7 @@ require 'cxxproject/utils/cleanup'
 include Rake::DSL
 RSPECDIR = File.dirname(__FILE__)
 puts RSPECDIR
+
 class SpecTaskListener
   def initialize
     @task_execution_count = 0
@@ -144,9 +145,9 @@ describe CxxProject2Rake do
       headerC = 'lib2/lib2.h'
       sourceC = 'lib2/lib2.cpp'
       projectC = 'lib2/project.rb'
-      exe = 'output/basic.exe'
-      libB = 'output/lib1.a'
-      libC = 'output/lib2.a'
+      exe = 'output/exes/basic.exe'
+      libB = 'output/libs/lib1.a'
+      libC = 'output/libs/lib2.a'
 
       check_rebuilding exe, headerA
       check_rebuilding exe, sourceA

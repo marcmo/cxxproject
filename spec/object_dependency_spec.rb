@@ -18,9 +18,9 @@ describe Rake::Task do
       sh 'touch test.cc'
     end
     sl = SourceLibrary.new('testlib').set_sources(['test.cc'])
-    CxxProject2Rake.new([], 'build', GCCChain)
+    cxx = CxxProject2Rake.new([], 'build', GCCChain)
 
-    task = Rake::application['build/libtestlib.a']
+    task = Rake::application['build/libs/libtestlib.a']
     task.invoke
     task.failure.should eq(true)
 
@@ -42,7 +42,7 @@ describe Rake::Task do
     sl = SourceLibrary.new('testlib').set_sources(['test.cc'])
     CxxProject2Rake.new([], 'build', GCCChain)
 
-    task = Rake::application['build/libtestlib.a']
+    task = Rake::application['build/libs/libtestlib.a']
     task.invoke
 
     task.failure.should eq(false)
@@ -57,7 +57,7 @@ describe Rake::Task do
     sl = SourceLibrary.new('testlib').set_sources(['test.cc'])
     CxxProject2Rake.new([], 'build', GCCChain)
 
-    task = Rake::application['build/libtestlib.a']
+    task = Rake::application['build/libs/libtestlib.a']
     task.invoke
     task.failure.should eq(false)
 
@@ -81,7 +81,7 @@ describe Rake::Task do
     sl = SourceLibrary.new('testlib').set_sources(['test.cc'])
     CxxProject2Rake.new([], 'build', GCCChain)
 
-    task = Rake::application['build/libtestlib.a']
+    task = Rake::application['build/libs/libtestlib.a']
     task.invoke
     task.failure.should eq(false)
 

@@ -62,13 +62,13 @@ module HasSources
   end
 
   def get_object_file(source)
-    parts = [@complete_output_dir]
-    
+    parts = [complete_output_dir]
+
     if @output_dir_abs
-      parts << 'objects' 
+      parts << 'objects'
       parts << @name
     end
-    
+
     File.relFromTo(source, File.join(parts)) + ".o"
   end
 

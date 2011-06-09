@@ -21,8 +21,8 @@ class BuildingBlock
   attr_reader :graph_name
   attr_reader :config_files
   attr_reader :project_dir
-  attr_reader :output_dir
-  attr_reader :complete_output_dir
+  attr_accessor :output_dir
+  attr_reader :output_dir_abs
 
   @@verbose = false
 
@@ -71,23 +71,27 @@ class BuildingBlock
 
   def set_project_dir(x)
     @project_dir = x
-    calc_complete_output_dir
     self
   end
 
   # if output dir is absolute, -L and -l is used for linker ("linux mode")
   def set_output_dir(x)
+    return self if output_dir
+
     @output_dir = x
-    @output_dir_abs = File.is_absolute?(@output_dir)
-    calc_complete_output_dir
+    @output_dir_abs = File.is_absolute?(output_dir)
     self
+  end
+
+  def complete_output_dir
+    @complete_output_dir ||= calc_complete_output_dir
   end
 
   def calc_complete_output_dir
     if @output_dir_abs
-      @complete_output_dir = @output_dir
+      output_dir
     else
-      @complete_output_dir = @project_dir + "/" + @output_dir
+      File.join(@project_dir,  output_dir)
     end
   end
 
@@ -101,10 +105,10 @@ class BuildingBlock
     @graph_name = name
     @config_files = []
     @project_dir = "."
-    @output_dir = "."
-    @complete_output_dir = "."
     @tcs = nil
+    @output_dir = nil
     @output_dir_abs = false
+    @complete_output_dir = nil
 
     begin
       raise "building block already exists: #{name}" if ALL_BUILDING_BLOCKS.include?@name
@@ -138,11 +142,11 @@ class BuildingBlock
   end
 
   def add_output_dir_dependency(file, taskOfFile, addDirToCleanTask)
-    outputdir = File.dirname(file)
-    directory outputdir
-    taskOfFile.enhance([outputdir])
+    d = File.dirname(file)
+    directory d
+    taskOfFile.enhance([d])
     if addDirToCleanTask
-      CLEAN.include(@complete_output_dir) unless CLEAN.include?(@complete_output_dir)
+      CLEAN.include(d) unless CLEAN.include?(d)
     end
   end
 

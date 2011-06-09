@@ -11,6 +11,7 @@ require 'cxxproject/buildingblocks/binary_library'
 require 'cxxproject/buildingblocks/custom_building_block'
 require 'cxxproject/buildingblocks/command_line'
 require 'cxxproject/toolchain/colorizing_formatter'
+require 'cxxproject/eval_context'
 
 class CxxProject2Rake
   begin
@@ -22,6 +23,12 @@ class CxxProject2Rake
   attr_accessor :base, :all_tasks
 
   def initialize(projects, build_dir, toolchain, base='.')
+    @projects = projects
+    @base = base
+    @build_dir = build_dir
+    @toolchain = toolchain
+    @rel_projects = @projects.map { |p| File.join(@base,p) }
+
     pwd = `pwd`
     @log = Logger.new(STDOUT)
     @log.formatter = proc { |severity, datetime, progname, msg|
@@ -36,29 +43,31 @@ class CxxProject2Rake
     @log.level = Logger::DEBUG if Rake::application.options.trace
     @log.debug "initializing for build_dir: \"#{build_dir}\", base: \"#{base}\""
     @base = base
-    @all_tasks = instantiate_tasks(projects, build_dir, toolchain, base)
+    @all_tasks = instantiate_tasks()
 
     create_generic_tasks
     create_console_colorization
     create_multitask
     create_bail_on_first_task
   end
+
   def create_bail_on_first_task
     desc 'set bail on first error'
     task :bail_on_first_error do
       Rake::Task.bail_on_first_error = true
     end
   end
+
   def create_multitask
     desc 'set parallelization of multitask'
     task :multitask, :nr_of_threads do |t, args|
-      puts args
       arg = args[:nr_of_threads]
       if arg
         Rake::MultiTask.set_max_parallel_tasks(arg.to_i)
       end
     end
   end
+
   def create_console_colorization
     # default is on
     Cxxproject::ColorizingFormatter.enabled = true
@@ -66,7 +75,6 @@ class CxxProject2Rake
     task :toggle_colorize, :on_off do |t, args|
       arg = args[:on_off] || 'false'
       on_off = arg.match(/(true|t|yes|y|1)$/) != nil
-      puts on_off
       Cxxproject::ColorizingFormatter.enabled = on_off
     end
   end
@@ -106,27 +114,21 @@ class CxxProject2Rake
     end
   end
 
-  def instantiate_tasks(project_configs, build_dir, toolchain, base='.')
-    cd(base, :verbose => false) do
-      project_configs.each do |p|
+  def instantiate_tasks()#project_configs, build_dir, toolchain, base='.')
+    cd(@base, :verbose => false) do
+      @projects.each do |p|
         abort "project config #{p} cannot be found!" unless File.exists?(p)
       end
     end
     @log.debug "project_configs:"
-    project_configs.each { |c| @log.debug " *  #{c}" }
-    register_projects(project_configs)
-    define_project_info_task()
+    @projects.each { |c| @log.debug " *  #{c}" }
+    register_projects()
 
     tasks = []
 
     #todo: sort ALL_BUILDING_BLOCKS (circular deps)
-
     ALL_BUILDING_BLOCKS.each do |name,block|
-      block.set_tcs(toolchain) unless block.has_tcs?
-      block.set_output_dir(Dir.pwd + "/" + build_dir)
-      rel_projects = project_configs.collect { |p| File.join(base,p) }
-      block.set_config_files(rel_projects)
-      block.complete_init()
+      prepare_block(block)
     end
 
     ALL_BUILDING_BLOCKS.each do |name,block|
@@ -139,9 +141,16 @@ class CxxProject2Rake
     tasks
   end
 
-  def register_projects(projects)
+  def prepare_block(block)
+    block.set_tcs(@toolchain) unless block.has_tcs?
+    block.set_output_dir(Dir.pwd + "/" + @build_dir)
+    block.set_config_files(@rel_projects)
+    block.complete_init()
+  end
+
+  def register_projects()
     cd(@base,:verbose => false) do |b|
-      projects.each do |project_file|
+      @projects.each do |project_file|
         @log.debug "register project #{project_file}"
         dirname = File.dirname(project_file)
         @log.debug "dirname for project was: #{dirname}"
@@ -162,14 +171,13 @@ class CxxProject2Rake
       raise e
     end
     loadContext.myblock.call()
-    loadContext.all_blocks.each do |p|
-      p.set_project_dir(Dir.pwd)
-      if p.respond_to?(:sources) && p.sources.instance_of?(Rake::FileList)
-        p.set_sources(p.sources.to_a)
+    loadContext.all_blocks.each do |block|
+      block.set_project_dir(Dir.pwd)
+      if block.respond_to?(:sources) && block.sources.instance_of?(Rake::FileList)
+        block.set_sources(block.sources.to_a)
       end
     end
   end
-
   def define_project_info_task
     desc "shows your defined projects"
     task :project_info do
@@ -178,80 +186,6 @@ class CxxProject2Rake
         pp bb
       end
     end
-  end
-
-end
-
-class EvalContext
-
-  attr_accessor :myblock, :all_blocks
-
-  def cxx_configuration(&block)
-    @myblock = block
-    @all_blocks = []
-  end
-
-  def eval_project(project_text)
-    instance_eval(project_text)
-  end
-
-  def configuration(*args, &block)
-    name = args[0]
-    raise "no name given" unless name.is_a?(String) && !name.strip.empty?
-    instance_eval(&block)
-  end
-
-  def check_hash(hash,allowed)
-    hash.keys.map {|k| raise "#{k} is not a valid specifier!" unless allowed.include?(k) }
-  end
-
-  def exe(name, hash)
-    raise "not a hash" unless hash.is_a?(Hash)
-    check_hash hash,[:sources,:includes,:dependencies,:libpath]
-    bblock = Executable.new(name)
-    bblock.set_sources(hash[:sources]) if hash.has_key?(:sources)
-    bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
-    bblock.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
-    if hash.has_key?(:libpath)
-      bblock.set_lib_searchpaths(hash[:libpath])
-    elsif
-      if OS.linux? || OS.mac?
-        bblock.set_lib_searchpaths(["/usr/local/lib","/usr/lib"])
-      elsif OS.windows?
-        bblock.set_lib_searchpaths(["C:/tool/cygwin/lib"])
-      end
-    end
-    all_blocks << bblock
-  end
-
-  def source_lib(name, hash)
-    raise "not a hash" unless hash.is_a?(Hash)
-    check_hash hash,[:sources, :includes, :dependencies, :toolchain, :file_dependencies]
-    raise ":sources need to be defined" unless hash.has_key?(:sources)
-    bblock = SourceLibrary.new(name)
-    bblock.set_sources(hash[:sources])
-    bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
-    bblock.set_tcs(hash[:toolchain]) if hash.has_key?(:toolchain)
-    bblock.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
-    bblock.file_dependencies = hash[:file_dependencies] if hash.has_key?(:file_dependencies)
-    all_blocks << bblock
-  end
-
-  def compile(name, hash)
-    raise "not a hash" unless hash.is_a?(Hash)
-    check_hash hash,[:sources,:includes]
-    bblock = SingleSource.new(name)
-    bblock.set_sources(hash[:sources]) if hash.has_key?(:sources)
-    bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
-    all_blocks << bblock
-  end
-
-  def custom(name, hash)
-    raise "not a hash" unless hash.is_a?(Hash)
-    check_hash hash,[:execute]
-    bblock = CustomBuildingBlock.new(name)
-    bblock.set_actions(hash[:execute]) if hash.has_key?(:execute)
-    all_blocks << bblock
   end
 
 end
