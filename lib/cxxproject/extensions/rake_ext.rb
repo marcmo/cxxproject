@@ -120,9 +120,9 @@ module Rake
       @failure = false
     end
 
-    define_method(:invoke) do
+    define_method(:invoke) do |*args|
       $exit_code = 0
-      invoke_org.bind(self).call()
+      invoke_org.bind(self).call(*args)
       if @failure or BuildingBlock.idei.get_abort
         $exit_code = 1
       end
