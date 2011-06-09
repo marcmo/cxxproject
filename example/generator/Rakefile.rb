@@ -9,4 +9,4 @@ file File.join(DIR, 'test.cpp') => DIR do |t|
   sh "touch #{t.name}"
 end
 
-CxxProject2Rake.new('main/project.rb' , 'build', GCCChain, '.')
+CxxProject2Rake.new('main/project/project.rb' , 'build', GCCChain, '.')
