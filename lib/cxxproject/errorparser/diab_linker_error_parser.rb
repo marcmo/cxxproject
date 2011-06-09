@@ -2,7 +2,7 @@ require 'cxxproject/errorparser/error_parser'
 
 class DiabLinkerErrorParser < ErrorParser
 
-  def getSeverity(str)
+  def get_severity(str)
     if str == "info"
       0
     elsif str == "warning"
@@ -20,7 +20,7 @@ class DiabLinkerErrorParser < ErrorParser
       res << [
         proj_dir,
         0,
-        getSeverity(e[0]),
+        get_severity(e[0]),
         e[1] ]
       end
     res

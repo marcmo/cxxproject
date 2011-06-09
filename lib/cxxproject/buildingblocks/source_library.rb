@@ -50,11 +50,7 @@ class SourceLibrary < BuildingBlock
     ].reject{|e| e == ""}.join(" ")
 
     res = file archive => object_multitask do
-      if @@verbose
-        puts cmd
-      else
-        puts "Creating #{archive}" unless Rake::application.options.silent
-      end
+      show_command(cmd, "Creating #{archive}")
 
       consoleOutput = `#{cmd + " 2>&1"}`
       process_console_output(consoleOutput, @tcs[:ARCHIVER][:ERROR_PARSER])

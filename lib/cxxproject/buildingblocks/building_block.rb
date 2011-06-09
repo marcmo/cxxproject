@@ -150,4 +150,11 @@ class BuildingBlock
     end
   end
 
+  def show_command(cmd, alternate)
+    if BuildingBlock.verbose
+      puts cmd
+    else
+      puts alternate unless Rake::application.options.silent
+    end
+  end
 end

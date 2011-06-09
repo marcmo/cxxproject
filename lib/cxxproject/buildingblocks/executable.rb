@@ -56,7 +56,6 @@ class Executable < BuildingBlock
   # create a task that will link an executable from a set of object files
   #
   def convert_to_rake()
-
     calc_compiler_strings()
     objects, object_multitask = create_tasks_for_objects()
 
@@ -129,14 +128,9 @@ class Executable < BuildingBlock
     create_run_task(executable, @config_files, @name)
 
     res = file executable => object_multitask do
+      show_command(cmd, "Linking #{executable}")
+
       # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
-
-      if @@verbose
-        puts cmd
-      else
-        puts "Linking #{executable}" unless Rake::application.options.silent
-      end
-
       consoleOutput = `#{cmd + " 2>" + get_temp_filename}`
       consoleOutput.concat(read_temp_file.join("\n"))
       process_console_output(consoleOutput, @tcs[:LINKER][:ERROR_PARSER])

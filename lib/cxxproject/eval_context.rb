@@ -28,6 +28,11 @@ class EvalContext
     bblock.set_sources(hash[:sources]) if hash.has_key?(:sources)
     bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
     bblock.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
+    bblock.set_lib_searchpaths(calc_lib_searchpath(hash))
+    bblock.set_output_dir(hash[:output_dir]) if hash.has_key?(:output_dir)
+    all_blocks << bblock
+  end
+  def calc_lib_searchpath(hash)
     if hash.has_key?(:libpath)
       bblock.set_lib_searchpaths(hash[:libpath])
     elsif
@@ -37,8 +42,6 @@ class EvalContext
         bblock.set_lib_searchpaths(["C:/tool/cygwin/lib"])
       end
     end
-    bblock.set_output_dir(hash[:output_dir]) if hash.has_key?(:output_dir)
-    all_blocks << bblock
   end
 
   def source_lib(name, hash)

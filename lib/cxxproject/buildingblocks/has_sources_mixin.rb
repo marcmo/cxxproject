@@ -179,11 +179,7 @@ module HasSources
       end
 
       outfileTask = file object => source do
-        if BuildingBlock.verbose
-          puts cmd
-        else
-          puts "Compiling #{source}" unless Rake::application.options.silent
-        end
+        show_command(cmd, "Compiling #{source}")
 
         consoleOutput = `#{cmd + " 2>&1"}`
         process_console_output(consoleOutput, compiler[:ERROR_PARSER])
