@@ -14,11 +14,6 @@ require 'cxxproject/toolchain/colorizing_formatter'
 require 'cxxproject/eval_context'
 
 class CxxProject2Rake
-  begin
-    include Rake::DSL
-  rescue
-    puts 'please update your rake installation'
-  end
 
   attr_accessor :base, :all_tasks
 

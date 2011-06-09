@@ -2,7 +2,6 @@ require 'cxxproject/extensions/rake_listener_ext.rb'
 
 describe Rake::Task do
 
-  include Rake::DSL
   it "should call a listener for prerequisites and execute" do
 
     task "mypre"

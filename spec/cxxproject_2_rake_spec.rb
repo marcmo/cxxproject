@@ -2,7 +2,6 @@ $:.unshift File.join(File.dirname(__FILE__),"..","lib")
 require 'cxxproject'
 require 'cxxproject/utils/cleanup'
 
-include Rake::DSL
 RSPECDIR = File.dirname(__FILE__)
 puts RSPECDIR
 

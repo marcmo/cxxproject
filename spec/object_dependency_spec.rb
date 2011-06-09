@@ -5,11 +5,6 @@ require 'cxxproject/extensions/rake_listener_ext.rb'
 require 'cxxproject/utils/cleanup'
 
 describe Rake::Task do
-  begin
-    include Rake::DSL
-  rescue
-    puts "update rake"
-  end
 
   it 'should fail if source of object is missing' do
     Cxxproject.cleanup_rake
