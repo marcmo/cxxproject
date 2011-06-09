@@ -37,45 +37,49 @@ class IDEInterface < ErrorParser
 
   def set_errors(error_array)
 
-    error_array.each do |msg|
+    if @socket
 
-      filename = msg[0]
-      line_number = msg[1].to_i
-      severity = msg[2]
-      error_msg = msg[3]
+      error_array.each do |msg|
 
-      packet = ""
-      packet.force_encoding("binary") if packet.respond_to?("force_encoding") # for ruby >= 1.9
-      filename.force_encoding("binary") if filename.respond_to?("force_encoding") # for ruby >= 1.9
+        filename = msg[0]
+        line_number = msg[1].to_i
+        severity = msg[2]
+        error_msg = msg[3]
 
-      error_msg.force_encoding("binary") if error_msg.respond_to?("force_encoding") # for ruby >= 1.9
+        packet = ""
+        packet.force_encoding("binary") if packet.respond_to?("force_encoding") # for ruby >= 1.9
+        filename.force_encoding("binary") if filename.respond_to?("force_encoding") # for ruby >= 1.9
 
-      packet << 1 # error type
+        error_msg.force_encoding("binary") if error_msg.respond_to?("force_encoding") # for ruby >= 1.9
 
-      packet << 0 # length (will be corrected below)
-      packet << 0
-      packet << 0
-      packet << 0
+        packet << 1 # error type
 
-      l = filename.length
-      4.times { packet << (l & 0xFF); l = l >> 256 }
-      packet << filename
+        packet << 0 # length (will be corrected below)
+        packet << 0
+        packet << 0
+        packet << 0
 
-      l = line_number
-      4.times { packet << (l & 0xFF); l = l >> 256 }
+        l = filename.length
+        4.times { packet << (l & 0xFF); l = l >> 256 }
+        packet << filename
 
-      packet << (severity & 0xFF)
+        l = line_number
+        4.times { packet << (l & 0xFF); l = l >> 256 }
 
-      packet << error_msg
+        packet << (severity & 0xFF)
 
-      l = packet.length - 5
-      if packet.respond_to?("setbyte")
-        (1..4).each { |i| packet.setbyte(i, (l & 0xFF)); l = l >> 256 } # ruby >= 1.9
-      else
-        (1..4).each { |i| packet[i] = (l & 0xFF); l = l >> 256 } # ruby < 1.9
-      end
+        packet << error_msg
 
-	  @mutex.synchronize { @socket.write(packet) if @socket }
+        l = packet.length - 5
+        if packet.respond_to?("setbyte")
+          (1..4).each { |i| packet.setbyte(i, (l & 0xFF)); l = l >> 256 } # ruby >= 1.9
+        else
+          (1..4).each { |i| packet[i] = (l & 0xFF); l = l >> 256 } # ruby < 1.9
+        end
+
+	    @mutex.synchronize { @socket.write(packet) }
+	  
+	  end
 
     end
 
