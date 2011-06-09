@@ -39,10 +39,17 @@ class CxxProject2Rake
     @all_tasks = instantiate_tasks(projects, build_dir, toolchain, base)
 
     create_generic_tasks
-    handle_console_colorization
-    handle_multitask
+    create_console_colorization
+    create_multitask
+    create_bail_on_first_task
   end
-  def handle_multitask
+  def create_bail_on_first_task
+    desc 'set bail on first error'
+    task :bail_on_first_error do
+      Rake::Task.bail_on_first_error = true
+    end
+  end
+  def create_multitask
     desc 'set parallelization of multitask'
     task :multitask, :nr_of_threads do |t, args|
       puts args
@@ -52,7 +59,7 @@ class CxxProject2Rake
       end
     end
   end
-  def handle_console_colorization
+  def create_console_colorization
     # default is on
     Cxxproject::ColorizingFormatter.enabled = true
     desc 'Toggle colorization of console output (use true|t|yes|y|1 for true ... everything else is false)'

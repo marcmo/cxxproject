@@ -30,7 +30,7 @@ class IDEInterface < ErrorParser
   def disconnect()
     if @socket
       sleep 0.1 # hack to let ruby send all data via streams before closing
-      @socket.close 
+      @socket.close
       @socket = nil
     end
   end
@@ -82,40 +82,40 @@ class IDEInterface < ErrorParser
   end
 
   def set_project(name)
-    
+
     packet = ""
     packet.force_encoding("binary") if packet.respond_to?("force_encoding") # for ruby >= 1.9
     name.force_encoding("binary") if name.respond_to?("force_encoding") # for ruby >= 1.9
-    
+
     l = name.length
-    
+
     packet << 11 # name type
-    
+
     packet << (l % 256)
     packet << (l / 256)
     packet << 0
     packet << 0
-  
+
     packet << name
-  
+
     @mutex.synchronize { @socket.write(packet) if @socket }
   end
 
   def set_number_of_projects(num)
-  
+
     packet = ""
     packet.force_encoding("binary") if packet.respond_to?("force_encoding") # for ruby >= 1.9
-  
+
     packet << 10 # num type
 
-    packet << 2 
+    packet << 2
     packet << 0
     packet << 0
     packet << 0
-    
+
     packet << (num % 256)
     packet << (num / 256)
-  
+
     @mutex.synchronize { @socket.write(packet) if @socket }
   end
 

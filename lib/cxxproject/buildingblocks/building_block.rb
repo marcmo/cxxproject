@@ -2,6 +2,7 @@ require 'cxxproject/buildingblocks/has_dependencies_mixin'
 require 'cxxproject/utils/dot/graph_writer'
 require 'cxxproject/extensions/rake_ext'
 require 'cxxproject/extensions/file_ext'
+require 'cxxproject/ide_interface'
 
 # no deprecated warning for rake >= 0.9.x
 include Rake::DSL if defined?(Rake::DSL)
@@ -19,11 +20,10 @@ class BuildingBlock
   attr_reader :output_dir
   attr_reader :complete_output_dir
 
-  @@idei = nil
   @@verbose = false
 
   def self.idei
-    @@idei
+    @@idei ||= IDEInterface.new
   end
   def self.idei=(value)
     @@idei = value

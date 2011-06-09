@@ -70,6 +70,10 @@ module Rake
   # - showInGraph is used for GraphWriter (internal tasks are not shown)
   #############
   class Task
+    class << self
+      attr_accessor :bail_on_first_error
+    end
+
     attr_accessor :failure # specified if that task has failed
     attr_accessor :deps # used to store deps by depfile task for the apply task (no re-read of depsfile)
     attr_accessor :type
@@ -142,13 +146,16 @@ module Rake
       end
     end
 
-    def set_failed(arg="")
+    def set_failed()
       @failure = true
+      if Rake::Task.bail_on_first_error
+        BuildingBlock.idei.set_abort(true)
+      end
     end
 
     define_method(:execute) do |arg|
       break if @failure # check if a prereq has failed
-      break if BuildingBlock.idei and BuildingBlock.idei.get_abort
+      break if BuildingBlock.idei.get_abort
 
       begin
         execute_org.bind(self).call(arg)
