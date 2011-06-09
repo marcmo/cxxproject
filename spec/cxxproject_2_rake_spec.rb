@@ -167,4 +167,3 @@ describe CxxProject2Rake do
   end
 
 end
-
