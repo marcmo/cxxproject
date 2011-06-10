@@ -45,7 +45,6 @@ module Rake
       jobqueue = @prerequisites.dup
       m = Mutex.new
       numThreads = [jobqueue.length, @@max_parallel_tasks].min
-      puts numThreads
       threads = []
       numThreads.times {
         threads << Thread.new(jobqueue) { |jq|
