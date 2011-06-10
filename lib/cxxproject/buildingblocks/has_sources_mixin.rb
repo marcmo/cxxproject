@@ -7,6 +7,10 @@ module HasSources
     @file_dependencies ||= []
   end
 
+  def object_deps
+    @object_deps ||= []
+  end
+
   def sources
     @sources ||= []
   end
@@ -110,7 +114,11 @@ module HasSources
       end
     end
     deps = deps.gsub(/\\\n/,'').split()[1..-1]
-    deps.map!{|d| File.expand_path(d)}
+    deps.map! do |d|
+      res = File.expand_path(d)
+      object_deps << res
+      res
+    end
 
     FileUtils.mkpath File.dirname(depfile)
     File.open(depfile, 'wb') do |f|
@@ -125,6 +133,7 @@ module HasSources
       deps.each do |d|
         f = file d
         f.ignore_missing_file
+        object_deps << d
       end
       outfileTask.enhance(deps)
     rescue
