@@ -3,7 +3,7 @@ begin
   require 'thread'
 
   class GraphStream
- initialize
+    def initialize
       begin
         @server = TCPSocket.open('localhost', 31217)
         @queue = Queue.new
