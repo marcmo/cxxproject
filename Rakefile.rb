@@ -25,7 +25,8 @@ begin
       self
     end
   end
-  RoodiTask.new('roodi', spec.files, 'roodi.yml')
+  puts "checking with roodi: #{spec.files.join(', ')}"
+  RoodiTask.new('roodi', spec.files)#, 'roodi.yaml')
   task :gem => [:roodi]
 rescue LoadError # don't bail out when people do not have roodi installed!
   warn "roodi not installed...will not be checked!"

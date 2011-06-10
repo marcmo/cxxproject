@@ -7,12 +7,34 @@ require 'thread'
 
 module Rake
 
+  class Application
+    attr_writer :max_parallel_tasks
+    def max_parallel_tasks
+      @max_parallel_tasks ||= 8
+    end
+
+    def idei
+      @idei ||= IDEInterface.new
+    end
+
+    def idei=(value)
+      @idei = value
+    end
+
+    def command_line_number
+      @command_line_number ||= 1
+      res = @command_line_number
+      @command_line_number += 1
+      res
+    end
+  end
+
   $exit_code = 0
 
   class SyncStringIO < StringIO
-    def initialize(mutex)
+    def initialize
       super()
-      @mutex = mutex
+      @mutex = Mutex.new
     end
 
     def sync_flush
@@ -23,47 +45,52 @@ module Rake
 
   end
 
+
+  class Jobs
+    def initialize(jobs, max, &block)
+      nr_of_threads = [max, jobs.length].min
+      @jobs = jobs
+      @mutex = Mutex.new
+      @threads = []
+      nr_of_threads.times do
+        @threads << Thread.new do
+          block.call(self)
+        end
+      end
+    end
+
+    def get_next_or_nil
+      the_next = nil
+      @mutex.synchronize {
+        the_next = @jobs.shift
+      }
+      the_next
+    end
+    def join
+      @threads.each{|t|t.join}
+    end
+  end
+
   #############
   # - Limit parallel tasks
   #############
   class MultiTask < Task
-
-    @@max_parallel_tasks = 8
-
-    def self.max_parallel_tasks
-      @@max_parallel_tasks
-    end
-
-    def self.set_max_parallel_tasks(number)
-      @@max_parallel_tasks = number
-    end
-
     private
     def invoke_prerequisites(args, invocation_chain)
       return unless @prerequisites
-
-      jobqueue = @prerequisites.dup
-      m = Mutex.new
-      numThreads = [jobqueue.length, @@max_parallel_tasks].min
-      threads = []
-      numThreads.times {
-        threads << Thread.new(jobqueue) { |jq|
-          while true do
-            p = nil
-            m.synchronize { p = jq.shift }
-            break unless p
-            s = SyncStringIO.new(m)
-            Thread.current[:stdout] = s
-            prereq = application[p]
-            prereq.invoke_with_call_chain(args, invocation_chain)
-            if prereq.failure
-              set_failed
-            end
-            s.sync_flush
-          end
-        }
-      }
-      threads.each { |t| t.join }
+      jobs = Jobs.new(@prerequisites.dup, application.max_parallel_tasks) do |jobs|
+        while true do
+          job = jobs.get_next_or_nil
+          break unless job
+          s = SyncStringIO.new
+          Thread.current[:stdout] = s
+          prereq = application[job]
+          prereq.invoke_with_call_chain(args, invocation_chain)
+          set_failed if prereq.failure
+          s.sync_flush
+        end
+      end
+      jobs.join
     end
   end
 
@@ -122,58 +149,70 @@ module Rake
     define_method(:invoke) do |*args|
       $exit_code = 0
       invoke_org.bind(self).call(*args)
-      if @failure or BuildingBlock.idei.get_abort
+      if @failure or Rake.application.idei.get_abort
         $exit_code = 1
       end
     end
 
     define_method(:invoke_prerequisites) do |task_args, invocation_chain|
+      new_invoke_prerequisites(task_args, invocation_chain)
+    end
+
+    def new_invoke_prerequisites(task_args, invocation_chain)
       orgLength = 0
       while @prerequisites.length > orgLength do
         orgLength = @prerequisites.length
+
         @prerequisites.dup.each do |n| # dup needed when apply tasks changes that array
-          break if BuildingBlock.idei.get_abort
+          break if Rake.application.idei.get_abort
           begin
             prereq = application[n, @scope]
             prereq_args = task_args.new_scope(prereq.arg_names)
             prereq.invoke_with_call_chain(prereq_args, invocation_chain)
-            if prereq.failure
-              set_failed
-            end
+            set_failed if prereq.failure
           rescue Exception => e
-            begin
-              if Rake::Task[n].ignore
-                @prerequisites.delete(n)
-                def self.needed?
-                  true
-                end
-                next
-              end
-            rescue => e
-              puts "Error #{name}: #{e.message}"
-            end
-            set_failed
+            optional_prereq_or_fail(n)
           end
         end
       end
+    end
+    def optional_prereq_or_fail(n)
+      begin
+        if Rake::Task[n].ignore
+          @prerequisites.delete(n)
+          def self.needed?
+            true
+          end
+          return
+        end
+      rescue => e
+        puts "Error #{name}: #{e.message}"
+      end
+      set_failed
     end
 
     def set_failed()
       @failure = true
       if Rake::Task.bail_on_first_error
-        BuildingBlock.idei.set_abort(true)
+        Rake.application.idei.set_abort(true)
       end
     end
 
     define_method(:execute) do |arg|
       break if @failure # check if a prereq has failed
-      break if BuildingBlock.idei.get_abort
+      break if Rake.application.idei.get_abort
 
+      new_execute(execute_org, arg)
+
+      Thread.current[:stdout].sync_flush if Thread.current[:stdout]
+    end
+
+    def new_execute(execute_org, arg)
       begin
         execute_org.bind(self).call(arg)
-      rescue Exception => ex1 # todo: no rescue to stop on first error
+      rescue Exception => ex1
         # todo: debug log, no puts here!
-        if not BuildingBlock.idei.get_abort()
+        if not Rake.application.idei.get_abort()
           puts "Error for task: #{@name} #{ex1.message}"
         end
         begin
@@ -184,8 +223,6 @@ module Rake
         end
         set_failed
       end
-
-      Thread.current[:stdout].sync_flush if Thread.current[:stdout]
     end
 
     define_method(:timestamp) do
@@ -212,4 +249,3 @@ module Rake
   end
 
 end
-
