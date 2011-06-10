@@ -35,58 +35,55 @@ class IDEInterface < ErrorParser
     end
   end
 
+  def write_long(packet, l)
+    4.times do
+      packet << (l & 0xff)
+      l = l >> 8
+    end
+  end
+
+  def force_encoding(s)
+    s.force_encoding("binary") if s.respond_to?("force_encoding") # for ruby >= 1.9
+  end
+
+  def set_length_in_header(packet)
+    l = packet.length - 5
+    if packet.respond_to?("setbyte")
+      (1..4).each { |i| packet.setbyte(i, (l & 0xFF)); l = l >> 8 } # ruby >= 1.9
+    else
+      (1..4).each { |i| packet[i] = (l & 0xFF); l = l >> 8 } # ruby < 1.9
+    end
+  end
+
+  def write_string(packet, s)
+    write_long(packet, s.length)
+    packet << s
+  end
+
   def set_errors(error_array)
-
     if @socket
-
       error_array.each do |msg|
-
+        # msg = [filename, line_number, severity, error_msg] ... perhaps use hash?
         filename = msg[0]
-        line_number = msg[1].to_i
-        severity = msg[2]
-        error_msg = msg[3]
-
         packet = ""
-        packet.force_encoding("binary") if packet.respond_to?("force_encoding") # for ruby >= 1.9
-        filename.force_encoding("binary") if filename.respond_to?("force_encoding") # for ruby >= 1.9
-
-        error_msg.force_encoding("binary") if error_msg.respond_to?("force_encoding") # for ruby >= 1.9
+        [packet, filename, error_msg].each {|s|force_encoding(s)}
 
         packet << 1 # error type
+        write_long(packet, 0) # length will be corrected below
+        write_string(packet, filename)
+        write_long(packet, msg[1].to_i)
 
-        packet << 0 # length (will be corrected below)
-        packet << 0
-        packet << 0
-        packet << 0
+        packet << (msg[2] & 0xFF)
+        packet << msg[3] # perhaps write error_msg with length, stringdata
 
-        l = filename.length
-        4.times { packet << (l & 0xFF); l = l >> 256 }
-        packet << filename
+        set_length_in_header(packet, l)
 
-        l = line_number
-        4.times { packet << (l & 0xFF); l = l >> 256 }
-
-        packet << (severity & 0xFF)
-
-        packet << error_msg
-
-        l = packet.length - 5
-        if packet.respond_to?("setbyte")
-          (1..4).each { |i| packet.setbyte(i, (l & 0xFF)); l = l >> 256 } # ruby >= 1.9
-        else
-          (1..4).each { |i| packet[i] = (l & 0xFF); l = l >> 256 } # ruby < 1.9
-        end
-
-	    @mutex.synchronize { @socket.write(packet) }
-	  
-	  end
-
+        @mutex.synchronize { @socket.write(packet) }
+      end
     end
-
   end
 
   def set_project(name)
-
     packet = ""
     packet.force_encoding("binary") if packet.respond_to?("force_encoding") # for ruby >= 1.9
     name.force_encoding("binary") if name.respond_to?("force_encoding") # for ruby >= 1.9
@@ -131,6 +128,8 @@ class IDEInterface < ErrorParser
           @socket.recv_nonblock(1)
           @abort = true # currently this is the only possible input
         rescue IO::WaitReadable
+          # perhaps also set abort?
+          @abort = true
         end
       }
     end

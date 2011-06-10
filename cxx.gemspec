@@ -5,9 +5,9 @@ include FileUtils
 PKG_VERSION = '0.4.8'
 PKG_FILES = FileList[
   'lib/**/*.rb',
-  'lib/tools/**/*.template',
   'Rakefile.rb',
-  'spec/**/*.rb'
+  'spec/**/*.rb',
+  'lib/tools/**/*.template'
 ]
 
 Gem::Specification.new do |s|

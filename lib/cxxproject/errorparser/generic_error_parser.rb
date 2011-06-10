@@ -11,20 +11,24 @@ class GenericErrorParser < ErrorParser
         e[3] = e[3].concat(e[4][9..-1]) # error msg can be splitted into two lines (10 spaces in front if splitted)
       end
       e.pop
-
-      if e[2] == "info"
-        e[2] = 0
-      elsif e[2] == "warning"
-        e[2] = 1
-      elsif e[2] == "error" or e[2] == "catastrophic error"
-        e[2] = 2
-      else
-        raise "Unknown severity: #{e[2]}"
-      end
+      e[2] = string_to_error_code(e[2])
 
       res << e
     end
     res
   end
 
+  def string_to_error_code(s)
+    case s
+      when 'info'
+        return 0
+      when 'warning'
+        return 1
+      when 'error'
+      when 'catastrophic error'
+        return 2
+      else
+        raise "Unknown severity: #{s}"
+    end
+  end
 end

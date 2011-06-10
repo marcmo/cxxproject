@@ -22,9 +22,20 @@ class CxxProject2Rake
     @base = base
     @build_dir = build_dir
     @toolchain = toolchain
-    @rel_projects = @projects.map { |p| File.join(@base,p) }
+    cd(@base, :verbose => false) do
+      @rel_projects = @projects.map { |p| File.join(@base, p) }
+    end
 
-    pwd = `pwd`
+    initialize_logging
+    @all_tasks = instantiate_tasks
+
+    create_generic_tasks
+    create_console_colorization
+    create_multitask
+    create_bail_on_first_task
+  end
+
+  def initialize_logging
     @log = Logger.new(STDOUT)
     @log.formatter = proc { |severity, datetime, progname, msg|
       "#{severity}: #{msg}\n"
@@ -34,16 +45,8 @@ class CxxProject2Rake
     # Rake --trace -> debug
     @log.level = Logger::ERROR
     @log.level = Logger::INFO if RakeFileUtils.verbose == true
-    BuildingBlock.verbose = true if RakeFileUtils.verbose == true
     @log.level = Logger::DEBUG if Rake::application.options.trace
-    @log.debug "initializing for build_dir: \"#{build_dir}\", base: \"#{base}\""
-    @base = base
-    @all_tasks = instantiate_tasks()
-
-    create_generic_tasks
-    create_console_colorization
-    create_multitask
-    create_bail_on_first_task
+    @log.debug "initializing for build_dir: \"#{@build_dir}\", base: \"#{@base}\""
   end
 
   def create_bail_on_first_task
@@ -58,7 +61,7 @@ class CxxProject2Rake
     task :multitask, :threads do |t, args|
       arg = args.threads
       if arg
-        Rake::MultiTask.set_max_parallel_tasks(arg.to_i)
+        Rake::application.max_parallel_tasks = arg.to_i
       end
     end
   end
@@ -109,18 +112,14 @@ class CxxProject2Rake
     end
   end
 
-  def instantiate_tasks()#project_configs, build_dir, toolchain, base='.')
-    cd(@base, :verbose => false) do
-      @projects.each do |p|
-        abort "project config #{p} cannot be found!" unless File.exists?(p)
-      end
-    end
+  def instantiate_tasks
+    check_for_project_configs
+
     @log.debug "project_configs:"
     @projects.each { |c| @log.debug " *  #{c}" }
     register_projects()
 
     tasks = []
-
     #todo: sort ALL_BUILDING_BLOCKS (circular deps)
     ALL_BUILDING_BLOCKS.each do |name,block|
       prepare_block(block)
@@ -129,11 +128,17 @@ class CxxProject2Rake
     ALL_BUILDING_BLOCKS.each do |name,block|
       @log.debug "creating task for block: #{block.name}/taskname: #{block.get_task_name} (#{block})"
       t = block.convert_to_rake()
-      if (t != nil)
-        tasks << { :task => t, :name => name }
-      end
+      tasks << { :task => t, :name => name } if t
     end
     tasks
+  end
+
+  def check_for_project_configs
+    cd(@base, :verbose => false) do
+      @projects.each do |p|
+        abort "project config #{p} cannot be found!" unless File.exists?(p)
+      end
+    end
   end
 
   def prepare_block(block)
@@ -150,8 +155,7 @@ class CxxProject2Rake
         dirname = File.dirname(project_file)
         @log.debug "dirname for project was: #{dirname}"
         cd(dirname,:verbose => false) do | base_dir |
-          pwd = `pwd`
-          @log.debug "register project #{project_file} from within directory: #{pwd.chomp}"
+          @log.debug "register project #{project_file} from within directory: #{Dir.pwd}"
           eval_file(b, File.basename(project_file))
         end
       end

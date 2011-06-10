@@ -29,29 +29,63 @@ class SpecTaskListener
   end
 end
 
-describe CxxProject2Rake do
-  def count_needed_tasks(tasks)
-    needed = 0
-    tasks.each do |tn|
-      t = tn[:task]
-      if t.needed?
-        needed = needed + 1
-      end
-    end
-    needed
-  end
-  def execute_all_tasks(tasks)
-    tasks.each do |tn|
-      t = tn[:task]
-      t.invoke
-    end
-  end
+def rebuild
+  tasks = fresh_cxx.all_tasks
+  execute_all_tasks(tasks)
+end
 
-  def fresh_cxx
-    Cxxproject.cleanup_rake
-    outputdir = 'output'
-    CxxProject2Rake.new(Dir.glob('**/project.rb'), outputdir, GCCChain)
+def is_older? fileA, fileB
+  File.mtime(fileA) < File.mtime(fileB)
+end
+
+def is_newer? fileA, fileB
+  File.mtime(fileA) > File.mtime(fileB)
+end
+
+def check_rebuilding (end_product, prereq_file, should_rebuild = true)
+  sleep(1)
+  FileUtils.touch prereq_file
+  # prereq_file should be newer
+  File.mtime(prereq_file).should > File.mtime(end_product)
+  rebuild
+  if should_rebuild
+    # prereq_file should NOT be newer
+    File.mtime(prereq_file).should <= File.mtime(end_product)
+  else
+    # prereq_file should still be newer
+    File.mtime(prereq_file).should > File.mtime(end_product)
   end
+end
+
+def execute_all_tasks(tasks)
+  tasks.each do |tn|
+    t = tn[:task]
+    t.invoke
+  end
+end
+
+def fresh_cxx
+  Cxxproject.cleanup_rake
+  outputdir = 'output'
+  CxxProject2Rake.new(Dir.glob('**/project.rb'), outputdir, GCCChain)
+end
+
+def cleanup
+  rm_r 'output' if File.directory?('output')
+end
+
+def count_needed_tasks(tasks)
+  needed = 0
+  tasks.each do |tn|
+    t = tn[:task]
+    if t.needed?
+      needed = needed + 1
+    end
+  end
+  needed
+end
+
+describe CxxProject2Rake do
 
   it 'should rebuild only when one file was changed' do
     require 'cxxproject/extensions/rake_listener_ext'
@@ -61,7 +95,8 @@ describe CxxProject2Rake do
     cd("#{RSPECDIR}/testdata/onlyOneHeader", :verbose => false) do
       # fresh build
       listener.reset_exec_count
-      rm_r 'output' if File.directory?('output')
+      cleanup
+
       tasks = fresh_cxx.all_tasks
       CLOBBER.each { |fn| rm_r fn rescue nil }
       execute_all_tasks(tasks)
@@ -77,7 +112,6 @@ describe CxxProject2Rake do
       execute_all_tasks(tasks)
       listener.get_exec_count.should == rebuild_build_steps
 
-
       # rebuild after header changed
       listener.reset_exec_count
       sleep(1)
@@ -92,43 +126,15 @@ describe CxxProject2Rake do
       execute_all_tasks(tasks)
       listener.get_exec_count.should == rebuild_build_steps
 
-      # cleanup
-      rm_r 'output' if File.directory?('output')
+      cleanup
     end
     Rake::remove_listener(listener)
   end
 
-  def rebuild
-    tasks = fresh_cxx.all_tasks
-    execute_all_tasks(tasks)
-  end
-
-  def is_older? fileA, fileB
-    File.mtime(fileA) < File.mtime(fileB)
-  end
-
-  def is_newer? fileA, fileB
-    File.mtime(fileA) > File.mtime(fileB)
-  end
-
-  def check_rebuilding (end_product, prereq_file, should_rebuild = true)
-    sleep(1)
-    FileUtils.touch prereq_file
-    # prereq_file should be newer
-    File.mtime(prereq_file).should > File.mtime(end_product)
-    rebuild
-    if should_rebuild
-      # prereq_file should NOT be newer
-      File.mtime(prereq_file).should <= File.mtime(end_product)
-    else
-      # prereq_file should still be newer
-      File.mtime(prereq_file).should > File.mtime(end_product)
-    end
-  end
-
   it 'should rebuild when any source file changes' do
     cd("#{RSPECDIR}/testdata/basic", :verbose => false) do
-      rm_r 'output' if File.directory?('output')
+      cleanup
+
       tasks = fresh_cxx.all_tasks
       CLOBBER.each { |fn| rm_r fn rescue nil }
       execute_all_tasks(tasks)
@@ -159,8 +165,7 @@ describe CxxProject2Rake do
       check_rebuilding libB, sourceC, false
       check_rebuilding libC, sourceB
 
-      # cleanup
-      rm_r 'output' if File.directory?('output')
+      cleanup
       Cxxproject.cleanup_rake
     end
   end

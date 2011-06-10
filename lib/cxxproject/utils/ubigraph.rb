@@ -2,11 +2,6 @@ begin
 
   require 'rubigraph'
 
-  def apply?(name)
-    name.match(/.*\.apply\Z/) != nil
-  end
-
-
   module Rubigraph
     class Vertex
       alias_method :initialize_original, :initialize
@@ -96,25 +91,15 @@ begin
     def interesting?(name)
       exe?(name) || object?(name) || library?(name) || multitask?(name)
     end
-
-    def initialize
-      Rake::Task.tasks.each do |t|
-        if apply?(t.name)
-          t.invoke
-        end
-      end
-
-      interesting_tasks = Rake::Task.tasks.select { |i| interesting?(i.name) }
+    def create_vertices
       @vertices = {}
-
-      # create vertices
-      interesting_tasks.each do |task|
+      @interesting_tasks.each do |task|
         v = V.new(task.name)
         @vertices[task.name] = {:vertex=>v, :task=>task}
       end
-
-      # create edges
-      interesting_tasks.each do |task|
+    end
+    def create_edges
+      @interesting_tasks.each do |task|
         name = task.name
         v1 = @vertices[name]
         task.prerequisites.each do |p|
@@ -125,13 +110,19 @@ begin
           end
         end
       end
-
+    end
+    def color_vertices
       @vertices.each do |k, value|
         v = value[:vertex]
         v.v.label = k
         set_attributes(v, k)
       end
-
+    end
+    def initialize
+      @interesting_tasks = Rake::Task.tasks.select { |i| interesting?(i.name) }
+      create_vertices
+      create_edges
+      color_vertices
     end
 
     def update_colors
@@ -233,6 +224,7 @@ begin
   end
 rescue LoadError => le
   # dont mind if rubigraph is missing
+  puts "rubigraph is missing"
 rescue Exception => e
   puts "#{e} -- no problem...will do without!"
 end
