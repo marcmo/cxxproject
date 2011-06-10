@@ -101,6 +101,10 @@ module Cxxproject
         return @@settings[name] if @@settings.include? name
         nil
       end
+      
+      def self.list
+        return @@settings
+      end
 
     end
 
