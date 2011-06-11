@@ -19,14 +19,16 @@ class GenericErrorParser < ErrorParser
   end
 
   def string_to_error_code(s)
-    if s == "info"
-      return 0
-    elsif s == "warning"
-      return 1
-    elsif s == "error" or s == "catastrophic error"
-      return = 2
-    else
-      raise "Unknown severity: #{s}"
+    case s
+      when 'info'
+        return 0
+      when 'warning'
+        return 1
+      when 'error'
+      when 'catastrophic error'
+        return 2
+      else
+        raise "Unknown severity: #{s}"
     end
   end
 end

@@ -1,3 +1,4 @@
+# -*- coding: undecided -*-
 require 'rake/clean'
 
 desc "Default Task"
@@ -12,7 +13,7 @@ begin
   require 'roodi_task'
   class RoodiTask
     def define
-      desc "Check for design issues in: #{patterns.join(', ')}"
+      desc "Check for design issues in: #{patterns.join(', ')}"        
       task name do
         runner = Roodi::Core::Runner.new
         runner.config = config if config
@@ -25,7 +26,6 @@ begin
       self
     end
   end
-  puts "checking with roodi: #{spec.files.join(', ')}"
   RoodiTask.new('roodi', spec.files)#, 'roodi.yaml')
   task :gem => [:roodi]
 rescue LoadError # don't bail out when people do not have roodi installed!
