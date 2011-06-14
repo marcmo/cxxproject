@@ -1,6 +1,7 @@
 require 'rake'
 require 'progressbar'
 require 'colored'
+require 'cxxproject/utils/progress_helper'
 
 class ProgressBar
   attr_writer :title
@@ -23,18 +24,17 @@ class ProgressBar
   end
 end
 
-
 class ProgressListener
   def initialize
-    @todo = 0.0
-    @needed_tasks = {}
+    @progress_helper = ProgressHelper.new
     Rake::application.top_level_tasks.each do |name|
       tasks = find_tasks_for_toplevel_task(name)
       tasks.each do |t|
-        walk_task(t)
+        @progress_helper.count(t)
       end
     end
-    @progress = ProgressBar.new('all tasks', @todo)
+
+    @progress = ProgressBar.new('all tasks', @progress_helper.todo)
     @progress.title_width = 30
     @progress.unblock
   end
@@ -72,24 +72,12 @@ class ProgressListener
     return Regexp.new(name)
   end
 
-  def walk_task(task)
-    count = task.progress_count
-    if count && count > 0
-      if task.needed? && @needed_tasks[task.name] == nil
-        @needed_tasks[task.name] = true
-        @todo += count
-      end
-    end
-    task.prerequisite_tasks.each do |t|
-      walk_task(t)
-    end
-  end
-
   def method_missing(name, args)
   end
 
   def after_execute(name)
-    if @needed_tasks[name]
+    needed_tasks = @progress_helper.needed_tasks
+    if needed_tasks[name]
       task = Rake::Task[name]
       @progress.title = task.name
       @progress.inc(task.progress_count)

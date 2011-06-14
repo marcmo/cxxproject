@@ -20,6 +20,7 @@ module Cxxproject
 
       # formats several lines of usually compiler output
       def format(compiler_output)
+        return compiler_output if not enabled?
         res = ""
         compiler_output.each_line do |l|
           md = ERROR_REGEXP.match(l)

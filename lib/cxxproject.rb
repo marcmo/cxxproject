@@ -10,5 +10,6 @@ require 'cxxproject/utils/ubigraph'
 require 'cxxproject/utils/graphstream'
 require 'cxxproject/toolchain/provider'
 require 'cxxproject/utils/progress'
+require 'cxxproject/utils/rbcurse'
 
 include Cxxproject::Toolchain

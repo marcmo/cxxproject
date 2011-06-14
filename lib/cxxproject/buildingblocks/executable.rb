@@ -162,12 +162,16 @@ class Executable < BuildingBlock
   def create_run_task(executable, name)
     namespace 'run' do
       desc "run executable #{executable}"
-      res = task name => executable do
-        sh "#{executable}"
+      res = task name => executable do |t|
+        run_command(t, executable)
       end
       res.type = Rake::Task::RUN
       res
     end
+  end
+
+  def run_command(task, command)
+    sh "#{command}"
   end
 
   def get_temp_filename

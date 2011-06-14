@@ -1,6 +1,6 @@
 cxx_configuration do
   source_lib "1",
-    :sources => FileList['lib1.cpp'],
+    :sources => FileList['*.cpp'],
     :includes => ['.'],
     :output_dir => 'build'
 end

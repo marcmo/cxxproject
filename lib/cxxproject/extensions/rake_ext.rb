@@ -31,21 +31,6 @@ module Rake
 
   $exit_code = 0
 
-  class SyncStringIO < StringIO
-    def initialize(mutex)
-      super()
-      @mutex = mutex
-    end
-
-    def sync_flush
-      if string.length > 0
-        @mutex.synchronize { STDOUT.write string; truncate(0); rewind}
-      end
-    end
-
-  end
-
-
   class Jobs
     def initialize(jobs, max, &block)
       nr_of_threads = [max, jobs.length].min
@@ -75,33 +60,43 @@ module Rake
   # - Limit parallel tasks
   #############
   class MultiTask < Task
-    private
     def invoke_prerequisites(args, invocation_chain)
       return unless @prerequisites
-      mutex = Mutex.new
+      @mutex = Mutex.new
       jobs = Jobs.new(@prerequisites.dup, application.max_parallel_tasks) do |jobs|
         while true do
           job = jobs.get_next_or_nil
           break unless job
-          s = SyncStringIO.new(mutex)
-          Thread.current[:stdout] = s
+
           prereq = application[job]
+          prereq.dont_output = true
           prereq.invoke_with_call_chain(args, invocation_chain)
           set_failed if prereq.failure
-          s.sync_flush
+          output(prereq.output_string)
         end
       end
       jobs.join
     end
+
+    def output(to_output)
+      return if Rake::Task.output_disabled
+
+      @mutex.synchronize do
+        if to_output and to_output.length > 0
+          puts to_output
+        end
+      end
+    end
   end
 
-  #############
+  ###########
   # - Go on if a task fails (but to not execute the parent)
   # - showInGraph is used for GraphWriter (internal tasks are not shown)
   #############
   class Task
     class << self
       attr_accessor :bail_on_first_error
+      attr_accessor :output_disabled
     end
 
     attr_accessor :failure # specified if that task has failed
@@ -110,6 +105,8 @@ module Rake
     attr_accessor :transparent_timestamp
     attr_accessor :dismissed_prerequisites
     attr_accessor :progress_count
+    attr_accessor :output_string
+    attr_accessor :dont_output
 
     UNKNOWN     = 0x0000 #
     OBJECT      = 0x0001 #
@@ -209,6 +206,9 @@ module Rake
     end
 
     def new_execute(execute_org, arg)
+      s = StringIO.new
+      Thread.current[:stdout] = s
+
       begin
         execute_org.bind(self).call(arg)
       rescue Exception => ex1
@@ -224,6 +224,25 @@ module Rake
         end
         set_failed
       end
+
+      self.output_string = s.string
+      Thread.current[:stdout] = nil
+
+      output(self.output_string) unless dont_output
+    end
+
+    def output(to_output)
+      return if Rake::Task.output_disabled
+
+      if to_output and to_output.length > 0
+        puts to_output
+      end
+    end
+
+    reenable_org = self.instance_method(:reenable)
+    define_method(:reenable) do
+      reenable_org.bind(self).call
+      @failure = false
     end
 
     define_method(:timestamp) do
