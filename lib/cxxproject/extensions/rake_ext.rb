@@ -5,7 +5,7 @@ require 'rake'
 require 'stringio'
 require 'thread'
 
-#Rake::TaskManager.record_task_metadata = true
+Rake::TaskManager.record_task_metadata = true
 
 module Rake
 
@@ -13,7 +13,7 @@ module Rake
 
   class SyncStringIO < StringIO
     def initialize(mutex, for_task)
-      super
+      super()
       @mutex = mutex
       @for_task = for_task
     end
@@ -85,6 +85,7 @@ module Rake
     attr_accessor :transparent_timestamp
     attr_accessor :dismissed_prerequisites
     attr_accessor :progress_count
+    attr_accessor :output_string
 
     UNKNOWN     = 0x0000 #
     OBJECT      = 0x0001 #
@@ -169,6 +170,10 @@ module Rake
     end
 
     define_method(:execute) do |arg|
+      $log.error "#{name}" if $log
+      $log.error "#{Thread.current[:stdout]}" if $log
+      Thread.current[:stdout] = SyncStringIO.new(Mutex.new, name) unless Thread.current[:stdout]
+
       break if @failure # check if a prereq has failed
       break if BuildingBlock.idei.get_abort
 
