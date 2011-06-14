@@ -9,6 +9,7 @@ module Rake
   def self.get_listener
     @@listener ||= []
   end
+
   def self.remove_listener(l)
     get_listener().delete(l)
   end

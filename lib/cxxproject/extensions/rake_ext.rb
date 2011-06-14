@@ -5,14 +5,17 @@ require 'rake'
 require 'stringio'
 require 'thread'
 
+#Rake::TaskManager.record_task_metadata = true
+
 module Rake
 
   $exit_code = 0
 
   class SyncStringIO < StringIO
-    def initialize(mutex)
-      super()
+    def initialize(mutex, for_task)
+      super
       @mutex = mutex
+      @for_task = for_task
     end
 
     def sync_flush
@@ -52,7 +55,7 @@ module Rake
             p = nil
             m.synchronize { p = jq.shift }
             break unless p
-            s = SyncStringIO.new(m)
+            s = SyncStringIO.new(m, p)
             Thread.current[:stdout] = s
             prereq = application[p]
             prereq.invoke_with_call_chain(args, invocation_chain)
