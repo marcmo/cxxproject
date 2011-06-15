@@ -31,30 +31,37 @@ module Rake
       return unless @prerequisites
 
       jobqueue = @prerequisites.dup
-      m = Mutex.new
+      @mutex = Mutex.new
       numThreads = [jobqueue.length, @@max_parallel_tasks].min
       threads = []
       numThreads.times {
         threads << Thread.new(jobqueue) { |jq|
           while true do
             p = nil
-            m.synchronize { p = jq.shift }
+            @mutex.synchronize { p = jq.shift }
             break unless p
+
             prereq = application[p]
+            prereq.dont_output = true
             prereq.invoke_with_call_chain(args, invocation_chain)
             if prereq.failure
               set_failed
             end
-            synchronized_output(m, prereq.output_string)
+            output(prereq.output_string)
           end
         }
       }
       threads.each { |t| t.join }
     end
 
-    def synchronized_output(mutex, output)
+    def output(to_output)
       return if Rake::Task.output_disabled
-      mutex.synchronize { puts output }
+
+      @mutex.synchronize do
+        if to_output
+          puts to_output
+        end
+      end
     end
   end
 
@@ -75,6 +82,7 @@ module Rake
     attr_accessor :dismissed_prerequisites
     attr_accessor :progress_count
     attr_accessor :output_string
+    attr_accessor :dont_output
 
     UNKNOWN     = 0x0000 #
     OBJECT      = 0x0001 #
@@ -159,11 +167,11 @@ module Rake
     end
 
     define_method(:execute) do |arg|
-      s = StringIO.new
-      Thread.current[:stdout] = s
-
       break if @failure # check if a prereq has failed
       break if BuildingBlock.idei.get_abort
+
+      s = StringIO.new
+      Thread.current[:stdout] = s
 
       begin
         execute_org.bind(self).call(arg)
@@ -180,8 +188,21 @@ module Rake
         end
         set_failed
       end
+
       self.output_string = s.string
       Thread.current[:stdout] = nil
+
+      if not dont_output
+        output(self.output_string)
+      end
+    end
+
+    def output(to_output)
+      return if Rake::Task.output_disabled
+
+      if to_output and to_output.length > 0
+        puts to_output
+      end
     end
 
     define_method(:timestamp) do
