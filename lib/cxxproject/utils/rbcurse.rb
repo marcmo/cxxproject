@@ -93,6 +93,7 @@ begin
         task = Rake::Task[name]
         @progress.title = task.name
         @progress.inc(task.progress_count)
+        @form.repaint
       end
     end
 
@@ -180,7 +181,6 @@ begin
 
     class Progress
       def initialize(form, size)
-        @form = form
         @width = size[0]
         $log.error size
         @progress = Label.new form do
@@ -192,21 +192,46 @@ begin
         end
         @progress.display_length(@width)
         @progress.text = '-'*@width
+
+        @title = Label.new form do
+          name 'title'
+          row size[1]-2
+          col 0
+          width size[0]
+          height 1
+        end
+        @title.display_length(@widget)
+        title = 'Idle'
+
         max = 100
       end
 
       def title=(t)
-        $log.error "worked on #{t}"
+        @title_text = t
+        format_title
       end
 
       def inc(i)
         @current += i
-        total = (@current.to_f / @max.to_f * @width.to_f).to_i
-        text = "#" * total
-        $log.error "setting progress #{total}"
-        @progress.text = text
+        format_title
+        format_progress
+      end
 
-        @form.repaint
+      def percentage
+        return @current.to_f / @max.to_f
+      end
+
+      def format_progress
+        total = (percentage * @width.to_f).to_i
+        text = "#" * total
+        @progress.text = text
+        @progress.repaint_all(true)
+      end
+
+      def format_title
+        format = "%3d%% - worked on %s                                                                    "
+        @title.text = sprintf(format, (percentage*100).to_i, @title_text)
+        @title.repaint_all(true)
       end
 
       def max=(f)
@@ -242,7 +267,7 @@ begin
             row 1
             col 0
             width size[0]
-            height size[1]-2
+            height size[1]-3
             orientation :HORIZONTAL_SPLIT
           end
           @table = create_table
