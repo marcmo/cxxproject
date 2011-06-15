@@ -1,34 +1,25 @@
 require 'rake'
 require 'erb'
 
-def choose_building_block
-  res = nil
-  choose do |menu|
-    menu.prompt = "what building block do you want to start with?"
-
-    menu.choice(:exe) { res = "exe" }
-    menu.choice(:lib) { res = "source_lib" }
-  end
-  res
-end
-
-def choose_generate_makefile
-  res = true
-  choose do |menu|
-    menu.prompt = 'generate rakefile?'
-    menu.choice(:yes) { res = true }
-    menu.choice(:no) { res = false }
-  end
-  res
-end
-
 def prepare_project(d)
 
   require 'highline/import'
 
   if agree("This will create a new cxx-project config in dir \"#{d}\" \nAre you sure you want to continue? [yn] ")
-    bb = choose_building_block
-    generate_makefile = choose_generate_makefile
+    bb = nil
+    choose do |menu|
+      menu.prompt = "what building block do you want to start with?"
+
+      menu.choice(:exe) { bb = "exe" }
+      menu.choice(:lib) { bb = "source_lib" }
+    end
+
+    generate_makefile = true
+    choose do |menu|
+      menu.prompt = 'generate rakefile?'
+      menu.choice(:yes) { generate_makefile = true }
+      menu.choice(:no) { generate_makefile = false }
+    end
 
     create_project(d, bb, generate_makefile)
   else
@@ -43,21 +34,21 @@ def create_project(d, bb, generate_rakefile)
   s2 = IO.read(projectrb_template)
   name = "testme"
   building_block = bb
+  template1 = ERB.new s1
+  template2 = ERB.new s2
   mkdir_p(d, :verbose => false)
   cd(d,:verbose => false) do
     if ((File.exists? "Rakefile.rb") || (File.exists? "project.rb"))
       abort "cannot create project in this directory, existing files would be overwritten!"
     end
     if generate_rakefile
-      write_template('Rakefile.rb', s1, binding)
+      File.open("Rakefile.rb", 'w') do |f|
+        f.write template1.result(binding)
+      end
     end
-    write_template('project.rb', s2, binding)
-  end
-end
-
-def write_template(name, template_string, b)
-  File.open(name, 'w') do |f|
-    f.write ERB.new(template_string).result(b)
+    File.open("project.rb", 'w') do |f|
+      f.write template2.result(binding)
+    end
   end
 end
 

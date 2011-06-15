@@ -11,7 +11,7 @@ include Rake::DSL if defined?(Rake::DSL)
 ALL_BUILDING_BLOCKS = {}
 
 trap("INT") do
-  Rake.application.idei.set_abort(true)
+  BuildingBlock.idei.set_abort(true)
 end
 
 class BuildingBlock
@@ -23,6 +23,22 @@ class BuildingBlock
   attr_reader :project_dir
   attr_accessor :output_dir
   attr_reader :output_dir_abs
+
+  @@verbose = false
+
+  def self.idei
+    @@idei ||= IDEInterface.new
+  end
+  def self.idei=(value)
+    @@idei = value
+  end
+
+  def self.verbose
+    @@verbose
+  end
+  def self.verbose=(value)
+    @@verbose = value
+  end
 
   def set_name(x)
     @name = x
@@ -135,38 +151,10 @@ class BuildingBlock
   end
 
   def show_command(cmd, alternate)
-    if RakeFileUtils.verbose
+    if BuildingBlock.verbose
       puts cmd
     else
       puts alternate unless Rake::application.options.silent
     end
-  end
-
-  def read_file_or_empty_string(filename)
-    begin
-      return File.read(filename)
-    rescue
-      return ""
-    end
-  end
-
-  def check_system_command(cmd)
-    raise "System command failed: #{cmd}" if $?.to_i != 0
-  end
-
-  def typed_file_task(type, *args, &block)
-    t = file *args do
-      block.call
-    end
-    t.type = type
-    t.progress_count = 1
-    return t
-  end
-  def remove_empty_strings_and_join(a, j=' ')
-    return a.reject{|e|e.to_s.empty?}.join(j)
-  end
-  def catch_output(cmd)
-    new_command = "#{cmd} 2>&1"
-    return `#{new_command}`
   end
 end

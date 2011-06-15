@@ -34,51 +34,52 @@ class Makefile < BuildingBlock
 
   def convert_to_rake()
     mfile = get_makefile()
-    cmd = remove_empty_strings_and_join([@tcs[:MAKE][:COMMAND], # make
-      get_target, @tcs[:MAKE][:MAKE_FLAGS], @tcs[:MAKE][:FLAGS], # -j
+    cmd = [@tcs[:MAKE][:COMMAND], # make
+      get_target, # all
+      @tcs[:MAKE][:MAKE_FLAGS], # ??
+      @tcs[:MAKE][:FLAGS], # -j
       @tcs[:MAKE][:DIR_FLAG], # -C
       File.dirname(mfile), # x/y
       @tcs[:MAKE][:FILE_FLAG], # -f
       File.basename(mfile) # x/y/makefile
-    ])
+    ].reject{|e| e == ""}.join(" ")
     mfileTask = task get_task_name do
-      show_command(cmd)
-      process_console_output(catch_output(cmd))
-      check_system_command(cmd)
+      puts cmd
+      consoleOutput = `#{cmd + " 2>&1"}`
+      process_console_output(consoleOutput)
+      raise "System command failed" if $?.to_i != 0
     end
     mfileTask.transparent_timestamp = true
     mfileTask.type = Rake::Task::MAKE
     mfileTask.enhance(@config_files)
 
-    create_clean_task
-    setup_rake_dependencies(mfileTask)
-    mfileTask
-  end
-
-  def create_clean_task
     # generate the clean task
     if not Rake.application["clean"].prerequisites.include?(mfile+"Clean")
-      cmd = remove_empty_strings_and_join([@tcs[:MAKE][:COMMAND], # make
-                                           @tcs[:MAKE][:CLEAN], # clean
-                                           @tcs[:MAKE][:DIR_FLAG], # -C
-                                           File.dirname(mfile), # x/y
-                                           @tcs[:MAKE][:FILE_FLAG], # -f
-                                           File.basename(mfile) # x/y/makefile
-                                          ])
+      cmdClean = [@tcs[:MAKE][:COMMAND], # make
+        @tcs[:MAKE][:CLEAN], # clean
+        @tcs[:MAKE][:DIR_FLAG], # -C
+        File.dirname(mfile), # x/y
+        @tcs[:MAKE][:FILE_FLAG], # -f
+        File.basename(mfile) # x/y/makefile
+      ].reject{|e| e == ""}.join(" ")
       mfileCleanTask = task mfile+"Clean" do
-        show_command(cmd)
-        process_console_output(catch_output(cmd))
-        check_system_command(cmd)
+        puts cmdClean
+        consoleOutput = `#{cmdClean + " 2>&1"}`
+        process_console_output(consoleOutput)
+        raise "System command failed" if $?.to_i != 0
       end
       Rake.application["clean"].enhance([mfileCleanTask])
     end
+
+    setup_rake_dependencies(mfileTask)
+    mfileTask
   end
 
   def process_console_output(consoleOutput)
     if not consoleOutput.empty?
       puts consoleOutput
 
-      if $?.to_i != 0
+      if BuildingBlock.idei and $?.to_i != 0
         res = []
         res << @project_dir + "/" + get_makefile()
         res << 1
@@ -88,7 +89,7 @@ class Makefile < BuildingBlock
         else
           res << "Failed"
         end
-        Rake.application.idei.set_errors([res])
+        BuildingBlock.idei.set_errors([res])
       end
     end
   end

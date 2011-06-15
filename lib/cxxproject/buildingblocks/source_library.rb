@@ -36,32 +36,36 @@ class SourceLibrary < BuildingBlock
   # task that will link the given object files to a static lib
   #
   def convert_to_rake()
+
     calc_compiler_strings()
     objects, object_multitask = create_tasks_for_objects()
+
     archive = get_archive_name()
 
-    cmd = remove_empty_strings_and_join([@tcs[:ARCHIVER][:COMMAND], # ar
-      @tcs[:ARCHIVER][:ARCHIVE_FLAGS], @tcs[:ARCHIVER][:FLAGS],
+    cmd = [@tcs[:ARCHIVER][:COMMAND], # ar
+      @tcs[:ARCHIVER][:ARCHIVE_FLAGS], # -r
+      @tcs[:ARCHIVER][:FLAGS], # ??
       archive, # debug/x.a
-      remove_empty_strings_and_join(objects) # debug/src/abc.o debug/src/xy.o
-    ])
+      objects.reject{|e| e == ""}.join(" ") # debug/src/abc.o debug/src/xy.o
+    ].reject{|e| e == ""}.join(" ")
 
-    res = typed_file_task Rake::Task::LIBRARY, archive => object_multitask do
+    res = file archive => object_multitask do
       show_command(cmd, "Creating #{archive}")
-      process_console_output(catch_output(cmd), @tcs[:ARCHIVER][:ERROR_PARSER])
-      check_system_command(cmd)
-    end
-    enhance_with_additional_files(res)
-    add_output_dir_dependency(archive, res, true)
-    add_grouping_tasks(archive)
-    setup_rake_dependencies(res)
-    return res
-  end
 
-  def add_grouping_tasks(archive)
+      consoleOutput = `#{cmd + " 2>&1"}`
+      process_console_output(consoleOutput, @tcs[:ARCHIVER][:ERROR_PARSER])
+      raise "System command failed" if $?.to_i != 0
+    end
+    res.enhance(@config_files)
+    res.type = Rake::Task::LIBRARY
+    res.progress_count = 1
+    add_output_dir_dependency(archive, res, true)
     namespace 'lib' do
       desc archive
       task @name => archive
     end
+    setup_rake_dependencies(res)
+    res
   end
+
 end

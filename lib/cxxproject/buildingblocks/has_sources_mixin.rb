@@ -20,16 +20,9 @@ module HasSources
   end
 
   # used when a source file shall have different tcs than the project default
-  def tcs4source(source)
+  def tcs4source
     @tcs4source ||= {}
-
-    if @tcs4source.include?(source)
-      @tcs4source[source]
-    else
-      @tcs
-    end
   end
-
   def set_tcs4source(x)
     @tcs4source = x
     self
@@ -96,11 +89,12 @@ module HasSources
   end
 
   def get_sources_task_name
-    "Objects of #{name}"
+    "Sources of #{name}"
   end
 
   def create_tasks_for_objects()
     object_tasks = create_object_file_tasks()
+    objects_multitask = []
     if object_tasks.length > 0
       objects_multitask = multitask get_sources_task_name => object_tasks
       def objects_multitask.needed?
@@ -109,11 +103,16 @@ module HasSources
       objects_multitask.type = Rake::Task::SOURCEMULTI
       objects_multitask.transparent_timestamp = true
     end
-    [object_tasks, objects_multitask]
+    [object_tasks,objects_multitask]
   end
 
   def convert_depfile(depfile)
-    deps = read_file_or_empty_string(depfile)
+    deps = ""
+    File.open(depfile, "r") do |infile|
+      while (line = infile.gets)
+        deps << line
+      end
+    end
     deps = deps.gsub(/\\\n/,'').split()[1..-1]
     deps.map! do |d|
       res = File.expand_path(d)
@@ -146,53 +145,68 @@ module HasSources
   end
 
   def create_object_file_tasks()
-    sources.map { |source| create_object_file_task(source) }.compact
-  end
+    tasks = []
 
-  def create_object_file_task(s)
-    type = get_source_type(s)
-    if type.nil?
-      puts "Warning: no valid source type for #{File.relFromTo(s,@project_dir)}, will be ignored!"
-      return nil
+    sources.each do |s|
+      type = get_source_type(s)
+      if type.nil?
+        puts "Warning: no valid source type for #{File.relFromTo(s,@project_dir)}, will be ignored!"
+        next
+      end
+
+      source = File.relFromTo(s,@project_dir)
+      object = get_object_file(s)
+      depfile = get_dep_file(object)
+
+      if tcs4source().include?s
+        the_tcs = tcs4source()[s]
+        iString = get_include_string(tcs, type)
+        dString = get_define_string(tcs, type)
+      else
+        the_tcs = @tcs
+        iString = include_string(type)
+        dString = define_string(type)
+      end
+
+      compiler = the_tcs[:COMPILER][type]
+      depStr = type == :ASM ? "" : (compiler[:DEP_FLAGS] + depfile) # -MMD -MF debug/src/abc.o.d
+
+      cmd = [compiler[:COMMAND], # g++
+        compiler[:COMPILE_FLAGS], # -c
+        depStr,
+        compiler[:FLAGS], # -g3
+        iString, # -I include
+        dString, # -DDEBUG
+        compiler[:OBJECT_FILE_FLAG], # -o
+        object, # debug/src/abc.o
+        source # src/abc.cpp
+      ].reject{|e| e == ""}.join(" ")
+
+      if (@addOnlyFilesToCleanTask)
+        CLEAN.include(depfile) if depStr != ""
+        CLEAN.include(object)
+      end
+
+      outfileTask = file object => source do
+        show_command(cmd, "Compiling #{source}")
+
+        consoleOutput = `#{cmd + " 2>&1"}`
+        process_console_output(consoleOutput, compiler[:ERROR_PARSER])
+
+        raise "System command failed: #{cmd}" if $?.to_i != 0
+        convert_depfile(depfile) if depStr != ""
+      end
+      outfileTask.type = Rake::Task::OBJECT
+      outfileTask.progress_count = 1
+      outfileTask.enhance(@config_files)
+      outfileTask.enhance(file_dependencies)
+      add_output_dir_dependency(object, outfileTask, (not @addOnlyFilesToCleanTask))
+      apply_depfile(depfile,outfileTask) if depStr != ""
+      tasks << outfileTask
     end
-
-    source = File.relFromTo(s, @project_dir)
-    object = get_object_file(s)
-    the_tcs = tcs4source(s)
-    depStr = type == :ASM ? "" : (the_tcs[:COMPILER][type][:DEP_FLAGS] + get_dep_file(object)) # -MMD -MF debug/src/abc.o.d
-
-    if (@addOnlyFilesToCleanTask)
-      CLEAN.include(get_dep_file(object)) if depStr != ""
-      CLEAN.include(object)
-    end
-
-    build_the_task(the_tcs, object, source, depStr, type)
+    tasks
   end
 
-  def build_the_task(the_tcs, object, source, depStr, type)
-    compiler = the_tcs[:COMPILER][type]
-    dep_file = get_dep_file(object)
-    cmd = remove_empty_strings_and_join([compiler[:COMMAND], compiler[:COMPILE_FLAGS], depStr, compiler[:FLAGS], # g++ -c -depstr -g3
-           get_include_string(the_tcs, type), # -I include
-           get_define_string(the_tcs, type), # -DDEBUG
-           compiler[:OBJECT_FILE_FLAG], object, source # -o abc.o src/abc.cpp
-          ])
-    res = typed_file_task Rake::Task::OBJECT, object => source do
-      show_command(cmd, "Compiling #{source}")
-      process_console_output(catch_output(cmd), compiler[:ERROR_PARSER])
-      check_system_command(cmd)
-      convert_depfile(dep_file) if depStr != ""
-    end
-    enhance_with_additional_files(res)
-    add_output_dir_dependency(object, res, (not @addOnlyFilesToCleanTask))
-    apply_depfile(dep_file, res) if depStr != ""
-    res
-  end
-
-  def enhance_with_additional_files(task)
-    task.enhance(@config_files)
-    task.enhance(file_dependencies)
-  end
 
   def process_console_output(console_output, ep)
     if not console_output.empty?
@@ -203,10 +217,11 @@ module HasSources
         puts console_output
       end
 
-      if ep
-        Rake.application.idei.set_errors(ep.scan(console_output, @project_dir)) if ep
+      if BuildingBlock.idei and ep
+        BuildingBlock.idei.set_errors(ep.scan(console_output, @project_dir)) if ep
       end
     end
   end
+
 
 end
