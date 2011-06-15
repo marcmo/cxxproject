@@ -11,21 +11,6 @@ module Rake
 
   $exit_code = 0
 
-  class SyncStringIO < StringIO
-    def initialize(mutex, for_task)
-      super()
-      @mutex = mutex
-      @for_task = for_task
-    end
-
-    def sync_flush
-      if string.length > 0
-        @mutex.synchronize { STDOUT.write string; truncate(0); rewind}
-      end
-    end
-
-  end
-
   #############
   # - Limit parallel tasks
   #############
@@ -55,28 +40,32 @@ module Rake
             p = nil
             m.synchronize { p = jq.shift }
             break unless p
-            s = SyncStringIO.new(m, p)
-            Thread.current[:stdout] = s
             prereq = application[p]
             prereq.invoke_with_call_chain(args, invocation_chain)
             if prereq.failure
               set_failed
             end
-            s.sync_flush
+            synchronized_output(m, prereq.output_string)
           end
         }
       }
       threads.each { |t| t.join }
     end
+
+    def synchronized_output(mutex, output)
+      return if Rake::Task.output_disabled
+      mutex.synchronize { puts output }
+    end
   end
 
-  #############
+  ###########
   # - Go on if a task fails (but to not execute the parent)
   # - showInGraph is used for GraphWriter (internal tasks are not shown)
   #############
   class Task
     class << self
       attr_accessor :bail_on_first_error
+      attr_accessor :output_disabled
     end
 
     attr_accessor :failure # specified if that task has failed
@@ -170,9 +159,8 @@ module Rake
     end
 
     define_method(:execute) do |arg|
-      $log.error "#{name}" if $log
-      $log.error "#{Thread.current[:stdout]}" if $log
-      Thread.current[:stdout] = SyncStringIO.new(Mutex.new, name) unless Thread.current[:stdout]
+      s = StringIO.new
+      Thread.current[:stdout] = s
 
       break if @failure # check if a prereq has failed
       break if BuildingBlock.idei.get_abort
@@ -192,8 +180,8 @@ module Rake
         end
         set_failed
       end
-
-      Thread.current[:stdout].sync_flush if Thread.current[:stdout]
+      self.output_string = s.string
+      Thread.current[:stdout] = nil
     end
 
     define_method(:timestamp) do

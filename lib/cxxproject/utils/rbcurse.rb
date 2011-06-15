@@ -9,19 +9,24 @@ begin
 
   include RubyCurses
 
-  def monkey_patch_syncio
-    require 'cxxproject/utils/monkey_patch_syncio'
-    require 'cxxproject/extensions/rake_listener_ext'
+  class Executable
+    def run_command(task, command)
+      require 'open3'
+      stdin, stdout, stderr = Open3.popen3(command)
+      puts "StdOut:"
+      puts stdout.readlines
+      puts "StdErr:"
+      puts stderr.readlines
+    end
   end
 
   class RakeGui
     def initialize
       Cxxproject::ColorizingFormatter.enabled = false
+      Rake::Task.output_disabled = true
 
       $log = Logger.new(File.join("./", "view.log"))
       $log.level = Logger::ERROR
-      monkey_patch_syncio
-      Rake::add_listener(self)
       @data_stack = []
     end
 
@@ -45,8 +50,10 @@ begin
         bind_key(RakeGui.keycode('d')) do
           rake_gui.details(self)
         end
-        bind_key(RakeGui.keycode('p')) do
-          rake_gui.pop_data()
+        [RakeGui.keycode('p'), KEY_BACKSPACE].each do |code|
+          bind_key(code) do
+            rake_gui.pop_data
+          end
         end
       end
 
@@ -55,8 +62,6 @@ begin
 
     def invoke(table)
       t = table.get_value_at(table.focussed_row, 0)
-      $log.error "invoking #{t}"
-
       begin
         t.invoke
       rescue => e
@@ -67,24 +72,22 @@ begin
 
     def details(table)
       t = table.get_value_at(table.focussed_row, 0)
-      $log.error "details for #{t}"
-
       pre = t.prerequisite_tasks
       if pre.size > 0
         push_table_data(pre)
         table.set_focus_on 0
+        show_details_for(0)
       end
     end
 
     def process_input_events
       ch = @window.getchar
       while ch != RakeGui.keycode('q')
+        $log.error "entered key: #{ch}"
         case ch
           when RakeGui.keycode('a')
-            $log.error("runter")
             @h_split.set_divider_location(@h_split.divider_location+1)
           when RakeGui.keycode('s')
-            $log.error("rauf")
             @h_split.set_divider_location(@h_split.divider_location-1)
           else
             @form.handle_key(ch)
@@ -116,7 +119,6 @@ begin
       if @data_stack.size > 1
         popped = @data_stack.pop
         top= @data_stack.last
-        $log.error "new top: #{top}"
         set_table_data(top)
       end
     end
@@ -124,8 +126,16 @@ begin
     def size
       return @window.default_for(:width), @window.default_for(:height)
     end
+    def show_details_for(row)
+      t = @table.get_value_at(row, 0)
+      if t.output_string
+        @output.set_content(t.output_string) if t.output_string
+        @output.repaint_all(true)
+      end
 
+    end
     def run
+      rake_gui = self
       begin
         VER::start_ncurses
 
@@ -148,14 +158,7 @@ begin
           @output.set_content('')
 
           @table.bind(:TABLE_TRAVERSAL_EVENT) do |e|
-            $log.error " event #{e}"
-            table = e.source
-            t = table.get_value_at(e.newrow, 0)
-            if t.output_string
-              $log.error "setting output_string #{t.output_string}"
-              @output.set_content(t.output_string) if t.output_string
-              @output.repaint_all(true)
-            end
+            rake_gui.show_details_for(e.newrow)
           end
 
           @h_split.first_component(@table)
@@ -172,21 +175,6 @@ begin
         @window.destroy if @window
         VER::stop_ncurses
       end
-    end
-
-    def before_prerequisites(name)
-    end
-
-    def after_prerequisites(name)
-    end
-
-    def before_execute(name)
-    end
-
-    def after_execute(name)
-      t = Rake::Task[name]
-      $log.error "after_execute '#{name}' -> '#{t.output_string}'"
-      @output.set_content(t.output_string.split('\n')) if t.output_string
     end
 
   end
