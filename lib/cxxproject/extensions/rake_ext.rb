@@ -58,7 +58,7 @@ module Rake
       return if Rake::Task.output_disabled
 
       @mutex.synchronize do
-        if to_output
+        if to_output and to_output.length > 0
           puts to_output
         end
       end
@@ -192,9 +192,7 @@ module Rake
       self.output_string = s.string
       Thread.current[:stdout] = nil
 
-      if not dont_output
-        output(self.output_string)
-      end
+      output(self.output_string) unless dont_output
     end
 
     def output(to_output)

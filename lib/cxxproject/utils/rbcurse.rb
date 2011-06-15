@@ -28,6 +28,7 @@ begin
       $log = Logger.new(File.join("./", "view.log"))
       $log.level = Logger::ERROR
       @data_stack = []
+      @path_stack = []
     end
 
     def self.keycode(s)
@@ -63,19 +64,45 @@ begin
     def invoke(table)
       t = table.get_value_at(table.focussed_row, 0)
       begin
+        $log.error "root task #{t} -> #{t.class}"
+        @progress_helper = ProgressHelper.new
+        @progress_helper.count(t)
+        $log.error @progress_helper.todo
+
+        @progress.max = @progress_helper.todo
+        require 'cxxproject/extensions/rake_listener_ext'
+        Rake::add_listener(self)
+        t.failure = false
+        t.reenable
         t.invoke
+        Rake::remove_listener(self)
       rescue => e
         $log.error e
       end
       $log.error "#{t.name} #{t.failure}"
+    end
+    def before_prerequisites(name)
+    end
+    def after_prerequisites(name)
+    end
+    def before_execute(name)
+    end
+    def after_execute(name)
+      needed_tasks = @progress_helper.needed_tasks
+      if needed_tasks[name]
+        task = Rake::Task[name]
+        @progress.title = task.name
+        @progress.inc(task.progress_count)
+      end
     end
 
     def details(table)
       t = table.get_value_at(table.focussed_row, 0)
       pre = t.prerequisite_tasks
       if pre.size > 0
-        push_table_data(pre)
+        push_table_data(pre, t.name)
         table.set_focus_on 0
+
         show_details_for(0)
       end
     end
@@ -95,13 +122,14 @@ begin
 
         @form.repaint
         @window.wrefresh
-        Ncurses::Panel.update_panels
-
         ch = @window.getchar
       end
     end
 
-    def push_table_data(task_data)
+    def push_table_data(task_data, new_path=nil)
+      @path_stack.push(new_path) if new_path
+      set_breadcrumbs
+
       @data_stack.push(task_data)
       set_table_data(task_data)
     end
@@ -114,9 +142,16 @@ begin
       tcm.column(0).width(first_col_width)
       tcm.column(1).width(size[0]-first_col_width-3)
     end
-
+    def set_breadcrumbs
+      crumbs = File.join(@path_stack.map{|i|"(#{i})"}.join('/'))
+      @breadcrumbs.text = crumbs
+      @breadcrumbs.repaint_all(true)
+    end
     def pop_data
       if @data_stack.size > 1
+        @path_stack.pop
+        set_breadcrumbs
+
         popped = @data_stack.pop
         top= @data_stack.last
         set_table_data(top)
@@ -126,14 +161,61 @@ begin
     def size
       return @window.default_for(:width), @window.default_for(:height)
     end
+
     def show_details_for(row)
       t = @table.get_value_at(row, 0)
-      if t.output_string
-        @output.set_content(t.output_string) if t.output_string
-        @output.repaint_all(true)
+      @output.set_content(t.output_string || '')
+      @output.set_focus_on(0)
+      @output.repaint_all(true)
+    end
+    def start_editor(file, line, column)
+      $log.error "starting editor for #{file}:#{line}"
+      cmd = "emacsclient +#{line}:#{column} #{file}"
+      require 'open3'
+
+      stdin, stdout, stderr = Open3.popen3(cmd)
+      $log.error(stdout.readlines)
+      $log.error(stderr.readlines)
+    end
+
+    class Progress
+      def initialize(form, size)
+        @form = form
+        @width = size[0]
+        $log.error size
+        @progress = Label.new form do
+          name 'progress'
+          row size[1]-1
+          col 0
+          width size[0]
+          height 1
+        end
+        @progress.display_length(@width)
+        @progress.text = '-'*@width
+        max = 100
       end
 
+      def title=(t)
+        $log.error "worked on #{t}"
+      end
+
+      def inc(i)
+        @current += i
+        total = (@current.to_f / @max.to_f * @width.to_f).to_i
+        text = "#" * total
+        $log.error "setting progress #{total}"
+        @progress.text = text
+
+        @form.repaint
+      end
+
+      def max=(f)
+        @max = f.to_f
+        @current = 0.0
+        @progress.text = "max set to #{@max}"
+      end
     end
+
     def run
       rake_gui = self
       begin
@@ -143,12 +225,24 @@ begin
         catch (:close) do
           @form = Form.new @window
           size = size()
-          @h_split = SplitPane.new @form do
-            name 'mainpane'
+          @breadcrumbs = Label.new @form do
+            name 'breadcrumbs'
             row 0
             col 0
             width size[0]
-            height size[1]
+            height 1
+          end
+          @breadcrumbs.display_length(size[0])
+          @breadcrumbs.text = ''
+
+          @progress = Progress.new(@form, size)
+
+          @h_split = SplitPane.new @form do
+            name 'mainpane'
+            row 1
+            col 0
+            width size[0]
+            height size[1]-2
             orientation :HORIZONTAL_SPLIT
           end
           @table = create_table
@@ -156,6 +250,25 @@ begin
 
           @output = TextView.new nil
           @output.set_content('')
+          @output.configure do
+            bind_key(RakeGui.keycode('e')) do |code|
+              line = selected_item
+              $log.error "current line #{line}"
+              file_pattern = '(.*?):(\d+):(\d*):? '
+              error_pattern = Regexp.new("#{file_pattern}(error: .*)")
+              warning_pattern = Regexp.new("#{file_pattern}(warning: .*)")
+              md = error_pattern.match(line)
+              md = warning_pattern.match(line) unless md
+              $log.error "MatchData #{md}"
+              if md
+                file_name = md[1]
+                line = md[2]
+                col = md[3]
+                $log.error "error ist in #{file_name} zeile #{line} column #{col}"
+                rake_gui.start_editor(file_name, line, col)
+              end
+            end
+          end
 
           @table.bind(:TABLE_TRAVERSAL_EVENT) do |e|
             rake_gui.show_details_for(e.newrow)
