@@ -41,9 +41,7 @@ begin
 
     class TaskTable < Table
       def get_cell_renderer(row, col)
-        begin
         renderer = super(row, col)
-
         content = get_value_at(row, 0)
         if renderer.nil?
           renderer = get_default_cell_renderer_for_class(content.class.to_s) if renderer.nil?
@@ -59,10 +57,6 @@ begin
           renderer.bgcolor('black')
         end
         return renderer
-          rescue => e
-          $log.error e
-        end
-        return "no"
       end
     end
     def create_table
@@ -74,7 +68,6 @@ begin
         cell_editing_allowed false
       end
 
-
       res.configure do
         bind_key(RakeGui.keycode('r')) do
           rake_gui.invoke(self)
@@ -82,7 +75,7 @@ begin
         bind_key(RakeGui.keycode('d')) do
           rake_gui.details(self)
         end
-        [RakeGui.keycode('p'), KEY_BACKSPACE].each do |code|
+        [RakeGui.keycode('p'), KEY_BACKSPACE, 127].each do |code|
           bind_key(code) do
             rake_gui.pop_data
           end
@@ -109,7 +102,6 @@ begin
     def invoke(table)
       t = table.get_value_at(table.focussed_row, 0)
       begin
-        $log.error "root task #{t} -> #{t.class}"
         @progress_helper = ProgressHelper.new
         @progress_helper.count(t)
         $log.error @progress_helper.todo
@@ -123,13 +115,9 @@ begin
       rescue => e
         $log.error e
       end
-      $log.error "#{t.name} #{t.failure}"
+      table.repaint_all(true)
     end
-    def before_prerequisites(name)
-    end
-    def after_prerequisites(name)
-    end
-    def before_execute(name)
+    def method_missing(name, *args)
     end
     def after_execute(name)
       needed_tasks = @progress_helper.needed_tasks
