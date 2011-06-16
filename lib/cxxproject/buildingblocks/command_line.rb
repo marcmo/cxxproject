@@ -37,13 +37,12 @@ class CommandLine < BuildingBlock
   def convert_to_rake()
     res = task get_task_name do
       cmd = get_command_line
-      puts cmd
-      consoleOutput = `#{cmd + " 2>&1"}`
-      process_console_output(consoleOutput)
-      raise "System command failed" if $?.to_i != 0
+      show_command(cmd)
+      process_console_output(catch_output(cmd))
+      check_system_command(cmd)
     end
     res.transparent_timestamp = true
-    res.type = Rake::Task::COMMANDLINE 
+    res.type = Rake::Task::COMMANDLINE
     setup_rake_dependencies(res)
     res
   end

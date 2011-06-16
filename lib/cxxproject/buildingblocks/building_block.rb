@@ -141,4 +141,32 @@ class BuildingBlock
       puts alternate unless Rake::application.options.silent
     end
   end
+
+  def read_file_or_empty_string(filename)
+    begin
+      return File.read(filename)
+    rescue
+      return ""
+    end
+  end
+
+  def check_system_command(cmd)
+    raise "System command failed: #{cmd}" if $?.to_i != 0
+  end
+
+  def typed_file_task(type, *args, &block)
+    t = file *args do
+      block.call
+    end
+    t.type = type
+    t.progress_count = 1
+    return t
+  end
+  def remove_empty_strings_and_join(a, j=' ')
+    return a.reject{|e|e.to_s.empty?}.join(j)
+  end
+  def catch_output(cmd)
+    new_command = "#{cmd} 2>&1"
+    return `#{new_command}`
+  end
 end

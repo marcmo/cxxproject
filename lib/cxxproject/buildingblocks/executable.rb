@@ -4,6 +4,7 @@ require 'cxxproject/buildingblocks/has_sources_mixin'
 require 'cxxproject/buildingblocks/has_includes_mixin'
 
 require 'tmpdir'
+require 'set'
 
 class Executable < BuildingBlock
   include HasLibraries
@@ -53,104 +54,112 @@ class Executable < BuildingBlock
     get_executable_name()
   end
 
+  def collect_unique(array, set, &block)
+    return array.map { |v| block.call(v) }.inject([]) do | memo, pair |
+      key = pair[0]
+      value = pair[1]
+      if set.include?(key)
+        memo
+      else
+        set << key
+        memo + [value]
+      end
+    end
+  end
+
+  def calc_linker_lib_string_for_dependency(d, s1, s2, s3, s4)
+    res = []
+    res += collect_unique(d.lib_searchpaths, s1) do |v|
+      tmp = File.relFromTo(v, d.project_dir)
+      [tmp, "#{@tcs[:LINKER][:LIB_PATH_FLAG]}#{tmp}"]
+    end
+    res += collect_unique(d.libs_to_search, s2) do |v|
+      [v, "#{@tcs[:LINKER][:LIB_FLAG]}#{v}"]
+    end
+    res += collect_unique(d.user_libs, s3) do |v|
+      [v, "#{@tcs[:LINKER][:USER_LIB_FLAG]}#{v}"]
+    end
+    res += collect_unique(d.libs_with_path, s4) do |v|
+      tmp = File.relFromTo(v, d.project_dir)
+      [tmp, tmp]
+    end
+    res
+  end
+
+  def calc_linker_lib_string
+    # calc linkerLibString - order is important, duplicates are removed
+    s1 = Set.new
+    s2 = Set.new
+    s3 = Set.new
+    s4 = Set.new
+    res = []
+    all_dependencies.map{|e|ALL_BUILDING_BLOCKS[e]}.each do |d|
+      next if not HasLibraries === d
+      res += calc_linker_lib_string_for_dependency(d, s1, s2, s3, s4)
+    end
+    res
+  end
+
   # create a task that will link an executable from a set of object files
   #
   def convert_to_rake()
     calc_compiler_strings()
     objects, object_multitask = create_tasks_for_objects()
 
-    executable = get_executable_name()
-    scriptFile = ""
+    script_file, script = calc_linker_script
+
+    cmd = remove_empty_strings_and_join([@tcs[:LINKER][:COMMAND], # g++
+      @tcs[:LINKER][:MUST_FLAGS], @tcs[:LINKER][:FLAGS], # --all_load
+      @tcs[:LINKER][:EXE_FLAG], get_executable_name, # -o debug/x.exe
+      remove_empty_strings_and_join(objects), # debug/src/abc.o debug/src/xy.o
+      script,
+      mapfileString = @mapfile ? "#{@tcs[:LINKER][:MAP_FILE_FLAG]} >#{File.relFromTo(@mapfile, complete_output_dir)}" : "", # -Wl,-m6 > xy.map
+      @tcs[:LINKER][:LIB_PREFIX_FLAGS], # "-Wl,--whole-archive "
+      remove_empty_strings_and_join(calc_linker_lib_string),
+      @tcs[:LINKER][:LIB_POSTFIX_FLAGS] # "-Wl,--no-whole-archive "
+    ])
+
+    return create_task(object_multitask, cmd, script_file)
+  end
+
+  def calc_linker_script
+    script_file = ""
     script = ""
     if @linker_script
-      scriptFile = File.relFromTo(@linker_script, @project_dir)
-      script = "#{@tcs[:LINKER][:SCRIPT]} #{scriptFile}"  # -T xy/xy.dld
+      script_file = File.relFromTo(@linker_script, @project_dir)
+      script = "#{@tcs[:LINKER][:SCRIPT]} #{script_file}"  # -T xy/xy.dld
     end
+    return script_file, script
+  end
 
-    mapfileString = @mapfile ? "#{@tcs[:LINKER][:MAP_FILE_FLAG]} >#{File.relFromTo(@mapfile, complete_output_dir)}" : "" # -Wl,-m6 > xy.map
-
-    # calc linkerLibString - order is important, duplicates are removed
-    lib_searchpaths_array = []
-    libs_to_search_array = []
-    user_libs_array = []
-    libs_with_path_array = []
-    strArray = []
-    all_dependencies.each do |e|
-      d = ALL_BUILDING_BLOCKS[e]
-      next if not HasLibraries === d
-
-      d.lib_searchpaths.each do |k|
-        tmp = File.relFromTo(k, d.project_dir)
-        if not lib_searchpaths_array.include?tmp
-          lib_searchpaths_array << tmp
-          strArray << "#{@tcs[:LINKER][:LIB_PATH_FLAG]}#{tmp}"
-        end
-      end
-
-      d.libs_to_search.each do |k|
-        if not libs_to_search_array.include?k
-          libs_to_search_array << k
-          strArray << "#{@tcs[:LINKER][:LIB_FLAG]}#{k}"
-        end
-      end
-
-      d.user_libs.each do |k|
-        if not user_libs_array.include?k
-          user_libs_array << k
-          strArray << "#{@tcs[:LINKER][:USER_LIB_FLAG]}#{k}"
-        end
-      end
-
-      d.libs_with_path.each do |k|
-        tmp = File.relFromTo(k, d.project_dir)
-        if not libs_with_path_array.include?tmp
-          libs_with_path_array << tmp
-          strArray << tmp
-        end
-      end
-    end
-
-    linkerLibString = strArray.reject{|e| e == ""}.join(" ")
-
-    cmd = [@tcs[:LINKER][:COMMAND], # g++
-      @tcs[:LINKER][:MUST_FLAGS], # ??
-      @tcs[:LINKER][:FLAGS], # --all_load
-      @tcs[:LINKER][:EXE_FLAG], # -o
-      executable, # debug/x.o
-      objects.reject{|e| e == ""}.join(" "), # debug/src/abc.o debug/src/xy.o
-      script,
-      mapfileString,
-      @tcs[:LINKER][:LIB_PREFIX_FLAGS], # "-Wl,--whole-archive "
-      linkerLibString,
-      @tcs[:LINKER][:LIB_POSTFIX_FLAGS] # "-Wl,--no-whole-archive "
-    ].reject{|e| e == ""}.join(" ")
-
-    create_run_task(executable, @config_files, @name)
-
-    res = file executable => object_multitask do
+  def create_task(object_multitask, cmd, script_file)
+    executable = get_executable_name
+    res = typed_file_task Rake::Task::EXECUTABLE, executable => object_multitask do
       show_command(cmd, "Linking #{executable}")
-
       # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
       consoleOutput = `#{cmd + " 2>" + get_temp_filename}`
-      consoleOutput.concat(read_temp_file.join("\n"))
+      consoleOutput.concat(read_file_or_empty_string(get_temp_filename))
       process_console_output(consoleOutput, @tcs[:LINKER][:ERROR_PARSER])
-      raise "System command failed" if $?.to_i != 0
+      check_system_command(cmd)
     end
-    res.type = Rake::Task::EXECUTABLE
-    res.progress_count = 1
     res.enhance(@config_files)
-    res.enhance([scriptFile]) unless scriptFile==""
+    res.enhance([script_file]) unless script_file.empty?
     add_output_dir_dependency(executable, res, true)
 
+    add_grouping_tasks(executable)
+    setup_rake_dependencies(res)
+    return res
+  end
+
+  def add_grouping_tasks(executable)
     namespace 'exe' do
       desc executable
       task @name => executable
     end
-    setup_rake_dependencies(res)
-    res
+    create_run_task(executable, @name)
   end
 
-  def create_run_task(executable, configFiles, name)
+  def create_run_task(executable, name)
     namespace 'run' do
       desc "run executable #{executable}"
       res = task name => executable do
@@ -161,20 +170,8 @@ class Executable < BuildingBlock
     end
   end
 
-
-
   def get_temp_filename
     Dir.tmpdir + "/lake.tmp"
-  end
-
-  def read_temp_file
-    lines = []
-    File.open(get_temp_filename, "r") do |infile|
-      while (line = infile.gets)
-        lines << line
-      end
-    end
-    lines
   end
 
 end
