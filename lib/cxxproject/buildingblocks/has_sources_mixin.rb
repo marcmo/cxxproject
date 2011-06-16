@@ -217,11 +217,10 @@ module HasSources
         puts console_output
       end
 
-      if BuildingBlock.idei and ep
-        BuildingBlock.idei.set_errors(ep.scan(console_output, @project_dir)) if ep
+      if ep
+        Rake.application.idei.set_errors(ep.scan(console_output, @project_dir)) if ep
       end
     end
   end
-
 
 end

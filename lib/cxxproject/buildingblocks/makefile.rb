@@ -89,7 +89,7 @@ class Makefile < BuildingBlock
         else
           res << "Failed"
         end
-        BuildingBlock.idei.set_errors([res])
+        Rake.application.idei.set_errors([res])
       end
     end
   end

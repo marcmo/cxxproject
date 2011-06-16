@@ -1,9 +1,11 @@
 class File
 
-  @@oldRuby = RUBY_VERSION[0..2] == "1.8"
+  def self.old_ruby?
+    RUBY_VERSION[0..2] == "1.8"
+  end
 
   def self.is_absolute?(filename)
-    if @@oldRuby
+    if old_ruby?
       filename[0] == 47 or filename[1] == 58 # 47 = /, 58 = :
     else
       filename[0] == '/' or filename[1] == ':'

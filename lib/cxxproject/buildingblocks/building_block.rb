@@ -11,7 +11,7 @@ include Rake::DSL if defined?(Rake::DSL)
 ALL_BUILDING_BLOCKS = {}
 
 trap("INT") do
-  BuildingBlock.idei.set_abort(true)
+  Rake.application.idei.set_abort(true)
 end
 
 class BuildingBlock
@@ -23,22 +23,6 @@ class BuildingBlock
   attr_reader :project_dir
   attr_accessor :output_dir
   attr_reader :output_dir_abs
-
-  @@verbose = false
-
-  def self.idei
-    @@idei ||= IDEInterface.new
-  end
-  def self.idei=(value)
-    @@idei = value
-  end
-
-  def self.verbose
-    @@verbose
-  end
-  def self.verbose=(value)
-    @@verbose = value
-  end
 
   def set_name(x)
     @name = x
@@ -151,7 +135,7 @@ class BuildingBlock
   end
 
   def show_command(cmd, alternate)
-    if BuildingBlock.verbose
+    if RakeFileUtils.verbose
       puts cmd
     else
       puts alternate unless Rake::application.options.silent
