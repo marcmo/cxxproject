@@ -1,4 +1,3 @@
-# -*- coding: undecided -*-
 require 'rake/clean'
 
 desc "Default Task"
@@ -13,6 +12,7 @@ begin
   require 'roodi_task'
   class RoodiTask
     def define
+      # copied from roodi_task.rb
       desc "Check for design issues in: #{patterns.join(', ')}"
       task name do
         runner = Roodi::Core::Runner.new
@@ -21,12 +21,12 @@ begin
           Dir.glob(pattern).each { |file| runner.check_file(file) }
         end
         runner.errors.each {|error| puts error}
-#        raise "Found #{runner.errors.size} errors." unless runner.errors.empty?
+        # raise "Found #{runner.errors.size} errors." unless runner.errors.empty?
       end
       self
     end
   end
-  RoodiTask.new('roodi', spec.files)#, 'roodi.yaml')
+  RoodiTask.new('roodi', spec.files)
   task :gem => [:roodi]
 rescue LoadError # don't bail out when people do not have roodi installed!
   warn "roodi not installed...will not be checked!"
