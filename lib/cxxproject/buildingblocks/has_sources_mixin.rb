@@ -89,7 +89,7 @@ module HasSources
   end
 
   def get_sources_task_name
-    "Sources of #{name}"
+    "Objects of #{name}"
   end
 
   def create_tasks_for_objects()
