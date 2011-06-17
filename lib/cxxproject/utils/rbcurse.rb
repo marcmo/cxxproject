@@ -75,6 +75,10 @@ begin
         bind_key(RakeGui.keycode('d')) do
           rake_gui.details(self)
         end
+        bind_key(RakeGui.keycode('e')) do
+          task = get_value_at(focussed_row, 0)
+          rake_gui.start_editor_for_task(task)
+        end
         [RakeGui.keycode('p'), KEY_BACKSPACE, 127].each do |code|
           bind_key(code) do
             rake_gui.pop_data
@@ -211,14 +215,28 @@ begin
       @output.set_focus_on(0)
       @output.repaint_all(true)
     end
+
+    def start_editor_for_task(t)
+      file_name = t.name
+      return unless File.exists?(file_name)
+
+      start_editor(file_name, 0, 0)
+    end
+
     def start_editor(file, line, column)
       $log.error "starting editor for #{file}:#{line}"
-      cmd = "emacsclient +#{line}:#{column} #{file}"
-      require 'open3'
+      editor = ENV['EDITOR']
+      editor = 'vi' unless editor
+      cmd = "#{editor} +#{line} #{file}"
+      shell_out(cmd)
+    end
 
-      stdin, stdout, stderr = Open3.popen3(cmd)
-      $log.error(stdout.readlines)
-      $log.error(stderr.readlines)
+    def shell_out(cmd)
+      @window.hide
+      Ncurses.endwin
+      system(cmd)
+      Ncurses.refresh
+      @window.show
     end
 
     class Progress
@@ -243,7 +261,7 @@ begin
           height 1
         end
         @title.display_length(@widget)
-        title = 'Idle'
+        @title.text = 'Idle'
 
         max = 100
       end
@@ -279,7 +297,8 @@ begin
       def max=(f)
         @max = f.to_f
         @current = 0.0
-        @progress.text = "max set to #{@max}"
+        format_progress
+        format_title
       end
     end
 
