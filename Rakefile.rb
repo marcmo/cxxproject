@@ -57,3 +57,13 @@ desc "install gem globally"
 task :install => [:gem] do
   sh "gem install pkg/#{spec.name}-#{spec.version}.gem"
 end
+
+begin
+  require 'rdoc'
+  require 'rdoc/task'
+  RDoc::Task.new do |rd|
+    rd.rdoc_files.include(spec.files)
+  end
+rescue LoadError => e
+  puts "Please gem install rdoc to generate rubydocs"
+end
