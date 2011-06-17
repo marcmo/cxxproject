@@ -101,6 +101,7 @@ module HasSources
 
   def create_tasks_for_objects()
     object_tasks = create_object_file_tasks()
+    objects_multitask = [] # needed if no sources
     if object_tasks.length > 0
       objects_multitask = multitask get_sources_task_name => object_tasks
       def objects_multitask.needed?
@@ -209,7 +210,7 @@ module HasSources
       end
 
       if ep
-        Rake.application.idei.set_errors(ep.scan(console_output, @project_dir)) if ep
+        Rake.application.idei.set_errors(ep.scan(console_output, @project_dir))
       end
     end
   end
