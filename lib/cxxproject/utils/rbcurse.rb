@@ -85,15 +85,8 @@ begin
       return res
     end
 
-    def walk(task, &block)
-      if block.call(task)
-        task.prerequisite_tasks.each do |t|
-          walk(t, &block)
-        end
-      end
-    end
     def reenable_including_prerequisites(task)
-      walk(task) do |t|
+      task.visit() do |t|
         t.reenable
         true
       end
@@ -103,18 +96,24 @@ begin
       t = table.get_value_at(table.focussed_row, 0)
       begin
         @progress_helper = ProgressHelper.new
-        @progress_helper.count(t)
-        $log.error @progress_helper.todo
+        complete_task_name = t.name
+        args = []
+        if @progress_helper.is_filter(t.name)
+          args = [get_string('please input filterpattern', 20, '.*')]
+          complete_task_name = "#{t.name}[#{args[0]}]"
+        end
+        @progress_helper.count_with_filter(complete_task_name)
 
         @progress.max = @progress_helper.todo
         require 'cxxproject/extensions/rake_listener_ext'
         Rake::add_listener(self)
         reenable_including_prerequisites(t)
-        t.invoke
+        t.invoke(args)
         Rake::remove_listener(self)
       rescue => e
         $log.error e
       end
+      show_details_for(table.focussed_row)
       table.repaint_all(true)
     end
     def method_missing(name, *args)
@@ -198,7 +197,7 @@ begin
     def show_details_for(row)
       buffer = StringIO.new
       t = @table.get_value_at(row, 0)
-      walk(t) do |t|
+      t.visit do |t|
         if t.output_string && t.output_string.length > 0
           buffer.puts(t.output_string)
         end

@@ -31,6 +31,7 @@ class CxxProject2Rake
     create_console_colorization
     create_multitask
     create_bail_on_first_task
+    describe_clean_task
   end
 
   def initialize_logging
@@ -46,7 +47,9 @@ class CxxProject2Rake
     @log.level = Logger::DEBUG if Rake::application.options.trace
     @log.debug "initializing for build_dir: \"#{@build_dir}\", base: \"#{@base}\""
   end
-
+  def describe_clean_task
+    Rake::Task[:clean].add_description('clean')
+  end
   def create_bail_on_first_task
     desc 'set bail on first error'
     task :bail_on_first_error do

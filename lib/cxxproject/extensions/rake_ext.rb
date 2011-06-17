@@ -142,7 +142,7 @@ module Rake
       progress_count = 0
       @ignore = false
       @failure = false
-      output_after_execute = true
+      @output_after_execute = true
     end
 
     define_method(:invoke) do |*args|
@@ -263,7 +263,16 @@ module Rake
       @ignore = true
     end
 
+    def visit(&block)
+      if block.call(self)
+        prerequisite_tasks.each do |t|
+          t.visit(&block)
+        end
+      end
+    end
+
   end
+
 
   at_exit do
     exit($exit_code)

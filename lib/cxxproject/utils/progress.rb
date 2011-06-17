@@ -1,4 +1,6 @@
 require 'rake'
+require 'cxxproject/extensions/rake_ext'
+
 require 'progressbar'
 require 'colored'
 require 'cxxproject/utils/progress_helper'
@@ -28,48 +30,11 @@ class ProgressListener
   def initialize
     @progress_helper = ProgressHelper.new
     Rake::application.top_level_tasks.each do |name|
-      tasks = find_tasks_for_toplevel_task(name)
-      tasks.each do |t|
-        @progress_helper.count(t)
-      end
+      @progress_helper.count_with_filter(name)
     end
-
     @progress = ProgressBar.new('all tasks', @progress_helper.todo)
     @progress.title_width = 30
     @progress.unblock
-  end
-
-  def find_tasks_for_toplevel_task(name)
-    regex = create_regex_for_name(name)
-    return filter_all_tasks(regex)
-  end
-
-  def filter_all_tasks(regex)
-    return Rake::Task::tasks.find_all do |t|
-      task_name = t.name
-      res = ((task_name.index('filter') == nil) && regex.match(task_name)!=nil)
-    end
-  end
-
-  def create_regex_for_name(name)
-    res = Regexp.new(name)
-    res = create_regex_for_filter(name, res)
-    return res
-  end
-
-  def create_regex_for_filter(name, res)
-    if name.index('filter') == nil
-      return res
-    end
-
-    name = name.gsub('filter', '')
-    if name.index('[') == nil
-      name = name + '.*'
-    else
-      name = name.gsub('[', '')
-      name = name.gsub(']', '')
-    end
-    return Regexp.new(name)
   end
 
   def method_missing(name, args)

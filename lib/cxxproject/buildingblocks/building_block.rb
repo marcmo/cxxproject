@@ -162,9 +162,11 @@ class BuildingBlock
     t.progress_count = 1
     return t
   end
+
   def remove_empty_strings_and_join(a, j=' ')
     return a.reject{|e|e.to_s.empty?}.join(j)
   end
+
   def catch_output(cmd)
     new_command = "#{cmd} 2>&1"
     return `#{new_command}`
