@@ -151,7 +151,10 @@ class BuildingBlock
   end
 
   def check_system_command(cmd)
-    raise "System command failed: #{cmd}" if $?.to_i != 0
+    if $?.to_i != 0
+      raise if RakeFileUtils.verbose # no need to print the cmd twice
+      raise "System command failed: #{cmd}"
+    end
   end
 
   def typed_file_task(type, *args, &block)

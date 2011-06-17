@@ -40,8 +40,10 @@ class SourceLibrary < BuildingBlock
     objects, object_multitask = create_tasks_for_objects()
     archive = get_archive_name()
 
-    cmd = remove_empty_strings_and_join([@tcs[:ARCHIVER][:COMMAND], # ar
-      @tcs[:ARCHIVER][:ARCHIVE_FLAGS], @tcs[:ARCHIVER][:FLAGS],
+    cmd = remove_empty_strings_and_join([
+      @tcs[:ARCHIVER][:COMMAND], # ar
+      @tcs[:ARCHIVER][:ARCHIVE_FLAGS], # -rc
+      @tcs[:ARCHIVER][:FLAGS],
       archive, # debug/x.a
       remove_empty_strings_and_join(objects) # debug/src/abc.o debug/src/xy.o
     ])

@@ -108,9 +108,12 @@ class Executable < BuildingBlock
 
     script_file, script = calc_linker_script
 
-    cmd = remove_empty_strings_and_join([@tcs[:LINKER][:COMMAND], # g++
-      @tcs[:LINKER][:MUST_FLAGS], @tcs[:LINKER][:FLAGS], # --all_load
-      @tcs[:LINKER][:EXE_FLAG], get_executable_name, # -o debug/x.exe
+    cmd = remove_empty_strings_and_join([
+      @tcs[:LINKER][:COMMAND], # g++
+      @tcs[:LINKER][:MUST_FLAGS],
+      @tcs[:LINKER][:FLAGS], # --all_load
+      @tcs[:LINKER][:EXE_FLAG],
+      get_executable_name, # -o debug/x.exe
       remove_empty_strings_and_join(objects), # debug/src/abc.o debug/src/xy.o
       script,
       mapfileString = @mapfile ? "#{@tcs[:LINKER][:MAP_FILE_FLAG]} >#{File.relFromTo(@mapfile, complete_output_dir)}" : "", # -Wl,-m6 > xy.map

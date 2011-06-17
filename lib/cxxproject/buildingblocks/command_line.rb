@@ -37,7 +37,7 @@ class CommandLine < BuildingBlock
   def convert_to_rake()
     res = task get_task_name do
       cmd = get_command_line
-      show_command(cmd)
+      show_command(cmd, cmd)
       process_console_output(catch_output(cmd))
       check_system_command(cmd)
     end

@@ -34,15 +34,18 @@ class Makefile < BuildingBlock
 
   def convert_to_rake()
     mfile = get_makefile()
-    cmd = remove_empty_strings_and_join([@tcs[:MAKE][:COMMAND], # make
-      get_target, @tcs[:MAKE][:MAKE_FLAGS], @tcs[:MAKE][:FLAGS], # -j
+    cmd = remove_empty_strings_and_join([
+      @tcs[:MAKE][:COMMAND], # make
+      get_target, # all
+      @tcs[:MAKE][:MAKE_FLAGS],
+      @tcs[:MAKE][:FLAGS], # -j
       @tcs[:MAKE][:DIR_FLAG], # -C
       File.dirname(mfile), # x/y
       @tcs[:MAKE][:FILE_FLAG], # -f
       File.basename(mfile) # x/y/makefile
     ])
     mfileTask = task get_task_name do
-      show_command(cmd)
+      show_command(cmd, cmd)
       process_console_output(catch_output(cmd))
       check_system_command(cmd)
     end
@@ -50,12 +53,12 @@ class Makefile < BuildingBlock
     mfileTask.type = Rake::Task::MAKE
     mfileTask.enhance(@config_files)
 
-    create_clean_task
+    create_clean_task(mfile)
     setup_rake_dependencies(mfileTask)
     mfileTask
   end
 
-  def create_clean_task
+  def create_clean_task(mfile)
     # generate the clean task
     if not Rake.application["clean"].prerequisites.include?(mfile+"Clean")
       cmd = remove_empty_strings_and_join([@tcs[:MAKE][:COMMAND], # make
@@ -66,7 +69,7 @@ class Makefile < BuildingBlock
                                            File.basename(mfile) # x/y/makefile
                                           ])
       mfileCleanTask = task mfile+"Clean" do
-        show_command(cmd)
+        show_command(cmd, cmd)
         process_console_output(catch_output(cmd))
         check_system_command(cmd)
       end
