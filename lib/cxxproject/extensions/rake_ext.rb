@@ -69,7 +69,7 @@ module Rake
           break unless job
 
           prereq = application[job]
-          prereq.dont_output = true
+          prereq.output_after_execute = false
           prereq.invoke_with_call_chain(args, invocation_chain)
           set_failed if prereq.failure
           output(prereq.output_string)
@@ -106,7 +106,7 @@ module Rake
     attr_accessor :dismissed_prerequisites
     attr_accessor :progress_count
     attr_accessor :output_string
-    attr_accessor :dont_output
+    attr_accessor :output_after_execute
 
     UNKNOWN     = 0x0000 #
     OBJECT      = 0x0001 #
@@ -142,6 +142,7 @@ module Rake
       progress_count = 0
       @ignore = false
       @failure = false
+      output_after_execute = true
     end
 
     define_method(:invoke) do |*args|
@@ -228,7 +229,7 @@ module Rake
       self.output_string = s.string
       Thread.current[:stdout] = nil
 
-      output(self.output_string) unless dont_output
+      output(self.output_string) if output_after_execute
     end
 
     def output(to_output)
