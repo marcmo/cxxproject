@@ -14,6 +14,9 @@ class ProgressHelper
     tasks.each do |t|
       count(t)
     end
+    if @todo < 1
+      @todo = 1
+    end
   end
 
   def find_tasks_for_toplevel_task(name)
