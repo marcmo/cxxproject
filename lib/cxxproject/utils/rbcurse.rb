@@ -7,9 +7,11 @@ begin
   require 'rbcurse/table/tablecellrenderer'
   require 'rbcurse/rsplitpane'
   require 'rbcurse/rtextview'
+  require 'cxxproject/extensions/rake_listener_ext'
+  require 'cxxproject/utils/rbcurse_progress'
+  require 'cxxproject/utils/rbcurse_tasktable'
 
   include RubyCurses
-
 
   class Executable
     def run_command(task, command)
@@ -39,54 +41,13 @@ begin
       return s[0].to_i
     end
 
-    class TaskTable < Table
-      def get_cell_renderer(row, col)
-        renderer = super(row, col)
-        content = get_value_at(row, 0)
-        if renderer.nil?
-          renderer = get_default_cell_renderer_for_class(content.class.to_s) if renderer.nil?
-          column = @table_column_model.column(col)
-          renderer.display_length column.width if column
-        end
-
-        if content && content.failure
-          renderer.color('red')
-          renderer.bgcolor('black')
-        else
-          renderer.color('white')
-          renderer.bgcolor('black')
-        end
-        return renderer
-      end
-    end
     def create_table
-      rake_gui = self
       @col_names = ['name', 'desc']
-      res = TaskTable.new nil do
+      return TaskTable.new(self) do
         name 'my table'
         title 'my table'
         cell_editing_allowed false
       end
-
-      res.configure do
-        bind_key(RakeGui.keycode('r')) do
-          rake_gui.invoke(self)
-        end
-        bind_key(RakeGui.keycode('d')) do
-          rake_gui.details(self)
-        end
-        bind_key(RakeGui.keycode('e')) do
-          task = get_value_at(focussed_row, 0)
-          rake_gui.start_editor_for_task(task)
-        end
-        [RakeGui.keycode('p'), KEY_BACKSPACE, 127].each do |code|
-          bind_key(code) do
-            rake_gui.pop_data
-          end
-        end
-      end
-
-      return res
     end
 
     def reenable_including_prerequisites(task)
@@ -98,30 +59,24 @@ begin
 
     def invoke(table)
       t = table.get_value_at(table.focussed_row, 0)
-      begin
-        @progress_helper = ProgressHelper.new
-        complete_task_name = t.name
-        args = []
-        if @progress_helper.is_filter(t.name)
-          args = [get_string('please input filterpattern', 20, '.*')]
-          complete_task_name = "#{t.name}[#{args[0]}]"
-        end
-        @progress_helper.count_with_filter(complete_task_name)
-
-        @progress.max = @progress_helper.todo
-        require 'cxxproject/extensions/rake_listener_ext'
-        Rake::add_listener(self)
-        reenable_including_prerequisites(t)
-        t.invoke(args)
-        Rake::remove_listener(self)
-      rescue => e
-        $log.error e
+      @progress_helper = ProgressHelper.new
+      complete_task_name = t.name
+      args = []
+      if @progress_helper.is_filter(t.name)
+        args = [get_string('please input filterpattern', 20, '.*')]
+        complete_task_name = "#{t.name}[#{args[0]}]"
       end
+      @progress_helper.count_with_filter(complete_task_name)
+
+      @progress.max = @progress_helper.todo
+      Rake::add_listener(self)
+      reenable_including_prerequisites(t)
+      t.invoke(args)
+      Rake::remove_listener(self)
       show_details_for(table.focussed_row)
       table.repaint_all(true)
     end
-    def method_missing(name, *args)
-    end
+
     def after_execute(name)
       needed_tasks = @progress_helper.needed_tasks
       if needed_tasks[name]
@@ -143,22 +98,25 @@ begin
       end
     end
 
+    def repaint_and_next_char
+      @form.repaint
+      @window.wrefresh
+      return @window.getchar
+    end
+
     def process_input_events
-      ch = @window.getchar
+      ch = repaint_and_next_char
       while ch != RakeGui.keycode('q')
         $log.error "entered key: #{ch}"
         case ch
-          when RakeGui.keycode('a')
-            @h_split.set_divider_location(@h_split.divider_location+1)
-          when RakeGui.keycode('s')
-            @h_split.set_divider_location(@h_split.divider_location-1)
-          else
-            @form.handle_key(ch)
+        when RakeGui.keycode('a')
+          @h_split.set_divider_location(@h_split.divider_location+1)
+        when RakeGui.keycode('s')
+          @h_split.set_divider_location(@h_split.divider_location-1)
+        else
+          @form.handle_key(ch)
         end
-
-        @form.repaint
-        @window.wrefresh
-        ch = @window.getchar
+        ch = repaint_and_next_char
       end
     end
 
@@ -239,67 +197,64 @@ begin
       @window.show
     end
 
-    class Progress
-      def initialize(form, size)
-        @width = size[0]
-        $log.error size
-        @progress = Label.new form do
-          name 'progress'
-          row size[1]-1
-          col 0
-          width size[0]
-          height 1
+    def create_breadcrumbs(size)
+      @breadcrumbs = Label.new @form do
+        name 'breadcrumbs'
+        row 0
+        col 0
+        width size[0]
+        height 1
+      end
+      @breadcrumbs.display_length(size[0])
+      @breadcrumbs.text = ''
+    end
+
+    def create_splitpane(size)
+      @h_split = SplitPane.new @form do
+        name 'mainpane'
+        row 1
+        col 0
+        width size[0]
+        height size[1]-3
+        orientation :HORIZONTAL_SPLIT
+      end
+    end
+
+    def create_output_view(size)
+      @output = TextView.new nil
+      @output.set_content('')
+      @output.configure do
+        bind_key(RakeGui.keycode('e')) do |code|
+          line = selected_item
+          file_pattern = '(.*?):(\d+):(\d*):? '
+          error_pattern = Regexp.new("#{file_pattern}(error: .*)")
+          warning_pattern = Regexp.new("#{file_pattern}(warning: .*)")
+          md = error_pattern.match(line)
+          md = warning_pattern.match(line) unless md
+          if md
+            file_name = md[1]
+            line = md[2]
+            col = md[3]
+            rake_gui.start_editor(file_name, line, col)
+          end
         end
-        @progress.display_length(@width)
-        @progress.text = '-'*@width
-
-        @title = Label.new form do
-          name 'title'
-          row size[1]-2
-          col 0
-          width size[0]
-          height 1
-        end
-        @title.display_length(@widget)
-        @title.text = 'Idle'
-
-        max = 100
       end
+    end
 
-      def title=(t)
-        @title_text = t
-        format_title
-      end
+    def create_components(size)
+      create_breadcrumbs(size)
+      @progress = Progress.new(@form, size)
+      create_splitpane(size)
+      @table = create_table
+      push_table_data(Rake::Task.tasks.select {|t|t.comment})
 
-      def inc(i)
-        @current += i
-        format_title
-        format_progress
-      end
+      create_output_view(size)
+    end
 
-      def percentage
-        return @current.to_f / @max.to_f
-      end
-
-      def format_progress
-        total = (percentage * @width.to_f).to_i
-        text = "#" * total
-        @progress.text = text
-        @progress.repaint_all(true)
-      end
-
-      def format_title
-        format = "%3d%% - worked on %s                                                                    "
-        @title.text = sprintf(format, (percentage*100).to_i, @title_text)
-        @title.repaint_all(true)
-      end
-
-      def max=(f)
-        @max = f.to_f
-        @current = 0.0
-        format_progress
-        format_title
-      end
+    def wire_components
+      @h_split.first_component(@table)
+      @h_split.second_component(@output)
+      @h_split.set_resize_weight(0.50)
     end
 
     def run
@@ -308,74 +263,22 @@ begin
         VER::start_ncurses
 
         @window = VER::Window.root_window
-        catch (:close) do
-          @form = Form.new @window
-          size = size()
-          @breadcrumbs = Label.new @form do
-            name 'breadcrumbs'
-            row 0
-            col 0
-            width size[0]
-            height 1
-          end
-          @breadcrumbs.display_length(size[0])
-          @breadcrumbs.text = ''
+        @form = Form.new @window
 
-          @progress = Progress.new(@form, size)
+        create_components(size())
+        wire_components
 
-          @h_split = SplitPane.new @form do
-            name 'mainpane'
-            row 1
-            col 0
-            width size[0]
-            height size[1]-3
-            orientation :HORIZONTAL_SPLIT
-          end
-          @table = create_table
-          push_table_data(Rake::Task.tasks.select {|t|t.comment})
-
-          @output = TextView.new nil
-          @output.set_content('')
-          @output.configure do
-            bind_key(RakeGui.keycode('e')) do |code|
-              line = selected_item
-              $log.error "current line #{line}"
-              file_pattern = '(.*?):(\d+):(\d*):? '
-              error_pattern = Regexp.new("#{file_pattern}(error: .*)")
-              warning_pattern = Regexp.new("#{file_pattern}(warning: .*)")
-              md = error_pattern.match(line)
-              md = warning_pattern.match(line) unless md
-              $log.error "MatchData #{md}"
-              if md
-                file_name = md[1]
-                line = md[2]
-                col = md[3]
-                $log.error "error ist in #{file_name} zeile #{line} column #{col}"
-                rake_gui.start_editor(file_name, line, col)
-              end
-            end
-          end
-
-          @table.bind(:TABLE_TRAVERSAL_EVENT) do |e|
-            rake_gui.show_details_for(e.newrow)
-          end
-
-          @h_split.first_component(@table)
-          @h_split.second_component(@output)
-          @h_split.set_resize_weight(0.50)
-
-          @form.repaint
-          @window.wrefresh
-          Ncurses::Panel.update_panels
-
-          process_input_events
+        @table.bind(:TABLE_TRAVERSAL_EVENT) do |e|
+          rake_gui.show_details_for(e.newrow)
         end
-      ensure
-        @window.destroy if @window
-        VER::stop_ncurses
-      end
-    end
 
+        process_input_events
+      rescue => e
+        puts e
+      end
+      @window.destroy if @window
+      VER::stop_ncurses
+    end
   end
 
   task :ui do

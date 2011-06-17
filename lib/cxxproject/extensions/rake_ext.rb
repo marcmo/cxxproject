@@ -80,6 +80,7 @@ module Rake
 
     def output(to_output)
       return if Rake::Task.output_disabled
+      return unless output_after_execute
 
       @mutex.synchronize do
         if to_output and to_output.length > 0
@@ -213,27 +214,32 @@ module Rake
       begin
         execute_org.bind(self).call(arg)
       rescue Exception => ex1
-        # todo: debug log, no puts here!
-        if not Rake.application.idei.get_abort()
-          puts "Error for task: #{@name} #{ex1.message}"
-        end
-        begin
-          FileUtils.rm(@name) if File.exists?(@name) # todo: error parsing?
-        rescue Exception => ex2
-          # todo: debug log, no puts here!
-          puts "Error: Could not delete #{@name}: #{ex2.message}"
-        end
-        set_failed
+        handle_error(ex1)
       end
 
       self.output_string = s.string
       Thread.current[:stdout] = nil
 
-      output(self.output_string) if output_after_execute
+      output(self.output_string)
+    end
+
+    def handle_error(ex1)
+      # todo: debug log, no puts here!
+      if not Rake.application.idei.get_abort()
+        puts "Error for task: #{@name} #{ex1.message}"
+      end
+      begin
+        FileUtils.rm(@name) if File.exists?(@name) # todo: error parsing?
+      rescue Exception => ex2
+        # todo: debug log, no puts here!
+        puts "Error: Could not delete #{@name}: #{ex2.message}"
+      end
+      set_failed
     end
 
     def output(to_output)
       return if Rake::Task.output_disabled
+      return unless output_after_execute
 
       if to_output and to_output.length > 0
         puts to_output

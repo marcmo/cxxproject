@@ -37,9 +37,6 @@ class ProgressListener
     @progress.unblock
   end
 
-  def method_missing(name, args)
-  end
-
   def after_execute(name)
     needed_tasks = @progress_helper.needed_tasks
     if needed_tasks[name]

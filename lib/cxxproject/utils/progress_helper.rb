@@ -1,6 +1,7 @@
 class ProgressHelper
 
   attr_reader :todo
+
   attr_reader :needed_tasks
 
   def initialize
@@ -52,14 +53,18 @@ class ProgressHelper
 
   def count(task)
     task.visit() do |t|
-      c = t.progress_count
-      if c && c > 0
-        if t.needed? && @needed_tasks[t.name] == nil
-          @needed_tasks[t.name] = true
-          @todo += c
-        end
-      end
+      count_needed_tasks(t)
       true
+    end
+  end
+
+  def count_needed_tasks(t)
+    c = t.progress_count
+    if c && c > 0
+      if t.needed? && @needed_tasks[t.name] == nil
+        @needed_tasks[t.name] = true
+        @todo += c
+      end
     end
   end
 end
