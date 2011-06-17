@@ -63,20 +63,25 @@ class IDEInterface < ErrorParser
   def set_errors(error_array)
     if @socket
       error_array.each do |msg|
-        # msg = [filename, line_number, severity, error_msg] ... perhaps use hash?
         filename = msg[0]
+        line_number = msg[1].to_i
+        severity = msg[2]
+        error_msg = msg[3]
+
         packet = ""
         [packet, filename, error_msg].each {|s|force_encoding(s)}
 
         packet << 1 # error type
-        write_long(packet, 0) # length will be corrected below
-        write_string(packet, filename)
-        write_long(packet, msg[1].to_i)
 
-        packet << (msg[2] & 0xFF)
-        packet << msg[3] # perhaps write error_msg with length, stringdata
+        write_long(packet,0) # length (will be corrected below)
 
-        set_length_in_header(packet, l)
+        write_long(packet,filename.length)
+        packet << filename
+        write_long(packet,line_number)
+        packet << (severity & 0xFF)
+        packet << error_msg
+
+        set_length_in_header(packet)
 
         @mutex.synchronize { @socket.write(packet) }
       end
