@@ -63,7 +63,7 @@ module Rake
     def invoke_prerequisites(args, invocation_chain)
       return unless @prerequisites
       @mutex = Mutex.new
-      jobs = Jobs.new(@prerequisites.dup, application.max_parallel_tasks) do |jobs|
+      Jobs.new(@prerequisites.dup, application.max_parallel_tasks) do |jobs|
         while true do
           job = jobs.get_next_or_nil
           break unless job
@@ -74,8 +74,7 @@ module Rake
           set_failed if prereq.failure
           output(prereq.output_string)
         end
-      end
-      jobs.join
+      end.join
     end
 
     def output(to_output)
@@ -176,6 +175,7 @@ module Rake
         end
       end
     end
+
     def optional_prereq_or_fail(n)
       begin
         if Rake::Task[n].ignore
