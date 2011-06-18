@@ -107,12 +107,12 @@ class Executable < BuildingBlock
     objects, object_multitask = create_tasks_for_objects()
 
     script_file, script = calc_linker_script
-
+    linker = @tcs[:LINKER]
     cmd = remove_empty_strings_and_join([
-      @tcs[:LINKER][:COMMAND], # g++
-      @tcs[:LINKER][:MUST_FLAGS],
-      @tcs[:LINKER][:FLAGS], # --all_load
-      @tcs[:LINKER][:EXE_FLAG],
+      linker[:COMMAND], # g++
+      linker[:MUST_FLAGS],
+      linker[:FLAGS], # --all_load
+      linker[:EXE_FLAG],
       get_executable_name, # -o debug/x.exe
       remove_empty_strings_and_join(objects), # debug/src/abc.o debug/src/xy.o
       script,

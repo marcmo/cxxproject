@@ -34,14 +34,15 @@ class Makefile < BuildingBlock
 
   def convert_to_rake()
     mfile = get_makefile()
+    make = @tcs[:MAKE]
     cmd = remove_empty_strings_and_join([
-      @tcs[:MAKE][:COMMAND], # make
+      make[:COMMAND], # make
       get_target, # all
-      @tcs[:MAKE][:MAKE_FLAGS],
-      @tcs[:MAKE][:FLAGS], # -j
-      @tcs[:MAKE][:DIR_FLAG], # -C
+      make[:MAKE_FLAGS],
+      make[:FLAGS], # -j
+      make[:DIR_FLAG], # -C
       File.dirname(mfile), # x/y
-      @tcs[:MAKE][:FILE_FLAG], # -f
+      make[:FILE_FLAG], # -f
       File.basename(mfile) # x/y/makefile
     ])
     mfileTask = task get_task_name do

@@ -63,35 +63,37 @@ class IDEInterface < ErrorParser
   def set_errors(error_array)
     if @socket
       error_array.each do |msg|
-        filename = msg[0]
-        line_number = msg[1].to_i
-        severity = msg[2]
-        error_msg = msg[3]
-
-        packet = ""
-        [packet, filename, error_msg].each {|s|force_encoding(s)}
-
-        packet << 1 # error type
-
-        write_long(packet,0) # length (will be corrected below)
-
-        write_long(packet,filename.length)
-        packet << filename
-        write_long(packet,line_number)
-        packet << (severity & 0xFF)
-        packet << error_msg
-
-        set_length_in_header(packet)
-
+        packet = create_error_packet(msg)
         @mutex.synchronize { @socket.write(packet) }
       end
     end
   end
 
+  def create_error_packet(msg)
+    filename = msg[0]
+    line_number = msg[1].to_i
+    severity = msg[2]
+    error_msg = msg[3]
+
+    packet = ""
+    [packet, filename, error_msg].each {|s|force_encoding(s)}
+
+    packet << 1 # error type
+    write_long(packet,0) # length (will be corrected below)
+
+    write_string(packet, filename)
+    write_long(packet,line_number)
+    packet << (severity & 0xFF)
+    packet << error_msg
+
+    set_length_in_header(packet)
+    packet
+  end
+
   def set_project(name)
     packet = ""
-    packet.force_encoding("binary") if packet.respond_to?("force_encoding") # for ruby >= 1.9
-    name.force_encoding("binary") if name.respond_to?("force_encoding") # for ruby >= 1.9
+    force_encoding(packet)
+    force_encoding(name)
 
     l = name.length
 
@@ -108,9 +110,8 @@ class IDEInterface < ErrorParser
   end
 
   def set_number_of_projects(num)
-
     packet = ""
-    packet.force_encoding("binary") if packet.respond_to?("force_encoding") # for ruby >= 1.9
+    force_encoding(packet)
 
     packet << 10 # num type
 

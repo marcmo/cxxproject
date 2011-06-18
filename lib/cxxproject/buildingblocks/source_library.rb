@@ -39,11 +39,11 @@ class SourceLibrary < BuildingBlock
     calc_compiler_strings()
     objects, object_multitask = create_tasks_for_objects()
     archive = get_archive_name()
-
+    archiver = @tcs[:ARCHIVER]
     cmd = remove_empty_strings_and_join([
-      @tcs[:ARCHIVER][:COMMAND], # ar
-      @tcs[:ARCHIVER][:ARCHIVE_FLAGS], # -rc
-      @tcs[:ARCHIVER][:FLAGS],
+      archiver[:COMMAND], # ar
+      archiver[:ARCHIVE_FLAGS], # -rc
+      archiver[:FLAGS],
       archive, # debug/x.a
       remove_empty_strings_and_join(objects) # debug/src/abc.o debug/src/xy.o
     ])
