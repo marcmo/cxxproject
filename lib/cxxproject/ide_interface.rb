@@ -29,7 +29,7 @@ class IDEInterface < ErrorParser
 
   def disconnect()
     if @socket
-      sleep 0.1 # hack to let ruby send all data via streams before closing
+      sleep 0.1 # hack to let ruby send all data via streams before closing ... strange .. perhaps this should be synchronized!
       @socket.close
       @socket = nil
     end
@@ -125,7 +125,6 @@ class IDEInterface < ErrorParser
 
     @mutex.synchronize { @socket.write(packet) if @socket }
   end
-
 
   def get_abort()
     if @socket
