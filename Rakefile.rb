@@ -38,6 +38,8 @@ begin
   require 'rspec/core/rake_task'
   RSpec::Core::RakeTask.new() do |t|
     t.pattern = SPEC_PATTERN
+    t.rcov = true
+    t.rcov_opts = ['--exclude', '.*/gems/.*']
   end
 rescue LoadError
   begin

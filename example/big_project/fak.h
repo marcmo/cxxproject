@@ -1,9 +1,9 @@
-template <long N> class fakultaet {
+template <long N> class fib {
   public:
-    static const long value = N * fakultaet<N - 1>::value;
+    static const long value = fib<N-1>::value + fib<N-1>::value;
 };
 
-template <> class fakultaet<1> {
+template <> class fib<1> {
   public:
     static const long value = 1;
 };

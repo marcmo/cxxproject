@@ -9,3 +9,5 @@ out
 *_output_dir
 testdata
 *~
+coverage
+html

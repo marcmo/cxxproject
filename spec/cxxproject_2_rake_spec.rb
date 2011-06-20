@@ -34,13 +34,13 @@ def rebuild
   execute_all_tasks(tasks)
 end
 
-def is_older? fileA, fileB
-  File.mtime(fileA) < File.mtime(fileB)
-end
-
-def is_newer? fileA, fileB
-  File.mtime(fileA) > File.mtime(fileB)
-end
+#def is_older? fileA, fileB
+#  File.mtime(fileA) < File.mtime(fileB)
+#end
+#
+#def is_newer? fileA, fileB
+#  File.mtime(fileA) > File.mtime(fileB)
+#end
 
 def check_rebuilding (end_product, prereq_file, should_rebuild = true)
   sleep(1)
@@ -74,25 +74,39 @@ def cleanup
   rm_r 'output' if File.directory?('output')
 end
 
-def count_needed_tasks(tasks)
-  needed = 0
-  tasks.each do |tn|
-    t = tn[:task]
-    if t.needed?
-      needed = needed + 1
+#def count_needed_tasks(tasks)
+#  needed = 0
+#  tasks.each do |tn|
+#    t = tn[:task]
+#    if t.needed?
+#      needed = needed + 1
+#    end
+#  end
+#  needed
+#end
+
+ONLY_ONE_HEADER = "#{RSPECDIR}/testdata/onlyOneHeader"
+describe CxxProject2Rake do
+  before(:all) do
+    Rake::application.options.silent = true
+  end
+
+  it 'should provide runtask for executables' do
+    cd ONLY_ONE_HEADER, :verbose => false do
+      cleanup
+      tasks = fresh_cxx.all_tasks
+      Rake::Task['run:basic'].invoke
+      cleanup
     end
   end
-  needed
-end
-
-describe CxxProject2Rake do
 
   it 'should rebuild only when one file was changed' do
     require 'cxxproject/extensions/rake_listener_ext'
     require 'cxxproject/extensions/rake_dirty_ext'
+
     listener = SpecTaskListener.new
     Rake::add_listener(listener)
-    cd("#{RSPECDIR}/testdata/onlyOneHeader", :verbose => false) do
+    cd(ONLY_ONE_HEADER, :verbose => false) do
       # fresh build
       listener.reset_exec_count
       cleanup

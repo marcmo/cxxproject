@@ -13,21 +13,11 @@ begin
 
   include RubyCurses
 
-  class Executable
-    def run_command(task, command)
-      require 'open3'
-      stdin, stdout, stderr = Open3.popen3(command)
-      puts "StdOut:"
-      puts stdout.readlines
-      puts "StdErr:"
-      puts stderr.readlines
-    end
-  end
-
   Rake::TaskManager.record_task_metadata = true
 
   class RakeGui
     def initialize
+      require 'cxxproject/utils/rbcurse_executable_ext'
       Cxxproject::ColorizingFormatter.enabled = false
       Rake::Task.output_disabled = true
 

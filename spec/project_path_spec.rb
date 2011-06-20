@@ -23,13 +23,13 @@ describe CxxProject2Rake do
   end
 
 
-  def is_older? fileA, fileB
-    File.mtime(fileA) < File.mtime(fileB)
-  end
+#  def is_older? fileA, fileB
+#    File.mtime(fileA) < File.mtime(fileB)
+#  end
 
-  def is_newer? fileA, fileB
-    File.mtime(fileA) > File.mtime(fileB)
-  end
+#  def is_newer? fileA, fileB
+#    File.mtime(fileA) > File.mtime(fileB)
+#  end
 
   def test_on_level(base, outputdir)
     libOne = "#{outputdir}/libs/lib1.a"

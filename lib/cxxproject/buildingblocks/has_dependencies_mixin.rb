@@ -45,15 +45,10 @@ module HasDependencies
   def add_child_dependencies(deps, depsToCheck)
     # two-step needed to keep order of dependencies for includes, lib dirs, etc
     depsToCheck.each do |d|
-      begin
-        if not ALL_BUILDING_BLOCKS[d]
-          raise "ERROR: while reading config file for #{self.name}: dependent building block \"#{d}\" was specified but not found!"
-        end
-        ALL_BUILDING_BLOCKS[d].get_transitive_dependencies_internal(deps)
-      rescue Exception => e
-        puts e
-        exit
+      if not ALL_BUILDING_BLOCKS[d]
+        raise "ERROR: while reading config file for #{self.name}: dependent building block \"#{d}\" was specified but not found!"
       end
+      ALL_BUILDING_BLOCKS[d].get_transitive_dependencies_internal(deps)
     end
   end
 

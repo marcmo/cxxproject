@@ -1,7 +1,16 @@
+require 'rspec'
 require 'cxxproject'
 require 'cxxproject/utils/cleanup'
 
 describe BuildingBlock do
+
+  before(:each) do
+    Cxxproject.cleanup_rake
+  end
+  after(:each) do
+    Cxxproject.cleanup_rake
+  end
+
   it 'should build the right dependency-chain' do
     lib1 = SourceLibrary.new('1')
     lib2 = SourceLibrary.new('2').set_dependencies(['1'])
@@ -12,8 +21,6 @@ describe BuildingBlock do
   end
 
   it 'should have the right output-directory' do
-    Cxxproject.cleanup_rake
-
     lib1 = SourceLibrary.new('lib1').set_sources(['test.cc'])
     lib1.set_project_dir(File.join(Dir.pwd, 'lib1'))
 
@@ -26,8 +33,13 @@ describe BuildingBlock do
 
     lib1.complete_output_dir.should eq(File.join(Dir.pwd, 'build'))
     lib2.complete_output_dir.should eq(File.join(Dir.pwd, 'lib2', 'build2'))
+  end
 
-    Cxxproject.cleanup_rake
+  it 'should raise exception if building block cannot be resolved' do
+    expect do
+      lib1 = SourceLibrary.new('1').set_dependencies('unresolved')
+      cxx = CxxProject2Rake.new([], 'build', GCCChain)
+    end.to raise_exception(RuntimeError, 'ERROR: while reading config file for 1: dependent building block "unresolved" was specified but not found!')
   end
 
 end

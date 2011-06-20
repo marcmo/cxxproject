@@ -6,9 +6,15 @@ require 'cxxproject/utils/cleanup'
 
 describe Rake::Task do
 
- it "should call a listener for prerequisites and execute" do
+  before(:each) do
     Cxxproject.cleanup_rake
+  end
+  after(:each) do
+    Cxxproject.cleanup_rake
+  end
 
+
+ it "should call a listener for prerequisites and execute" do
     task "mypre"
     t = task "test" => "mypre"
 
@@ -28,8 +34,6 @@ describe Rake::Task do
     Rake::remove_listener(l)
 
     t.invoke
-
-    Cxxproject.cleanup_rake
   end
 
   class DummyListener
@@ -43,8 +47,6 @@ describe Rake::Task do
   end
 
   it "should work with only half implemented rake-listener" do
-    Cxxproject.cleanup_rake
-
     task "mypre"
     t = task "test" => "mypre"
     l = DummyListener.new
@@ -52,8 +54,6 @@ describe Rake::Task do
     t.invoke
     Rake::remove_listener(l)
     l.calls.should eq(['mypre', 'test'])
-
-    Cxxproject.cleanup_rake
   end
 
 end

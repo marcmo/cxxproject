@@ -2,7 +2,7 @@ require 'stringio'
 
 module ThreadOut
 
-  def self.write(stuff)
+  def self.write(stuff='')
     if Thread.current[:stdout] then
       Thread.current[:stdout].write stuff
     else
@@ -10,11 +10,18 @@ module ThreadOut
     end
   end
 
-  def self.puts(stuff)
+  def self.puts(stuff='')
     if Thread.current[:stdout] then
       Thread.current[:stdout].puts stuff
     else
       STDERR.puts stuff
+    end
+  end
+  def self.print(stuff='')
+    if Thread.current[:stdout] then
+      Thread.current[:stdout].puts stuff
+    else
+      STDOUT.write stuff
     end
   end
 
