@@ -54,34 +54,31 @@ class Executable < BuildingBlock
     get_executable_name()
   end
 
-  def collect_unique(array, set, &block)
-    return array.map { |v| block.call(v) }.inject([]) do | memo, pair |
-      key = pair[0]
-      value = pair[1]
-      if set.include?(key)
-        memo
-      else
-        set << key
-        memo + [value]
+  def collect_unique(array, set)
+    ret = []
+    array.each do |v|
+      if set.add?(v)
+        ret << v
       end
     end
+    ret
   end
-
+  
   def calc_linker_lib_string_for_dependency(d, s1, s2, s3, s4)
     res = []
-    res += collect_unique(d.lib_searchpaths, s1) do |v|
+    linker = @tcs[:LINKER]
+    collect_unique(d.lib_searchpaths, s1).each do |v|
       tmp = File.relFromTo(v, d.project_dir)
-      [tmp, "#{@tcs[:LINKER][:LIB_PATH_FLAG]}#{tmp}"]
+      res << "#{linker[:LIB_PATH_FLAG]}#{tmp}"
     end
-    res += collect_unique(d.libs_to_search, s2) do |v|
-      [v, "#{@tcs[:LINKER][:LIB_FLAG]}#{v}"]
+    collect_unique(d.libs_to_search, s2).each do |v|
+      res << "#{linker[:LIB_FLAG]}#{v}"
     end
-    res += collect_unique(d.user_libs, s3) do |v|
-      [v, "#{@tcs[:LINKER][:USER_LIB_FLAG]}#{v}"]
+    collect_unique(d.user_libs, s3).each do |v|
+      res << "#{linker[:USER_LIB_FLAG]}#{v}"
     end
-    res += collect_unique(d.libs_with_path, s4) do |v|
-      tmp = File.relFromTo(v, d.project_dir)
-      [tmp, tmp]
+    collect_unique(d.libs_with_path, s4).each do |v|
+      res <<  File.relFromTo(v, d.project_dir)
     end
     res
   end
@@ -93,7 +90,7 @@ class Executable < BuildingBlock
     s3 = Set.new
     s4 = Set.new
     res = []
-    all_dependencies.map{|e|ALL_BUILDING_BLOCKS[e]}.each do |d|
+    all_dependencies.each do |d|
       next if not HasLibraries === d
       res += calc_linker_lib_string_for_dependency(d, s1, s2, s3, s4)
     end
@@ -116,10 +113,10 @@ class Executable < BuildingBlock
       get_executable_name, # -o debug/x.exe
       remove_empty_strings_and_join(objects), # debug/src/abc.o debug/src/xy.o
       script,
-      mapfileString = @mapfile ? "#{@tcs[:LINKER][:MAP_FILE_FLAG]} >#{File.relFromTo(@mapfile, complete_output_dir)}" : "", # -Wl,-m6 > xy.map
-      @tcs[:LINKER][:LIB_PREFIX_FLAGS], # "-Wl,--whole-archive "
+      mapfileString = @mapfile ? "#{linker[:MAP_FILE_FLAG]} >#{File.relFromTo(@mapfile, complete_output_dir)}" : "", # -Wl,-m6 > xy.map
+      linker[:LIB_PREFIX_FLAGS], # "-Wl,--whole-archive "
       remove_empty_strings_and_join(calc_linker_lib_string),
-      @tcs[:LINKER][:LIB_POSTFIX_FLAGS] # "-Wl,--no-whole-archive "
+      linker[:LIB_POSTFIX_FLAGS] # "-Wl,--no-whole-archive "
     ])
 
     return create_task(object_multitask, cmd, script_file)

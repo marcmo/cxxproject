@@ -20,48 +20,41 @@ module HasDependencies
     @helper_dependencies = deps.map { |dep| dep.instance_of?(String) ? dep : dep.name }
   end
 
-  # inclusive self!!
-  def all_dependencies
-    @all_dependencies ||= get_transitive_dependencies_internal([self.name])
+  def all_dependencies(stack = Set.new)
+    return @all_dependencies if @all_deps_calculated
+    
+    @all_dependencies = [self]
+    
+    depList = helper_dependencies.length > 0 ? helper_dependencies : dependencies
+    depList.each do |d|
+      bb = ALL_BUILDING_BLOCKS[d]
+      if not bb
+        puts "ERROR: while reading config file for #{self.name}: dependent building block \"#{d}\" was specified but not found!"
+      end
+      @all_dependencies << bb
+      handle_module_dependencies(bb)
+    end
+    
+    stack.add(self)
+    # two-step needed to keep order of dependencies for includes, lib dirs, etc
+    @all_dependencies.dup.each do |d|
+      next if stack.include?d
+      @all_dependencies.concat(d.all_dependencies(stack))
+    end
+    stack.delete(self) 
+    
+    @all_dependencies.uniq!
+    @all_deps_calculated = true
     @all_dependencies
   end
 
-  # gets alls transitive dependencies and adds them to deps
-  def get_transitive_dependencies_internal(deps)
-    depsToCheck = []
-    depList = helper_dependencies.length > 0 ? helper_dependencies : dependencies
-    depList.each do |d|
-      if not deps.include?(d)
-        deps << d
-        depsToCheck << d
-        handle_module_dependencies(deps, depsToCheck, d)
-      end
-    end
-
-    add_child_dependencies(deps, depsToCheck)
-    deps
-  end
-
-  def add_child_dependencies(deps, depsToCheck)
-    # two-step needed to keep order of dependencies for includes, lib dirs, etc
-    depsToCheck.each do |d|
-      if not ALL_BUILDING_BLOCKS[d]
-        raise "ERROR: while reading config file for #{self.name}: dependent building block \"#{d}\" was specified but not found!"
-      end
-      ALL_BUILDING_BLOCKS[d].get_transitive_dependencies_internal(deps)
-    end
-  end
-
-  def handle_module_dependencies(deps, depsToCheck, d)
+  def handle_module_dependencies( bb)
     # deps in modules may be splitted into its contents
-    bb = ALL_BUILDING_BLOCKS[d]
     if ModuleBuildingBlock === bb
       bb.content.each do |c|
-        if not deps.include?(c.name)
-          deps << c.name
-          depsToCheck << c.name
-        end
+        @all_dependencies << c
       end
     end
   end
+  
 end

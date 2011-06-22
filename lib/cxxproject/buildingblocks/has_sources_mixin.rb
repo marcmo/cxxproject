@@ -3,6 +3,8 @@ require 'yaml'
 module HasSources
 
   attr_writer :file_dependencies
+  attr_reader :include_string_self
+  
   def file_dependencies
     @file_dependencies ||= []
   end
@@ -43,19 +45,24 @@ module HasSources
     @define_string[type] ||= ""
   end
 
+  def init_calc_compiler_strings
+    tmp = @project_dir + "__DUMMY__"
+    @include_string_self = []
+    if includes.length == 0
+      @include_string_self << File.relFromTo("include", @project_dir, tmp )
+    else
+      includes.each { |k| @include_string_self << File.relFromTo(k, @project_dir, tmp) }
+    end
+  end
+
   def calc_compiler_strings()
     @include_string = {}
     @define_string = {}
 
-    @incArray = []
-    all_dependencies.each do |e|
-      d = ALL_BUILDING_BLOCKS[e]
+    @incArray = @include_string_self.dup
+    all_dependencies.each do |d|
       next if not HasIncludes === d
-      if d.includes.length == 0
-        @incArray << File.relFromTo("include", d.project_dir)
-      else
-        d.includes.each { |k| @incArray << File.relFromTo(k, d.project_dir) }
-      end
+      @incArray.concat(d.include_string_self)
     end
 
     [:CPP, :C, :ASM].each do |type|
@@ -190,7 +197,7 @@ module HasSources
       convert_depfile(dep_file) if depStr != ""
     end
     enhance_with_additional_files(res)
-    add_output_dir_dependency(object, res, (not @addOnlyFilesToCleanTask))
+    add_output_dir_dependency(object, res, false)
     apply_depfile(dep_file, res) if depStr != ""
     res
   end

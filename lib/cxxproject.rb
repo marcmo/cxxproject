@@ -11,6 +11,8 @@ require 'cxxproject/utils/graphstream'
 require 'cxxproject/toolchain/provider'
 require 'cxxproject/utils/progress'
 require 'cxxproject/utils/rbcurse'
+require 'cxxproject/utils/progress'
+require 'cxxproject/utils/rbcurse'
 require 'cxxproject/utils/stats'
 
 include Cxxproject::Toolchain
