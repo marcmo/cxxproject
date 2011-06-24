@@ -22,27 +22,27 @@ module HasDependencies
 
   def all_dependencies(stack = Set.new)
     return @all_dependencies if @all_deps_calculated
-    
+
     @all_dependencies = [self]
-    
+
     depList = helper_dependencies.length > 0 ? helper_dependencies : dependencies
     depList.each do |d|
       bb = ALL_BUILDING_BLOCKS[d]
       if not bb
-        puts "ERROR: while reading config file for #{self.name}: dependent building block \"#{d}\" was specified but not found!"
+        raise "ERROR: while reading config file for #{self.name}: dependent building block \"#{d}\" was specified but not found!"
       end
       @all_dependencies << bb
       handle_module_dependencies(bb)
     end
-    
+
     stack.add(self)
     # two-step needed to keep order of dependencies for includes, lib dirs, etc
     @all_dependencies.dup.each do |d|
       next if stack.include?d
       @all_dependencies.concat(d.all_dependencies(stack))
     end
-    stack.delete(self) 
-    
+    stack.delete(self)
+
     @all_dependencies.uniq!
     @all_deps_calculated = true
     @all_dependencies
@@ -56,5 +56,5 @@ module HasDependencies
       end
     end
   end
-  
+
 end

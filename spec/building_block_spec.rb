@@ -37,7 +37,7 @@ describe BuildingBlock do
 
   it 'should raise exception if building block cannot be resolved' do
     expect do
-      lib1 = SourceLibrary.new('1').set_dependencies('unresolved')
+      lib1 = SourceLibrary.new('1').set_dependencies(['unresolved'])
       cxx = CxxProject2Rake.new([], 'build', GCCChain)
     end.to raise_exception(RuntimeError, 'ERROR: while reading config file for 1: dependent building block "unresolved" was specified but not found!')
   end

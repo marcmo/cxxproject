@@ -6,4 +6,7 @@ module HasIncludes
     @includes = x
     self
   end
+  def include_string_self
+    @include_string_self ||= []
+  end
 end

@@ -93,7 +93,7 @@ class BuildingBlock
     @output_dir = nil
     @output_dir_abs = false
     @complete_output_dir = nil
-    
+
     begin
       raise "building block already exists: #{name}" if ALL_BUILDING_BLOCKS.include?@name
       ALL_BUILDING_BLOCKS[@name] = self
@@ -103,7 +103,7 @@ class BuildingBlock
   end
 
   def complete_init()
-    if self.respond_to?"init_calc_compiler_strings"
+    if self.respond_to?(:init_calc_compiler_strings)
       init_calc_compiler_strings
     end
   end

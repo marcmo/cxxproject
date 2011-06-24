@@ -3,8 +3,7 @@ require 'yaml'
 module HasSources
 
   attr_writer :file_dependencies
-  attr_reader :include_string_self
-  
+
   def file_dependencies
     @file_dependencies ||= []
   end
@@ -47,11 +46,11 @@ module HasSources
 
   def init_calc_compiler_strings
     tmp = @project_dir + "__DUMMY__"
-    @include_string_self = []
     if includes.length == 0
-      @include_string_self << File.relFromTo("include", @project_dir, tmp )
+      # convinience to add include if no includes are given
+      include_string_self << File.relFromTo("include", @project_dir)
     else
-      includes.each { |k| @include_string_self << File.relFromTo(k, @project_dir, tmp) }
+      includes.each { |k| include_string_self << File.relFromTo(k, @project_dir) }
     end
   end
 
@@ -59,7 +58,7 @@ module HasSources
     @include_string = {}
     @define_string = {}
 
-    @incArray = @include_string_self.dup
+    @incArray = include_string_self.dup
     all_dependencies.each do |d|
       next if not HasIncludes === d
       @incArray.concat(d.include_string_self)
