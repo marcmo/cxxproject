@@ -74,7 +74,7 @@ class Makefile < BuildingBlock
         process_console_output(catch_output(cmd))
         check_system_command(cmd)
       end
-      Rake.application["clean"].enhance([mfileCleanTask])
+      Rake.application["clean"].enhance_org([mfileCleanTask])
     end
   end
 

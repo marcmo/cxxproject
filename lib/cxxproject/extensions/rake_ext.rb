@@ -146,6 +146,7 @@ module Rake
       @dependency_set = Set.new
     end
 
+    alias :enhance_org :enhance
     def enhance(deps=nil, &block)
       if deps
         deps.each do |d|
