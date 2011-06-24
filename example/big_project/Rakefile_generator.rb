@@ -1,7 +1,7 @@
 require 'fileutils'
 require 'rake/clean'
 
-NR_OF_PROJECTS = 100
+NR_OF_PROJECTS = 300
 PROJECTS = {}
 MAX_SOURCES = 20
 MAX_FIB = 12
@@ -26,7 +26,7 @@ def create_project(name)
 
   File.open(File.join(base, 'project.rb'), 'w') do |io|
     io.puts('cxx_configuration do')
-    io.puts("  source_lib '#{name}', :sources => Dir.glob('*.cxx'), :includes => '.'")
+    io.puts("  source_lib '#{name}', :sources => Dir.glob('*.cxx'), :includes => ['.']")
     io.puts('end')
   end
 end

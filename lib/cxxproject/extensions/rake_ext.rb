@@ -143,6 +143,19 @@ module Rake
       @ignore = false
       @failure = false
       @output_after_execute = true
+      @dependency_set = Set.new
+    end
+
+    def enhance(deps=nil, &block)
+      if deps
+        deps.each do |d|
+          if @dependency_set.add?(d)
+            @prerequisites << d
+          end
+        end
+      end
+      @actions << block if block_given?
+      self
     end
 
     define_method(:invoke) do |*args|
