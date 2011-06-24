@@ -1,4 +1,4 @@
-begin
+define_graphstream = lambda do
   require 'socket'
   require 'thread'
 
@@ -145,6 +145,6 @@ begin
       Rake::add_listener(GraphStreamSupport.new(gs))
     end
   end
-rescue Exception => e
-  puts e
 end
+
+optional_package(define_graphstream, nil)

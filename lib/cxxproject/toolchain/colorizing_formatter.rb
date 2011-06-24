@@ -4,9 +4,12 @@ module Cxxproject
     class << self
       attr_accessor :enabled
     end
+    def enabled?
+      false
+    end
   end
 
-  begin
+  define_colorizin_formatter = lambda do
     require 'colored'
 
     # simple class to colorize compiler output
@@ -44,15 +47,8 @@ module Cxxproject
       end
     end
 
-  rescue LoadError
-
-    # dont do anything if you dont have rainbow
-    class ColorizingFormatter
-      def enabled?
-        false
-      end
-    end
-
   end
+
+  optional_package(define_colorizin_formatter, nil)
 
 end

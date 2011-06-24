@@ -29,7 +29,9 @@ begin
   RoodiTask.new('roodi', spec.files)
   task :gem => [:roodi]
 rescue LoadError # don't bail out when people do not have roodi installed!
-  warn "roodi not installed...will not be checked!"
+  task :roodi do
+    puts 'please gem install roodi'
+  end
 end
 
 desc "Run all examples"
@@ -49,7 +51,7 @@ rescue LoadError
     end
   rescue LoadError
     task 'spec' do
-      warn 'rspec not installed...will not be checked! please install gem install rspec'
+      puts 'rspec not installed...will not be checked! please install gem install rspec'
     end
   end
 end
@@ -60,6 +62,7 @@ task :install => [:gem] do
   sh "gem install pkg/#{spec.name}-#{spec.version}.gem"
 end
 
+
 begin
   require 'rdoc'
   require 'rdoc/task'
@@ -67,5 +70,7 @@ begin
     rd.rdoc_files.include(spec.files)
   end
 rescue LoadError => e
-  puts "Please gem install rdoc to generate rubydocs"
+  task :rdoc do
+    puts 'please gem install rdoc'
+  end
 end

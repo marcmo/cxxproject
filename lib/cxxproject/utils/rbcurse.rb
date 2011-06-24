@@ -1,4 +1,4 @@
-begin
+define_rbcurse_ui = lambda do
   require 'rake'
   require 'ncurses'
   require 'rbcurse'
@@ -275,8 +275,6 @@ begin
     RakeGui.new.run
   end
 
-rescue LoadError => e
-  if RakeFileUtils.verbose
-    puts e
-  end
 end
+
+optional_package(define_rbcurse_ui, nil)

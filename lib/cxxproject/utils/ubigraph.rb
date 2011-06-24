@@ -1,5 +1,4 @@
-begin
-
+define_ubigraph = lambda do
   require 'rubigraph'
 
   module Rubigraph
@@ -222,9 +221,6 @@ begin
       end
     end
   end
-rescue LoadError => le
-  # dont mind if rubigraph is missing
-  puts "rubigraph is missing"
-rescue Exception => e
-  puts "#{e} -- no problem...will do without!"
 end
+
+optional_package(define_ubigraph, nil)

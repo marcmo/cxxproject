@@ -1,4 +1,4 @@
-begin
+define_stats = lambda do
   require 'haml'
 
   def count_sources(bbs)
@@ -51,6 +51,6 @@ begin
       out.puts(engine.render)
     end
   end
-
-rescue LoadError => e
 end
+
+optional_package(define_stats, nil)
