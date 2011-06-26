@@ -32,8 +32,8 @@ module Cxxproject
     GCCChain[:LINKER][:LIB_FLAG] = "-l"
     GCCChain[:LINKER][:LIB_PATH_FLAG] = "-L"
     GCCChain[:LINKER][:FLAGS] = "-all_load"
-    GCCChain[:LINKER][:LIB_PREFIX_FLAGS] = "-Wl,--whole-archive" unless OS.mac?
-    GCCChain[:LINKER][:LIB_POSTFIX_FLAGS] = "-Wl,--no-whole-archive" unless OS.mac?
+    GCCChain[:LINKER][:LIB_PREFIX_FLAGS] = "-Wl,--whole-archive" unless Utils::OS.mac?
+    GCCChain[:LINKER][:LIB_POSTFIX_FLAGS] = "-Wl,--no-whole-archive" unless Utils::OS.mac?
     GCCChain[:CONSOLE_HIGHLIGHTER] = ColorizingFormatter.new
   end
 end

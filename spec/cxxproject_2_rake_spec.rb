@@ -65,7 +65,7 @@ def execute_all_tasks(tasks)
 end
 
 def fresh_cxx
-  Cxxproject.cleanup_rake
+  Cxxproject::Utils.cleanup_rake
   outputdir = 'output'
   CxxProject2Rake.new(Dir.glob('**/project.rb'), outputdir, GCCChain)
 end
@@ -180,7 +180,7 @@ describe CxxProject2Rake do
       check_rebuilding libC, sourceB
 
       cleanup
-      Cxxproject.cleanup_rake
+      Cxxproject::Utils.cleanup_rake
     end
   end
 

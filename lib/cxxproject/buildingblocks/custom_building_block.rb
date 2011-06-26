@@ -1,39 +1,41 @@
 require 'cxxproject/buildingblocks/building_block'
 
 # todo...
+module Cxxproject
 
-class CustomBuildingBlock < BuildingBlock
-  attr_reader :custom_command, :actions
+  class CustomBuildingBlock < BuildingBlock
+    attr_reader :custom_command, :actions
 
-  def set_custom_command(c)
-    @custom_command = c
-    self
-  end
-
-  def get_task_name()
-    name
-  end
-
-  def set_actions(actions)
-    if actions.kind_of?(Array)
-      @actions = actions
-    else
-      @actions = [actions]
+    def set_custom_command(c)
+      @custom_command = c
+      self
     end
-  end
 
-  def convert_to_rake()
-    desc get_task_name
-    res = task get_task_name do
-      actions.each do |a|
-        a.call
+    def get_task_name()
+      name
+    end
+
+    def set_actions(actions)
+      if actions.kind_of?(Array)
+        @actions = actions
+      else
+        @actions = [actions]
       end
     end
-    res.type = Rake::Task::CUSTOM
-    setup_rake_dependencies(res)
-    res
+
+    def convert_to_rake()
+      desc get_task_name
+      res = task get_task_name do
+        actions.each do |a|
+          a.call
+        end
+      end
+      res.type = Rake::Task::CUSTOM
+      setup_rake_dependencies(res)
+      res
+    end
+
+
+
   end
-
-
-
 end

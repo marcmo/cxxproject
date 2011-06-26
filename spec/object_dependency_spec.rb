@@ -8,15 +8,15 @@ describe Rake::Task do
 
   before(:each) do
     Rake::application.options.silent = true
-    Cxxproject.cleanup_rake
+    Cxxproject::Utils.cleanup_rake
   end
   after(:each) do
-    Cxxproject.cleanup_rake
+    Cxxproject::Utils.cleanup_rake
   end
 
   it 'should fail if source of object is missing' do
     file 'test.cc' => 'compiler'
-    sl = SourceLibrary.new('testlib').set_sources(['test.cc'])
+    sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc'])
     cxx = CxxProject2Rake.new([], 'build', GCCChain)
 
     task = Rake::application['build/libs/libtestlib.a']
@@ -34,20 +34,20 @@ describe Rake::Task do
     File.open('test.h', 'w') do |io|
     end
 
-    sl = SourceLibrary.new('testlib').set_sources(['test.cc'])
+    sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc'])
     CxxProject2Rake.new([], 'build', GCCChain)
 
     task = Rake::application['build/libs/libtestlib.a']
     task.invoke
     task.failure.should eq(false)
 
-    Cxxproject.cleanup_rake
+    Cxxproject::Utils.cleanup_rake
 
     FileUtils.rm_rf('test.h')
     File.open('test.cc', 'w') do |io|
     end
 
-    sl = SourceLibrary.new('testlib').set_sources(['test.cc'])
+    sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc'])
     CxxProject2Rake.new([], 'build', GCCChain)
 
     task = Rake::application['build/libs/libtestlib.a']
@@ -68,7 +68,7 @@ describe Rake::Task do
       end
     end
 
-    sl = SourceLibrary.new('testlib').set_sources(['test.cc'])
+    sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc'])
     CxxProject2Rake.new([], 'build', GCCChain)
 
     task = Rake::application['build/libs/libtestlib.a']

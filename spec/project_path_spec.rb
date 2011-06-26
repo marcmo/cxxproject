@@ -14,7 +14,7 @@ describe CxxProject2Rake do
   end
 
   def fresh_cxx(outputdir,base)
-    Cxxproject.cleanup_rake
+    Cxxproject::Utils.cleanup_rake
     project_configs = nil
     cd base do # have to be relative to base
       project_configs = Dir.glob('**/project.rb')
@@ -49,7 +49,7 @@ describe CxxProject2Rake do
 
     # cleanup
     rm_r outputdir if File.directory?(outputdir)
-    Cxxproject.cleanup_rake
+    Cxxproject::Utils.cleanup_rake
   end
 
   it 'should resolve paths on different levels' do

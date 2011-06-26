@@ -14,10 +14,10 @@ def check_string(e, s)
   end
 end
 
-describe IDEInterface do
+describe Cxxproject::IDEInterface do
 
   it 'should create a correct package from an error-array' do
-    ide = IDEInterface.new
+    ide = Cxxproject::IDEInterface.new
     error = ['filename', '10', 2, 'error']
     packet = ide.create_error_packet(error)
     e = packet.bytes

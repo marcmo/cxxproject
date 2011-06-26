@@ -14,7 +14,7 @@ module Rake
     end
 
     def idei
-      @idei ||= IDEInterface.new
+      @idei ||= Cxxproject::IDEInterface.new
     end
 
     def idei=(value)

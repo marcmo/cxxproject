@@ -19,3 +19,4 @@ require 'cxxproject/utils/rbcurse'
 require 'cxxproject/utils/stats'
 
 include Cxxproject::Toolchain
+CxxProject2Rake = Cxxproject::CxxProject2Rake

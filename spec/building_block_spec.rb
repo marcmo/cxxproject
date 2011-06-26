@@ -2,29 +2,29 @@ require 'rspec'
 require 'cxxproject'
 require 'cxxproject/utils/cleanup'
 
-describe BuildingBlock do
+describe Cxxproject::BuildingBlock do
 
   before(:each) do
-    Cxxproject.cleanup_rake
+    Cxxproject::Utils.cleanup_rake
   end
   after(:each) do
-    Cxxproject.cleanup_rake
+    Cxxproject::Utils.cleanup_rake
   end
 
   it 'should build the right dependency-chain' do
-    lib1 = SourceLibrary.new('1')
-    lib2 = SourceLibrary.new('2').set_dependencies(['1'])
-    lib3 = SourceLibrary.new('3').set_dependencies(['1'])
-    lib4 = SourceLibrary.new('4').set_dependencies(['2', '3'])
+    lib1 = Cxxproject::SourceLibrary.new('1')
+    lib2 = Cxxproject::SourceLibrary.new('2').set_dependencies(['1'])
+    lib3 = Cxxproject::SourceLibrary.new('3').set_dependencies(['1'])
+    lib4 = Cxxproject::SourceLibrary.new('4').set_dependencies(['2', '3'])
     deps = lib4.all_dependencies.map { |d| d.name }
     deps.should == ['4', '2', '3', '1']
   end
 
   it 'should have the right output-directory' do
-    lib1 = SourceLibrary.new('lib1').set_sources(['test.cc'])
+    lib1 = Cxxproject::SourceLibrary.new('lib1').set_sources(['test.cc'])
     lib1.set_project_dir(File.join(Dir.pwd, 'lib1'))
 
-    lib2 = SourceLibrary.new('lib2').set_sources(['test.cc']).set_output_dir('build2')
+    lib2 = Cxxproject::SourceLibrary.new('lib2').set_sources(['test.cc']).set_output_dir('build2')
     lib2.set_project_dir(File.join(Dir.pwd, 'lib2'))
 
     cxx = CxxProject2Rake.new([], 'build', GCCChain)
@@ -37,7 +37,7 @@ describe BuildingBlock do
 
   it 'should raise exception if building block cannot be resolved' do
     expect do
-      lib1 = SourceLibrary.new('1').set_dependencies(['unresolved'])
+      lib1 = Cxxproject::SourceLibrary.new('1').set_dependencies(['unresolved'])
       cxx = CxxProject2Rake.new([], 'build', GCCChain)
     end.to raise_exception(RuntimeError, 'ERROR: while reading config file for 1: dependent building block "unresolved" was specified but not found!')
   end

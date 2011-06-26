@@ -1,4 +1,5 @@
 module Cxxproject
+include Utils
 
   class ColorizingFormatter
     class << self
@@ -49,6 +50,6 @@ module Cxxproject
 
   end
 
-  optional_package(define_colorizin_formatter, nil)
+  Utils.optional_package(define_colorizin_formatter, nil)
 
 end

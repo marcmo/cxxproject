@@ -7,10 +7,10 @@ require 'cxxproject/utils/cleanup'
 describe Rake::Task do
 
   before(:each) do
-    Cxxproject.cleanup_rake
+    Cxxproject::Utils.cleanup_rake
   end
   after(:each) do
-    Cxxproject.cleanup_rake
+    Cxxproject::Utils.cleanup_rake
   end
 
 
