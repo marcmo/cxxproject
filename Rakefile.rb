@@ -34,14 +34,24 @@ rescue LoadError # don't bail out when people do not have roodi installed!
   end
 end
 
+use_rcov = true
 desc "Run all examples"
+begin
+  gem "rcov"
+rescue LoadError
+  warn "rcov not installed...code coverage will not be measured!"
+  sleep 1
+  use_rcov = false
+end
 begin
   SPEC_PATTERN ='spec/**/*_spec.rb'
   require 'rspec/core/rake_task'
   RSpec::Core::RakeTask.new() do |t|
     t.pattern = SPEC_PATTERN
-    t.rcov = true
-    t.rcov_opts = ['--exclude', '.*/gems/.*']
+    if use_rcov
+      t.rcov = true
+      t.rcov_opts = ['--exclude', '.*/gems/.*']
+    end
   end
 rescue LoadError
   begin
@@ -51,7 +61,7 @@ rescue LoadError
     end
   rescue LoadError
     task 'spec' do
-      puts 'rspec not installed...will not be checked! please install gem install rspec'
+      puts 'rspec not installed...! please install with "gem install rspec"'
     end
   end
 end
