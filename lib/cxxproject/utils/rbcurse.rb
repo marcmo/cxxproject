@@ -7,7 +7,7 @@ define_rbcurse_ui = lambda do
   require 'rbcurse/table/tablecellrenderer'
   require 'rbcurse/rsplitpane'
   require 'rbcurse/rtextview'
-  require 'cxxproject/extensions/rake_listener_ext'
+  require 'cxxproject/ext/rake_listener'
   require 'cxxproject/utils/rbcurse_progress'
   require 'cxxproject/utils/rbcurse_tasktable'
 

@@ -1,6 +1,6 @@
 define_progress = lambda do
   require 'rake'
-  require 'cxxproject/extensions/rake_ext'
+  require 'cxxproject/ext/rake'
 
   require 'progressbar'
   require 'colored'
@@ -64,12 +64,12 @@ define_progress = lambda do
 
   desc 'show a progressbar for the build (use with -s for best results)'
   task :progress do
-    require 'cxxproject/extensions/rake_listener_ext'
+    require 'cxxproject/ext/rake_listener'
     Rake::add_listener(ProgressListener.new)
   end
 
   task :benchmark_progress do
-    require 'cxxproject/extensions/rake_listener_ext'
+    require 'cxxproject/ext/rake_listener'
     Rake::add_listener(BenchmarkedProgressListener.new)
   end
 end

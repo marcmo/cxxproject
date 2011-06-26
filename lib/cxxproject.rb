@@ -5,7 +5,7 @@ require 'rake/clean'
 
 require 'cxxproject/utils/optional'
 
-require 'cxxproject/extensions/string_ext'
+require 'cxxproject/ext/string'
 require 'cxxproject/utils/utils'
 require 'cxxproject/torake'
 require 'cxxproject/utils/ubigraph'

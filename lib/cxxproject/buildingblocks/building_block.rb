@@ -1,7 +1,7 @@
 require 'cxxproject/buildingblocks/has_dependencies_mixin'
 require 'cxxproject/utils/dot/graph_writer'
-require 'cxxproject/extensions/rake_ext'
-require 'cxxproject/extensions/file_ext'
+require 'cxxproject/ext/rake'
+require 'cxxproject/ext/file'
 require 'cxxproject/ide_interface'
 
 # no deprecated warning for rake >= 0.9.x

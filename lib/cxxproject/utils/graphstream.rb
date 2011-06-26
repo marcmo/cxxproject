@@ -140,8 +140,8 @@ define_graphstream = lambda do
     desc 'update graphstream'
     task :update => :init do
       gs.set_stylesheet('node {fill-color:green;}node.dirty{fill-color:red;}node.before_prerequisites{fill-color:yellow;}node.after_prerequisites{fill-color:orange;}node.before_execute{fill-color:blue;}node.after_execute{fill-color:green;}node.ready{fill-color:yellow;}')
-      require 'cxxproject/extensions/rake_listener_ext'
-      require 'cxxproject/extensions/rake_dirty_ext'
+      require 'cxxproject/ext/rake_listener'
+      require 'cxxproject/ext/rake_dirty'
       Rake::add_listener(GraphStreamSupport.new(gs))
     end
   end

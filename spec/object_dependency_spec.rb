@@ -1,7 +1,7 @@
 $:.unshift File.join(File.dirname(__FILE__),"..","lib")
 
 require 'cxxproject'
-require 'cxxproject/extensions/rake_listener_ext.rb'
+require 'cxxproject/ext/rake_listener.rb'
 require 'cxxproject/utils/cleanup'
 
 describe Rake::Task do

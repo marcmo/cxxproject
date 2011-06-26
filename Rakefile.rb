@@ -1,5 +1,6 @@
 require 'rake/clean'
 
+
 desc "Default Task"
 task :default => [:install]
 
@@ -38,6 +39,7 @@ use_rcov = true
 desc "Run all examples"
 begin
   gem "rcov"
+  CLOBBER.include('coverage')
 rescue LoadError
   warn "rcov not installed...code coverage will not be measured!"
   sleep 1

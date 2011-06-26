@@ -101,8 +101,8 @@ describe CxxProject2Rake do
   end
 
   it 'should rebuild only when one file was changed' do
-    require 'cxxproject/extensions/rake_listener_ext'
-    require 'cxxproject/extensions/rake_dirty_ext'
+    require 'cxxproject/ext/rake_listener'
+    require 'cxxproject/ext/rake_dirty'
 
     listener = SpecTaskListener.new
     Rake::add_listener(listener)

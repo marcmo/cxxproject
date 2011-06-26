@@ -1,4 +1,4 @@
-require 'cxxproject/extensions/stdout_ext'
+require 'cxxproject/ext/stdout'
 require 'cxxproject/utils/dot/graph_writer'
 
 require 'rake'

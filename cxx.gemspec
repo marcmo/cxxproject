@@ -2,7 +2,7 @@ require 'rake'
 
 include FileUtils
 
-PKG_VERSION = '0.4.10'
+PKG_VERSION = '0.4.11'
 PKG_FILES = FileList[
   'lib/**/*.rb',
   'Rakefile.rb',

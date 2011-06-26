@@ -1,7 +1,7 @@
 require 'logger'
 require 'pp'
 require 'pathname'
-require 'cxxproject/extensions/rake_ext'
+require 'cxxproject/ext/rake'
 require 'cxxproject/buildingblocks/module'
 require 'cxxproject/buildingblocks/makefile'
 require 'cxxproject/buildingblocks/executable'

@@ -213,8 +213,8 @@ define_ubigraph = lambda do
     desc 'update rubygraph'
     task :update => :init do
       begin
-        require 'cxxproject/extensions/rake_listener_ext'
-        require 'cxxproject/extensions/rake_dirty_ext'
+        require 'cxxproject/ext/rake_listener'
+        require 'cxxproject/ext/rake_dirty'
         Rake::add_listener(UbiGraphSupport.new)
       rescue StandardError => e
         puts e

@@ -1,6 +1,6 @@
 require 'rake'
 require 'rake/clean'
-require 'cxxproject/extensions/filelist'
+require 'cxxproject/ext/filelist'
 
 module Cxxproject
 
