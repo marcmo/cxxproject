@@ -17,4 +17,12 @@ describe File do
     File.relFromTo('src/test.c', 'a', File.expand_path(File.join(Dir.pwd, '..'))).should eq(File.join(this_dirname, 'a', 'src', 'test.c'))
   end
 
+  it 'should return the absolute filename if this is shorter' do
+    File.relFromTo('/usr/include/cppunit/cppunit.h', 'a').should eq('/usr/include/cppunit/cppunit.h')
+  end
+
+  it 'should return the absolute filename if the files are on different partitions' do
+    File.relFromTo('c:/bla/bla.h', 'd:/working_dir').should eq('c:/bla/bla.h')
+  end
+
 end
