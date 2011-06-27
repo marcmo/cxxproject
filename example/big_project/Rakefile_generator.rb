@@ -1,7 +1,7 @@
 require 'fileutils'
 require 'rake/clean'
 
-NR_OF_PROJECTS = 300
+NR_OF_PROJECTS = 600
 PROJECTS = {}
 MAX_SOURCES = 20
 MAX_FIB = 12

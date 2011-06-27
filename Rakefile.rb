@@ -53,3 +53,6 @@ rescue LoadError => e
     puts 'please gem install rdoc'
   end
 end
+
+
+require './rake_helper/perftools'
