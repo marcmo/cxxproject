@@ -1,3 +1,5 @@
+require 'spec_helper'
+
 require 'cxxproject'
 
 describe File do

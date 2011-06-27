@@ -1,5 +1,6 @@
+require 'rake'
+
 module Cxxproject
-  
   module Utils
     def self.optional_package(block1, block2)
       begin

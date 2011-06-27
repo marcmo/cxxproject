@@ -1,5 +1,6 @@
 require 'rake/clean'
 
+require './rake_helper/spec.rb'
 
 desc "Default Task"
 task :default => [:install]
@@ -34,40 +35,6 @@ rescue LoadError # don't bail out when people do not have roodi installed!
     puts 'please gem install roodi'
   end
 end
-
-use_rcov = true
-desc "Run all examples"
-begin
-  gem "rcov"
-  CLOBBER.include('coverage')
-rescue LoadError
-  warn "rcov not installed...code coverage will not be measured!"
-  sleep 1
-  use_rcov = false
-end
-begin
-  SPEC_PATTERN ='spec/**/*_spec.rb'
-  require 'rspec/core/rake_task'
-  RSpec::Core::RakeTask.new() do |t|
-    t.pattern = SPEC_PATTERN
-    if use_rcov
-      t.rcov = true
-      t.rcov_opts = ['--exclude', '.*/gems/.*']
-    end
-  end
-rescue LoadError
-  begin
-    require 'spec/rake/spectask'
-    Spec::Rake::SpecTask.new() do |t|
-      t.spec_files = SPEC_PATTERN
-    end
-  rescue LoadError
-    task 'spec' do
-      puts 'rspec not installed...! please install with "gem install rspec"'
-    end
-  end
-end
-task :gem => [:spec]
 
 desc "install gem globally"
 task :install => [:gem] do
