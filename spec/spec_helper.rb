@@ -1,3 +1,5 @@
+$:.unshift File.join(File.dirname(__FILE__),"..","lib")
+
 require 'cxxproject/utils/optional'
 initialize_simplecov = lambda do
   require 'simplecov'

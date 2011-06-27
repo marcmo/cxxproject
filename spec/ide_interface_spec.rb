@@ -1,7 +1,4 @@
 require 'spec_helper'
-
-$:.unshift File.join(File.dirname(__FILE__),"..","lib")
-
 require 'cxxproject/ide_interface'
 
 def check_long(e, l)

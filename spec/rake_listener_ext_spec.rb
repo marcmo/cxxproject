@@ -1,7 +1,4 @@
 require 'spec_helper'
-
-$:.unshift File.join(File.dirname(__FILE__),"..","lib")
-
 require 'cxxproject'
 require 'cxxproject/ext/rake_listener.rb'
 require 'cxxproject/utils/cleanup'
