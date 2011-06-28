@@ -37,7 +37,7 @@ module Cxxproject
       if hash.has_key?(:libpath)
         hash[:libpath]
       elsif
-        if Utils::OS.linux? || Util::OS.mac?
+        if Utils::OS.linux? || Utils::OS.mac?
           ["/usr/local/lib","/usr/lib"]
         elsif Utils::OS.windows?
           ["C:/tool/cygwin/lib"]
