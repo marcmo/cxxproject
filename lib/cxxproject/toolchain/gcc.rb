@@ -7,13 +7,13 @@ module Cxxproject
     GCCChain = Provider.add("GCC")
 
     GCCChain[:COMPILER][:CPP].update({
-                                       :COMMAND => "g++",
-                                       :DEFINE_FLAG => "-D",
-                                       :OBJECT_FILE_FLAG => "-o",
-                                       :INCLUDE_PATH_FLAG => "-I",
-                                       :COMPILE_FLAGS => "-c ",
-                                       :DEP_FLAGS => "-MMD -MF " # empty space at the end is important!
-                                     })
+      :COMMAND => "g++",
+      :DEFINE_FLAG => "-D",
+      :OBJECT_FILE_FLAG => "-o",
+      :INCLUDE_PATH_FLAG => "-I",
+      :COMPILE_FLAGS => "-c ",
+      :DEP_FLAGS => "-MMD -MF " # empty space at the end is important!
+    })
 
     GCCChain[:COMPILER][:C] = Utils.deep_copy(GCCChain[:COMPILER][:CPP])
     GCCChain[:COMPILER][:C][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:C][:SOURCE_FILE_ENDINGS]

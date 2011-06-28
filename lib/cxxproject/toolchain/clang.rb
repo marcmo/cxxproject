@@ -7,13 +7,13 @@ module Cxxproject
     CLANG_CHAIN = Provider.add("CLANG")
 
     CLANG_CHAIN[:COMPILER][:CPP].update({
-                                       :COMMAND => "llvm-g++",
-                                       :DEFINE_FLAG => "-D",
-                                       :OBJECT_FILE_FLAG => "-o",
-                                       :INCLUDE_PATH_FLAG => "-I",
-                                       :COMPILE_FLAGS => "-c ",
-                                       :DEP_FLAGS => "-MMD -MF " # empty space at the end is important!
-                                     })
+      :COMMAND => "llvm-g++",
+      :DEFINE_FLAG => "-D",
+      :OBJECT_FILE_FLAG => "-o",
+      :INCLUDE_PATH_FLAG => "-I",
+      :COMPILE_FLAGS => "-c ",
+      :DEP_FLAGS => "-MMD -MF " # empty space at the end is important!
+    })
 
     CLANG_CHAIN[:COMPILER][:C] = Utils.deep_copy(CLANG_CHAIN[:COMPILER][:CPP])
     CLANG_CHAIN[:COMPILER][:C][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:C][:SOURCE_FILE_ENDINGS]
@@ -32,8 +32,8 @@ module Cxxproject
     CLANG_CHAIN[:LINKER][:LIB_FLAG] = "-l"
     CLANG_CHAIN[:LINKER][:LIB_PATH_FLAG] = "-L"
     CLANG_CHAIN[:LINKER][:FLAGS] = ""
-#    CLANG_CHAIN[:LINKER][:LIB_PREFIX_FLAGS] = "-Wl,--whole-archive" unless OS.mac?
-#    CLANG_CHAIN[:LINKER][:LIB_POSTFIX_FLAGS] = "-Wl,--no-whole-archive" unless OS.mac?
+    #    CLANG_CHAIN[:LINKER][:LIB_PREFIX_FLAGS] = "-Wl,--whole-archive" unless OS.mac?
+    #    CLANG_CHAIN[:LINKER][:LIB_POSTFIX_FLAGS] = "-Wl,--no-whole-archive" unless OS.mac?
     CLANG_CHAIN[:CONSOLE_HIGHLIGHTER] = ColorizingFormatter.new
   end
 end

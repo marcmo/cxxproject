@@ -21,15 +21,15 @@ module Cxxproject
 
     def string_to_error_code(s)
       case s
-        when 'info'
-          return 0
-        when 'warning'
-          return 1
-        when 'error'
-        when 'catastrophic error'
-          return 2
-        else
-          raise "Unknown severity: #{s}"
+      when 'info'
+        return 0
+      when 'warning'
+        return 1
+      when 'error'
+      when 'catastrophic error'
+        return 2
+      else
+        raise "Unknown severity: #{s}"
       end
     end
   end

@@ -64,12 +64,12 @@ module Cxxproject
       # generate the clean task
       if not Rake.application["clean"].prerequisites.include?(mfile+"Clean")
         cmd = remove_empty_strings_and_join([@tcs[:MAKE][:COMMAND], # make
-                                            @tcs[:MAKE][:CLEAN], # clean
-                                            @tcs[:MAKE][:DIR_FLAG], # -C
-                                            File.dirname(mfile), # x/y
-                                            @tcs[:MAKE][:FILE_FLAG], # -f
-                                            File.basename(mfile) # x/y/makefile
-                                            ])
+          @tcs[:MAKE][:CLEAN], # clean
+          @tcs[:MAKE][:DIR_FLAG], # -C
+          File.dirname(mfile), # x/y
+          @tcs[:MAKE][:FILE_FLAG], # -f
+          File.basename(mfile) # x/y/makefile
+        ])
         mfileCleanTask = task mfile+"Clean" do
           show_command(cmd, cmd)
           process_console_output(catch_output(cmd))

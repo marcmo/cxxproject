@@ -1,5 +1,7 @@
+require 'cxxproject/utils/optional'
+
 module Cxxproject
-include Utils
+  include Utils
 
   class ColorizingFormatter
     class << self

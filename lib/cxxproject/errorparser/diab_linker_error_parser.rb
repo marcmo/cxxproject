@@ -22,8 +22,8 @@ module Cxxproject
           proj_dir,
           0,
           get_severity(e[0]),
-          e[1] ]
-        end
+        e[1] ]
+      end
       res
     end
 

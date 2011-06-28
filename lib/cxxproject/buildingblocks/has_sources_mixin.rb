@@ -1,247 +1,248 @@
 require 'yaml'
 
 module Cxxproject
-module HasSources
+  module HasSources
 
-  attr_writer :file_dependencies
+    attr_writer :file_dependencies
 
-  def file_dependencies
-    @file_dependencies ||= []
-  end
-
-  def object_deps
-    @object_deps ||= []
-  end
-
-  def sources
-    @sources ||= []
-  end
-  def set_sources(x)
-    @sources = x
-    self
-  end
-
-  def exclude_sources
-    @exclude_sources ||= []
-  end
-  def set_exclude_sources(x)
-    @exclude_sources = x
-    self
-  end
-
-  # used when a source file shall have different tcs than the project default
-  def tcs4source(source)
-    @tcs4source ||= {}
-
-    if @tcs4source.include?(source)
-      @tcs4source[source]
-    else
-      @tcs
-    end
-  end
-
-  def set_tcs4source(x)
-    @tcs4source = x
-    self
-  end
-
-  def include_string(type)
-    @include_string[type] ||= ""
-  end
-
-  def define_string(type)
-    @define_string[type] ||= ""
-  end
-
-  def init_calc_compiler_strings
-    tmp = @project_dir + "__DUMMY__"
-    if includes.length == 0
-      # convinience to add include if no includes are given
-      include_string_self << File.relFromTo("include", @project_dir)
-    else
-      includes.each { |k| include_string_self << File.relFromTo(k, @project_dir) }
-    end
-  end
-
-  def calc_compiler_strings()
-    @include_string = {}
-    @define_string = {}
-
-    @incArray = include_string_self.dup
-    all_dependencies.each do |d|
-      next if not HasIncludes === d
-      @incArray.concat(d.include_string_self)
+    def file_dependencies
+      @file_dependencies ||= []
     end
 
-    [:CPP, :C, :ASM].each do |type|
-      @include_string[type] = get_include_string(@tcs, type)
-      @define_string[type] = get_define_string(@tcs, type)
-    end
-  end
-
-  def get_include_string(tcs, type)
-    @incArray.uniq.map!{|k| "#{tcs[:COMPILER][type][:INCLUDE_PATH_FLAG]}#{k}"}.join(" ")
-  end
-
-  def get_define_string(tcs, type)
-    tcs[:COMPILER][type][:DEFINES].map {|k| "#{tcs[:COMPILER][type][:DEFINE_FLAG]}#{k}"}.join(" ")
-  end
-
-  def get_object_file(source)
-    parts = [complete_output_dir]
-
-    if @output_dir_abs
-      parts << 'objects'
-      parts << @name
+    def object_deps
+      @object_deps ||= []
     end
 
-    File.relFromTo(source, File.join(parts)) + ".o"
-  end
-
-  def get_dep_file(object)
-    object + ".d"
-  end
-
-  def get_source_type(source)
-    ex = File.extname(source)
-    [:CPP, :C, :ASM].each do |t|
-      return t if tcs[:COMPILER][t][:SOURCE_FILE_ENDINGS].include?(ex)
+    def sources
+      @sources ||= []
     end
-    nil
-  end
-
-  def get_sources_task_name
-    "Objects of #{name}"
-  end
-
-  def create_tasks_for_objects()
-    create_object_file_tasks()
-    @objects_multitask.enhance(@obj_tasks)
-  end
-
-  def parse_includes(deps)
-    #deps look like test.o: test.cpp test.h -> remove .o and .cpp from list
-    return deps.gsub(/\\\n/,'').split()[2..-1]
-  end
-
-  def convert_depfile(depfile)
-    deps_string = read_file_or_empty_string(depfile)
-    deps = parse_includes(deps_string)
-    expanded_deps = deps.map do |d|
-      File.expand_path(d)
-    end
-    od = object_deps()
-    od += expanded_deps
-
-    FileUtils.mkpath File.dirname(depfile)
-    File.open(depfile, 'wb') do |f|
-      f.write(expanded_deps.to_yaml)
-    end
-  end
-
-  def apply_depfile(depfile,outfileTask)
-    deps = nil
-    begin
-      deps = YAML.load_file(depfile)
-      deps.each do |d|
-        f = file d
-        f.ignore_missing_file
-        object_deps << d
-      end
-      outfileTask.enhance(deps)
-    rescue
-      # may happen if depfile was not converted the last time
-      def outfileTask.needed?
-        true
-      end
-    end
-  end
-
-  def create_object_file_tasks()
-    
-    sources_to_build = {} # todo: pair!
-    Dir.chdir @project_dir do
-      exclude_files = Set.new
-      exclude_sources.each do |p|
-        Dir.glob(p).each {|f| exclude_files << f}
-      end
-      files = Set.new
-      sources.each do |p|
-        Dir.glob(p).each do |f|
-          next if exclude_files.include?(f)
-          next if files.include?(f) # do not build the same file twice
-          sources_to_build[f] = tcs4source(p)
-  end
-      end
+    def set_sources(x)
+      @sources = x
+      self
     end
 
-    sources_to_build.each do |s, the_tcs|
-      obj_task = create_object_file_task(s, the_tcs)
-      @obj_tasks << obj_task unless obj_task.nil?
+    def exclude_sources
+      @exclude_sources ||= []
     end
-  end
-
-  def create_object_file_task(s, the_tcs)
-    type = get_source_type(s)
-    if type.nil?
-      puts "Warning: no valid source type for #{File.relFromTo(s,@project_dir)}, will be ignored!"
-      return nil
+    def set_exclude_sources(x)
+      @exclude_sources = x
+      self
     end
 
-    source = File.relFromTo(s, @project_dir)
-    object = get_object_file(s)
-    depStr = type == :ASM ? "" : (the_tcs[:COMPILER][type][:DEP_FLAGS] + get_dep_file(object)) # -MMD -MF debug/src/abc.o.d
+    # used when a source file shall have different tcs than the project default
+    def tcs4source(source)
+      @tcs4source ||= {}
 
-    compiler = the_tcs[:COMPILER][type]
-    dep_file = get_dep_file(object)
-    cmd = remove_empty_strings_and_join([compiler[:COMMAND], compiler[:COMPILE_FLAGS], depStr, compiler[:FLAGS], # g++ -c -depstr -g3
-           the_tcs == @tcs ? @include_string[type] : get_include_string(the_tcs, type), # -I include
-           the_tcs == @tcs ? @define_string[type] : get_define_string(the_tcs, type), # -DDEBUG
-           compiler[:OBJECT_FILE_FLAG], object, source # -o abc.o src/abc.cpp
-          ])
-    res = typed_file_task Rake::Task::OBJECT, object => source do
-      show_command(cmd, "Compiling #{source}")
-      process_console_output(catch_output(cmd), compiler[:ERROR_PARSER])
-      check_system_command(cmd)
-      convert_depfile(dep_file) if depStr != ""
-    end
-    enhance_with_additional_files(res)
-    add_output_dir_dependency(object, res, false)
-    apply_depfile(dep_file, res) if depStr != ""
-    res
-  end
-
-  def enhance_with_additional_files(task)
-    task.enhance(@config_files)
-    task.enhance(file_dependencies)
-  end
-
-  def process_console_output(console_output, ep)
-    if not console_output.empty?
-      highlighter = @tcs[:CONSOLE_HIGHLIGHTER]
-      if (highlighter and highlighter.enabled?)
-        puts highlighter.format(console_output)
+      if @tcs4source.include?(source)
+        @tcs4source[source]
       else
-        puts console_output
-      end
-
-      if ep
-        Rake.application.idei.set_errors(ep.scan(console_output, @project_dir))
+        @tcs
       end
     end
-  end
 
-  def get_object_filenames
-    remove_empty_strings_and_join(@obj_tasks)  
-  end
+    def set_tcs4source(x)
+      @tcs4source = x
+      self
+    end
 
-  def prepare_tasks_for_objects
-    @obj_tasks = []
-    @objects_multitask = multitask get_sources_task_name
-    @objects_multitask.type = Rake::Task::SOURCEMULTI
-    @objects_multitask.transparent_timestamp = true
-    @objects_multitask.set_building_block(self)
-    @objects_multitask
-end
-      
+    def include_string(type)
+      @include_string[type] ||= ""
+    end
+
+    def define_string(type)
+      @define_string[type] ||= ""
+    end
+
+    def init_calc_compiler_strings
+      tmp = @project_dir + "__DUMMY__"
+      if includes.length == 0
+        # convinience to add include if no includes are given
+        include_string_self << File.relFromTo("include", @project_dir)
+      else
+        includes.each { |k| include_string_self << File.relFromTo(k, @project_dir) }
+      end
+    end
+
+    def calc_compiler_strings()
+      @include_string = {}
+      @define_string = {}
+
+      @incArray = include_string_self.dup
+      all_dependencies.each do |d|
+        next if not HasIncludes === d
+        @incArray.concat(d.include_string_self)
+      end
+
+      [:CPP, :C, :ASM].each do |type|
+        @include_string[type] = get_include_string(@tcs, type)
+        @define_string[type] = get_define_string(@tcs, type)
+      end
+    end
+
+    def get_include_string(tcs, type)
+      @incArray.uniq.map!{|k| "#{tcs[:COMPILER][type][:INCLUDE_PATH_FLAG]}#{k}"}.join(" ")
+    end
+
+    def get_define_string(tcs, type)
+      tcs[:COMPILER][type][:DEFINES].map {|k| "#{tcs[:COMPILER][type][:DEFINE_FLAG]}#{k}"}.join(" ")
+    end
+
+    def get_object_file(source)
+      parts = [complete_output_dir]
+
+      if @output_dir_abs
+        parts << 'objects'
+        parts << @name
+      end
+
+      File.relFromTo(source, File.join(parts)) + ".o"
+    end
+
+    def get_dep_file(object)
+      object + ".d"
+    end
+
+    def get_source_type(source)
+      ex = File.extname(source)
+      [:CPP, :C, :ASM].each do |t|
+        return t if tcs[:COMPILER][t][:SOURCE_FILE_ENDINGS].include?(ex)
+      end
+      nil
+    end
+
+    def get_sources_task_name
+      "Objects of #{name}"
+    end
+
+    def create_tasks_for_objects()
+      create_object_file_tasks()
+      @objects_multitask.enhance(@obj_tasks)
+    end
+
+    def parse_includes(deps)
+      #deps look like test.o: test.cpp test.h -> remove .o and .cpp from list
+      return deps.gsub(/\\\n/,'').split()[2..-1]
+    end
+
+    def convert_depfile(depfile)
+      deps_string = read_file_or_empty_string(depfile)
+      deps = parse_includes(deps_string)
+      expanded_deps = deps.map do |d|
+        File.expand_path(d)
+      end
+      od = object_deps()
+      od += expanded_deps
+
+      FileUtils.mkpath File.dirname(depfile)
+      File.open(depfile, 'wb') do |f|
+        f.write(expanded_deps.to_yaml)
+      end
+    end
+
+    def apply_depfile(depfile,outfileTask)
+      deps = nil
+      begin
+        deps = YAML.load_file(depfile)
+        deps.each do |d|
+          f = file d
+          f.ignore_missing_file
+          object_deps << d
+        end
+        outfileTask.enhance(deps)
+      rescue
+        # may happen if depfile was not converted the last time
+        def outfileTask.needed?
+          true
+        end
+      end
+    end
+
+    def create_object_file_tasks()
+
+      sources_to_build = {} # todo: pair!
+      Dir.chdir @project_dir do
+        exclude_files = Set.new
+        exclude_sources.each do |p|
+          Dir.glob(p).each {|f| exclude_files << f}
+        end
+        files = Set.new
+        sources.each do |p|
+          Dir.glob(p).each do |f|
+            next if exclude_files.include?(f)
+            next if files.include?(f) # do not build the same file twice
+            sources_to_build[f] = tcs4source(p)
+          end
+        end
+      end
+
+      sources_to_build.each do |s, the_tcs|
+        obj_task = create_object_file_task(s, the_tcs)
+        @obj_tasks << obj_task unless obj_task.nil?
+      end
+    end
+
+    def create_object_file_task(s, the_tcs)
+      type = get_source_type(s)
+      if type.nil?
+        puts "Warning: no valid source type for #{File.relFromTo(s,@project_dir)}, will be ignored!"
+        return nil
+      end
+
+      source = File.relFromTo(s, @project_dir)
+      object = get_object_file(s)
+      depStr = type == :ASM ? "" : (the_tcs[:COMPILER][type][:DEP_FLAGS] + get_dep_file(object)) # -MMD -MF debug/src/abc.o.d
+
+      compiler = the_tcs[:COMPILER][type]
+      dep_file = get_dep_file(object)
+      cmd = remove_empty_strings_and_join([compiler[:COMMAND], compiler[:COMPILE_FLAGS], depStr, compiler[:FLAGS], # g++ -c -depstr -g3
+        the_tcs == @tcs ? @include_string[type] : get_include_string(the_tcs, type), # -I include
+        the_tcs == @tcs ? @define_string[type] : get_define_string(the_tcs, type), # -DDEBUG
+        compiler[:OBJECT_FILE_FLAG], object, source # -o abc.o src/abc.cpp
+      ])
+      res = typed_file_task Rake::Task::OBJECT, object => source do
+        show_command(cmd, "Compiling #{source}")
+        process_console_output(catch_output(cmd), compiler[:ERROR_PARSER])
+        check_system_command(cmd)
+        convert_depfile(dep_file) if depStr != ""
+      end
+      enhance_with_additional_files(res)
+      add_output_dir_dependency(object, res, false)
+      apply_depfile(dep_file, res) if depStr != ""
+      res
+    end
+
+    def enhance_with_additional_files(task)
+      task.enhance(@config_files)
+      task.enhance(file_dependencies)
+    end
+
+    def process_console_output(console_output, ep)
+      if not console_output.empty?
+        highlighter = @tcs[:CONSOLE_HIGHLIGHTER]
+        if (highlighter and highlighter.enabled?)
+          puts highlighter.format(console_output)
+        else
+          puts console_output
+        end
+
+        if ep
+          Rake.application.idei.set_errors(ep.scan(console_output, @project_dir))
+        end
+      end
+    end
+
+    def get_object_filenames
+      remove_empty_strings_and_join(@obj_tasks)
+    end
+
+    def prepare_tasks_for_objects
+      @obj_tasks = []
+      @objects_multitask = multitask get_sources_task_name
+      @objects_multitask.type = Rake::Task::SOURCEMULTI
+      @objects_multitask.transparent_timestamp = true
+      @objects_multitask.set_building_block(self)
+      @objects_multitask
+    end
+
+  end
 end

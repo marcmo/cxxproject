@@ -65,7 +65,7 @@ module Rake
     def set_building_block(bb)
       @bb = bb
     end
-    
+
     def invoke_prerequisites(args, invocation_chain)
       @bb.create_tasks_for_objects
       return unless @prerequisites
@@ -93,11 +93,11 @@ module Rake
         end
       end
     end
-    
+
     def mutex
       @mutex ||= Mutex.new
     end
-        
+
   end
 
   ###########
@@ -189,7 +189,7 @@ module Rake
 
         @prerequisites.dup.each do |n| # dup needed when apply tasks changes that array
           break if Rake.application.idei.get_abort
-          
+
           begin
             prereq = application[n, @scope]
             prereq_args = task_args.new_scope(prereq.arg_names)
@@ -206,7 +206,7 @@ module Rake
             puts "Error #{name}: #{e.message}"
             set_failed
           end
-          
+
         end
       end
     end
