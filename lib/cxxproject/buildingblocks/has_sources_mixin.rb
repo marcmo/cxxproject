@@ -20,6 +20,14 @@ module Cxxproject
       @sources = x
       self
     end
+    
+    def source_patterns
+      @source_patterns ||= []
+    end
+    def set_source_patterns(x)
+      @source_patterns = x
+      self
+    end    
 
     def exclude_sources
       @exclude_sources ||= []
@@ -51,16 +59,6 @@ module Cxxproject
 
     def define_string(type)
       @define_string[type] ||= ""
-    end
-
-    def init_calc_compiler_strings
-      tmp = @project_dir + "__DUMMY__"
-      if includes.length == 0
-        # convinience to add include if no includes are given
-        include_string_self << File.relFromTo("include", @project_dir)
-      else
-        includes.each { |k| include_string_self << File.relFromTo(k, @project_dir) }
-      end
     end
 
     def calc_compiler_strings()
@@ -165,14 +163,24 @@ module Cxxproject
         exclude_sources.each do |p|
           Dir.glob(p).each {|f| exclude_files << f}
         end
-        files = Set.new
-        sources.each do |p|
+        files = Set.new  # do not build the same file twice
+
+        sources.each do |f|
+          next if exclude_files.include?(f)
+          next if files.include?(f)
+          files << f
+          sources_to_build[f] = tcs4source(f)
+        end
+
+        source_patterns.each do |p|
           Dir.glob(p).each do |f|
             next if exclude_files.include?(f)
-            next if files.include?(f) # do not build the same file twice
+            next if files.include?(f)
+            files << f
             sources_to_build[f] = tcs4source(p)
           end
         end
+        
       end
 
       sources_to_build.each do |s, the_tcs|

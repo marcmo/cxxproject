@@ -126,9 +126,6 @@ module Cxxproject
       ALL_BUILDING_BLOCKS.each do |name,block|
         prepare_block(block)
       end
-      ALL_BUILDING_BLOCKS.each do |name,block|
-        block.complete_init2
-      end
 
       ALL_BUILDING_BLOCKS.each do |name,block|
         @log.debug "creating task for block: #{block.name}/taskname: #{block.get_task_name} (#{block})"

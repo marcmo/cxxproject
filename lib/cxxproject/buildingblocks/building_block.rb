@@ -104,18 +104,10 @@ module Cxxproject
     end
 
     def complete_init()
-      calc_direct_deps()
-      if self.respond_to?(:init_calc_compiler_strings)
-        init_calc_compiler_strings
-      end
-    end
-
-    def complete_init2()
       if self.respond_to?(:calc_compiler_strings)
         calc_compiler_strings
       end
     end
-
 
     def get_task_name()
       raise "this method must be implemented by decendants"

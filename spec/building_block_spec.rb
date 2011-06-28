@@ -32,8 +32,6 @@ describe Cxxproject::BuildingBlock do
     cxx = CxxProject2Rake.new([], 'build', GCCChain)
     cxx.prepare_block(lib1)
     cxx.prepare_block(lib2)
-    lib1.complete_init2
-    lib2.complete_init2
 
     lib1.complete_output_dir.should eq(File.join(Dir.pwd, 'build'))
     lib2.complete_output_dir.should eq(File.join(Dir.pwd, 'lib2', 'build2'))

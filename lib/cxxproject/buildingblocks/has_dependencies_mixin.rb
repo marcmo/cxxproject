@@ -21,9 +21,12 @@ module Cxxproject
       @helper_dependencies = deps.map { |dep| dep.instance_of?(String) ? dep : dep.name }
     end
 
-    def calc_direct_deps
-      @all_dependencies = [self]
+    def direct_deps
+      return @direct_deps if @direct_deps 
+    
       @all_dependencies_set = Set.new
+      @all_dependencies_set << self
+      @all_dependencies = [self]
       depList = helper_dependencies.length > 0 ? helper_dependencies : dependencies
       depList.each do |d|
 
@@ -48,13 +51,13 @@ module Cxxproject
       end
 
       @direct_deps = @all_dependencies.dup
-
+      @direct_deps
     end
 
     def all_dependencies()
       return @all_dependencies if @all_deps_calculated
 
-      @direct_deps.each do |d|
+      direct_deps.each do |d|
         d.all_dependencies_recursive(@all_dependencies, @all_dependencies_set)
       end
 
@@ -65,7 +68,7 @@ module Cxxproject
     def all_dependencies_recursive(all_deps, all_deps_set)
       deps = [] # needed to keep order
 
-      @direct_deps.each do |d|
+      direct_deps.each do |d|
         next if all_deps_set.include?d
         all_deps << d
         all_deps_set << d
