@@ -35,7 +35,6 @@ module Rake
     def initialize(jobs, max, &block)
       nr_of_threads = [max, jobs.length].min
       @jobs = jobs
-      @mutex = Mutex.new
       @threads = []
       nr_of_threads.times do
         @threads << Thread.new do
@@ -46,7 +45,7 @@ module Rake
 
     def get_next_or_nil
       the_next = nil
-      @mutex.synchronize {
+      mutex.synchronize {
         the_next = @jobs.shift
       }
       the_next
@@ -54,15 +53,22 @@ module Rake
     def join
       @threads.each{|t|t.join}
     end
+    def mutex
+      @mutex ||= Mutex.new
+    end
   end
 
   #############
   # - Limit parallel tasks
   #############
   class MultiTask < Task
+    def set_building_block(bb)
+      @bb = bb
+    end
+    
     def invoke_prerequisites(args, invocation_chain)
+      @bb.create_tasks_for_objects
       return unless @prerequisites
-      @mutex = Mutex.new
       Jobs.new(@prerequisites.dup, application.max_parallel_tasks) do |jobs|
         while true do
           job = jobs.get_next_or_nil
@@ -81,12 +87,17 @@ module Rake
       return if Rake::Task.output_disabled
       return unless output_after_execute
 
-      @mutex.synchronize do
+      mutex.synchronize do
         if to_output and to_output.length > 0
           puts to_output
         end
       end
     end
+    
+    def mutex
+      @mutex ||= Mutex.new
+    end
+        
   end
 
   ###########
@@ -178,31 +189,26 @@ module Rake
 
         @prerequisites.dup.each do |n| # dup needed when apply tasks changes that array
           break if Rake.application.idei.get_abort
+          
           begin
             prereq = application[n, @scope]
             prereq_args = task_args.new_scope(prereq.arg_names)
             prereq.invoke_with_call_chain(prereq_args, invocation_chain)
             set_failed if prereq.failure
           rescue Exception => e
-            optional_prereq_or_fail(n)
+            if Rake::Task[n].ignore
+              @prerequisites.delete(n)
+              def self.needed?
+                true
+              end
+              return
+            end
+            puts "Error #{name}: #{e.message}"
+            set_failed
           end
+          
         end
       end
-    end
-
-    def optional_prereq_or_fail(n)
-      begin
-        if Rake::Task[n].ignore
-          @prerequisites.delete(n)
-          def self.needed?
-            true
-          end
-          return
-        end
-      rescue => e
-        puts "Error #{name}: #{e.message}"
-      end
-      set_failed
     end
 
     def set_failed()
