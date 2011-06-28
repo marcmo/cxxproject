@@ -112,11 +112,6 @@ module Cxxproject
       "Objects of #{name}"
     end
 
-    def create_tasks_for_objects()
-      create_object_file_tasks()
-      @objects_multitask.enhance(@obj_tasks)
-    end
-
     def parse_includes(deps)
       #deps look like test.o: test.cpp test.h -> remove .o and .cpp from list
       return deps.gsub(/\\\n/,'').split()[2..-1]
@@ -187,6 +182,8 @@ module Cxxproject
         obj_task = create_object_file_task(s, the_tcs)
         @obj_tasks << obj_task unless obj_task.nil?
       end
+      
+      @obj_tasks
     end
 
     def create_object_file_task(s, the_tcs)
@@ -245,11 +242,11 @@ module Cxxproject
 
     def prepare_tasks_for_objects
       @obj_tasks = []
-      @objects_multitask = multitask get_sources_task_name
-      @objects_multitask.type = Rake::Task::SOURCEMULTI
-      @objects_multitask.transparent_timestamp = true
-      @objects_multitask.set_building_block(self)
-      @objects_multitask
+      t = multitask get_sources_task_name
+      t.type = Rake::Task::SOURCEMULTI
+      t.transparent_timestamp = true
+      t.set_building_block(self)
+      t
     end
 
   end

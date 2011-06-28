@@ -67,7 +67,7 @@ module Rake
     end
 
     def invoke_prerequisites(args, invocation_chain)
-      @bb.create_tasks_for_objects
+      enhance(@bb.create_object_file_tasks)
       return unless @prerequisites
       Jobs.new(@prerequisites.dup, application.max_parallel_tasks) do |jobs|
         while true do
