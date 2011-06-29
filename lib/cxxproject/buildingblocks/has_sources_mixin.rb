@@ -69,9 +69,9 @@ module Cxxproject
       all_dependencies.each_with_index do |d,i|
         next if not HasIncludes === d
         next if i == 0
-        prefix = File.relFromToProject(@project_dir,d.project_dir)
+        prefix = File.rel_from_to_project(@project_dir,d.project_dir)
         next if not prefix
-        @incArray.concat(d.include_string_self.map {|inc| File.addPrefix(prefix,inc)})
+        @incArray.concat(d.include_string_self.map {|inc| File.add_prefix(prefix,inc)})
       end
       
       [:CPP, :C, :ASM].each do |type|

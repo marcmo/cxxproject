@@ -10,21 +10,21 @@ describe File do
   end
 
   it 'should find a good relative directory for subdirectories' do
-    File.relFromToProject('x/main/a', 'x/main/b').should eq('../b/')
-    File.relFromToProject('x/main/a/b', 'x/main').should eq('../../')
-    File.relFromToProject('x/main', 'x/main/a/b').should eq('a/b/')
-    File.relFromToProject('x/main', 'x/main').should eq('')
-    File.relFromToProject('x/main', nil).should eq(nil)
-    File.relFromToProject(nil, 'x/main').should eq(nil)
-    File.relFromToProject('x/a', 'y/b').should eq(nil)
-    File.relFromToProject('x/a', 'a').should eq(nil)
+    File.rel_from_to_project('x/main/a', 'x/main/b').should eq('../b/')
+    File.rel_from_to_project('x/main/a/b', 'x/main').should eq('../../')
+    File.rel_from_to_project('x/main', 'x/main/a/b').should eq('a/b/')
+    File.rel_from_to_project('x/main', 'x/main').should eq('')
+    File.rel_from_to_project('x/main', nil).should eq(nil)
+    File.rel_from_to_project(nil, 'x/main').should eq(nil)
+    File.rel_from_to_project('x/a', 'y/b').should eq(nil)
+    File.rel_from_to_project('x/a', 'a').should eq(nil)
   end
   
   it 'add prefix only if file is not absolute' do
-    File.addPrefix('abc/', '/usr/local').should eq('/usr/local')
-    File.addPrefix('abc/', 'nix/usr/local').should eq('abc/nix/usr/local')
-    File.addPrefix('abc/', 'c:/usr/local').should eq('c:/usr/local')
-    File.addPrefix('abc/', 'c:\\usr/local').should eq('c:\\usr/local')
+    File.add_prefix('abc/', '/usr/local').should eq('/usr/local')
+    File.add_prefix('abc/', 'nix/usr/local').should eq('abc/nix/usr/local')
+    File.add_prefix('abc/', 'c:/usr/local').should eq('c:/usr/local')
+    File.add_prefix('abc/', 'c:\\usr/local').should eq('c:\\usr/local')
   end
 
 end

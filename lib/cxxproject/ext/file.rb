@@ -24,7 +24,7 @@ class File
     return i
   end
 
-  def self.relFromToProject(from,toOrg)
+  def self.rel_from_to_project(from,toOrg)
     return nil if from.nil? or toOrg.nil?
     return "" if from==toOrg
     to = toOrg + "/"
@@ -43,7 +43,7 @@ class File
     ("../" * splitted.length) + afterEq
   end
   
-  def self.addPrefix(prefix, file)
+  def self.add_prefix(prefix, file)
     if is_absolute?(file)
       file
     else
