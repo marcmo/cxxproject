@@ -71,6 +71,7 @@ module Rake
       
       Dir.chdir(@bb.project_dir) do
         file_tasks = @bb.create_object_file_tasks
+        enhance(file_tasks)
         return if file_tasks.length == 0
         Jobs.new(file_tasks, application.max_parallel_tasks) do |jobs|
           while true do
