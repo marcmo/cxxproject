@@ -15,10 +15,10 @@ describe Rake::Task do
 
   it 'should fail if source of object is missing' do
     file 'test.cc' => 'compiler'
-    sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc'])
+    sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc']).set_project_dir(".")
     cxx = CxxProject2Rake.new([], 'build', GCCChain)
 
-    task = Rake::application['build/libs/libtestlib.a']
+    task = Rake::application['lib:testlib']
     task.invoke
     task.failure.should eq(true)
 
@@ -33,10 +33,10 @@ describe Rake::Task do
     File.open('test.h', 'w') do |io|
     end
 
-    sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc'])
+    sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc']).set_project_dir(".")
     CxxProject2Rake.new([], 'build', GCCChain)
 
-    task = Rake::application['build/libs/libtestlib.a']
+    task = Rake::application['lib:testlib']
     task.invoke
     task.failure.should eq(false)
 
@@ -46,7 +46,7 @@ describe Rake::Task do
     File.open('test.cc', 'w') do |io|
     end
 
-    sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc'])
+    sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc']).set_project_dir(".")
     CxxProject2Rake.new([], 'build', GCCChain)
 
     task = Rake::application['build/libs/libtestlib.a']
@@ -67,7 +67,7 @@ describe Rake::Task do
       end
     end
 
-    sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc'])
+    sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc']).set_project_dir(".")
     CxxProject2Rake.new([], 'build', GCCChain)
 
     task = Rake::application['build/libs/libtestlib.a']

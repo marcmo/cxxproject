@@ -14,28 +14,6 @@ class File
     end
   end
 
-  # filename relative to nowRelToThisDir (if absolute, nowRelToThisDir can be nil)
-  # return: filename which is relative to thenRelToThisDir
-  def self.relFromTo(filename,nowRelToThisDir,thenRelToThisDirOrg = Dir.pwd)
-    absFilename = filename
-    thenRelToThisDir = thenRelToThisDirOrg + SLASH
-
-    if not File.is_absolute?(filename)
-      absFilename = File.expand_path(nowRelToThisDir + SLASH + filename)
-    end
-
-    i = find_last_equal_character(thenRelToThisDir, absFilename)
-    lastEqDir = thenRelToThisDir.rindex(SLASH,i)
-
-    if lastEqDir
-      dotdot = thenRelToThisDir[lastEqDir+1..-1].split(SLASH).length
-      res = ("..#{SLASH}" * dotdot) + absFilename[lastEqDir+1..-1]
-      return [absFilename, res].min_by{|x|x.length}
-    else
-      return absFilename
-    end
-  end
-
   def self.find_last_equal_character(s1, s2)
     max = [s1.length, s2.length].min
     i = 0
@@ -44,6 +22,33 @@ class File
       i += 1
     end
     return i
+  end
+
+  def self.relFromToProject(from,toOrg)
+    return nil if from.nil? or toOrg.nil?
+    return "" if from==toOrg
+    to = toOrg + "/"
+    i = find_last_equal_character(from, to)
+    lastEqDir = to.rindex('/',i)
+    return nil if not lastEqDir
+    
+    beforeEq = from[lastEqDir+1..-1]
+    afterEq = to[lastEqDir+1..-1]
+    
+    return afterEq if not beforeEq
+    
+    splitted = beforeEq.split('/')
+    return nil if not splitted
+    
+    ("../" * splitted.length) + afterEq
+  end
+  
+  def self.addPrefix(prefix, file)
+    if is_absolute?(file)
+      file
+    else
+      prefix + file
+    end
   end
 
 end

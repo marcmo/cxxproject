@@ -24,15 +24,20 @@ module Cxxproject
     end
 
     def get_archive_name()
-      parts = [complete_output_dir]
+      return @archive_name if @archive_name
+      parts = [@output_dir]
       parts << 'libs' if @output_dir_abs
       parts << "lib#{@name}.a"
 
-      File.relFromTo(File.join(parts), @project_dir)
+      @archive_name = File.join(parts)
+      @archive_name
     end
 
     def get_task_name()
-      get_archive_name
+      return @task_name if @task_name 
+      @task_name = get_archive_name
+      @task_name = @project_dir + "/" + @task_name unless @output_dir_abs
+      @task_name
     end
 
     # task that will link the given object files to a static lib
@@ -40,25 +45,26 @@ module Cxxproject
     def convert_to_rake()
       object_multitask = prepare_tasks_for_objects()
 
-      archive = get_archive_name()
       archiver = @tcs[:ARCHIVER]
 
-      res = typed_file_task Rake::Task::LIBRARY, archive => object_multitask do
-        cmd = remove_empty_strings_and_join([
-          archiver[:COMMAND], # ar
-          archiver[:ARCHIVE_FLAGS], # -rc
-          archiver[:FLAGS],
-          archive, # debug/x.a
-          get_object_filenames # debug/src/abc.o debug/src/xy.o
-        ])
+      res = typed_file_task Rake::Task::LIBRARY, get_task_name => object_multitask do
+        Dir.chdir(@project_dir) do
+          cmd = remove_empty_strings_and_join([
+            archiver[:COMMAND], # ar
+            archiver[:ARCHIVE_FLAGS], # -rc
+            archiver[:FLAGS],
+            get_archive_name, # debug/x.a
+            get_object_filenames # debug/src/abc.o debug/src/xy.o
+          ])
 
-        show_command(cmd, "Creating #{archive}")
-        process_console_output(catch_output(cmd), @tcs[:ARCHIVER][:ERROR_PARSER])
-        check_system_command(cmd)
+          show_command(cmd, "Creating #{get_archive_name}")
+          process_console_output(catch_output(cmd), @tcs[:ARCHIVER][:ERROR_PARSER])
+          check_system_command(cmd)
+        end
       end
       enhance_with_additional_files(res)
-      add_output_dir_dependency(archive, res, true)
-      add_grouping_tasks(archive)
+      add_output_dir_dependency(get_task_name, res, true)
+      add_grouping_tasks(get_task_name)
 
       setup_rake_dependencies(res)
       return res

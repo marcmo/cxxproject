@@ -16,7 +16,7 @@ module Cxxproject
     end
 
     def get_makefile
-      File.relFromTo(@makefile, @project_dir)
+      @makefile
     end
 
     def get_target
@@ -47,15 +47,17 @@ module Cxxproject
         File.basename(mfile) # x/y/makefile
       ])
       mfileTask = task get_task_name do
-        show_command(cmd, cmd)
-        process_console_output(catch_output(cmd))
-        check_system_command(cmd)
+        Dir.chdir(@project_dir) do
+          show_command(cmd, cmd)
+          process_console_output(catch_output(cmd))
+          check_system_command(cmd)
+        end
       end
       mfileTask.transparent_timestamp = true
       mfileTask.type = Rake::Task::MAKE
       mfileTask.enhance(@config_files)
 
-      create_clean_task(mfile)
+      create_clean_task(@project_dir+"/"+mfile)
       setup_rake_dependencies(mfileTask)
       mfileTask
     end

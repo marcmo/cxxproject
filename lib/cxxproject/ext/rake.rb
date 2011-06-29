@@ -67,20 +67,22 @@ module Rake
     end
 
     def invoke_prerequisites(args, invocation_chain)
-      enhance(@bb.create_object_file_tasks)
-      return unless @prerequisites
-      Jobs.new(@prerequisites.dup, application.max_parallel_tasks) do |jobs|
-        while true do
-          job = jobs.get_next_or_nil
-          break unless job
+      Dir.chdir(@bb.project_dir) do
+        enhance(@bb.create_object_file_tasks)
+        return unless @prerequisites
+        Jobs.new(@prerequisites.dup, application.max_parallel_tasks) do |jobs|
+          while true do
+            job = jobs.get_next_or_nil
+            break unless job
 
-          prereq = application[job]
-          prereq.output_after_execute = false
-          prereq.invoke_with_call_chain(args, invocation_chain)
-          set_failed if prereq.failure
-          output(prereq.output_string)
-        end
-      end.join
+            prereq = application[job]
+            prereq.output_after_execute = false
+            prereq.invoke_with_call_chain(args, invocation_chain)
+            set_failed if prereq.failure
+            output(prereq.output_string)
+          end
+        end.join
+      end
     end
 
     def output(to_output)
@@ -190,13 +192,14 @@ module Rake
         @prerequisites.dup.each do |n| # dup needed when apply tasks changes that array
           break if Rake.application.idei.get_abort
 
+          prereq = nil
           begin
             prereq = application[n, @scope]
             prereq_args = task_args.new_scope(prereq.arg_names)
             prereq.invoke_with_call_chain(prereq_args, invocation_chain)
             set_failed if prereq.failure
           rescue Exception => e
-            if Rake::Task[n].ignore
+            if prereq and Rake::Task[n].ignore
               @prerequisites.delete(n)
               def self.needed?
                 true

@@ -44,16 +44,22 @@ module Cxxproject
 
 
     def get_executable_name()
-      parts = [complete_output_dir]
+      return @exe_name if @exe_name
+      
+      parts = [@output_dir]
       parts << 'exes' if @output_dir_abs
       parts << "#{@name}#{@tcs[:LINKER][:OUTPUT_ENDING]}"
 
-      File.relFromTo(File.join(parts), @project_dir)
+      @exe_name = File.join(parts)
+      @exe_name
     end
 
     def get_task_name()
-      get_executable_name()
-    end
+      return @task_name if @task_name 
+      @task_name = get_executable_name
+      @task_name = @project_dir + "/" + @task_name unless @output_dir_abs
+      @task_name
+    end    
 
     def collect_unique(array, set)
       ret = []
@@ -67,11 +73,12 @@ module Cxxproject
 
     def calc_linker_lib_string_for_dependency(d, s1, s2, s3, s4)
       res = []
+      prefix = File.relFromToProject(@project_dir,d.project_dir)
       linker = @tcs[:LINKER]
       collect_unique(d.lib_searchpaths, s1).each do |v|
-        tmp = File.relFromTo(v, d.project_dir)
+        tmp = File.addPrefix(prefix, v)
         res << "#{linker[:LIB_PATH_FLAG]}#{tmp}"
-      end
+      end if prefix
       collect_unique(d.libs_to_search, s2).each do |v|
         res << "#{linker[:LIB_FLAG]}#{v}"
       end
@@ -79,8 +86,8 @@ module Cxxproject
         res << "#{linker[:USER_LIB_FLAG]}#{v}"
       end
       collect_unique(d.libs_with_path, s4).each do |v|
-        res <<  File.relFromTo(v, d.project_dir)
-      end
+        res <<  File.addPrefix(prefix, v)
+      end if prefix
       res
     end
 
@@ -103,49 +110,39 @@ module Cxxproject
     def convert_to_rake()
       object_multitask = prepare_tasks_for_objects()
 
-      script_file, script = calc_linker_script
       linker = @tcs[:LINKER]
 
-      executable = get_executable_name
-      res = typed_file_task Rake::Task::EXECUTABLE, executable => object_multitask do
-        cmd = remove_empty_strings_and_join([
-          linker[:COMMAND], # g++
-          linker[:MUST_FLAGS],
-          linker[:FLAGS], # --all_load
-          linker[:EXE_FLAG],
-          get_executable_name, # -o debug/x.exe
-          get_object_filenames, # debug/src/abc.o debug/src/xy.o
-          script,
-          mapfileString = @mapfile ? "#{linker[:MAP_FILE_FLAG]} >#{File.relFromTo(@mapfile, complete_output_dir)}" : "", # -Wl,-m6 > xy.map
-          linker[:LIB_PREFIX_FLAGS], # "-Wl,--whole-archive "
-          remove_empty_strings_and_join(calc_linker_lib_string),
-          linker[:LIB_POSTFIX_FLAGS] # "-Wl,--no-whole-archive "
-        ])
+      res = typed_file_task Rake::Task::EXECUTABLE, get_task_name => object_multitask do
+        Dir.chdir(@project_dir) do
+          cmd = remove_empty_strings_and_join([
+            linker[:COMMAND], # g++
+            linker[:MUST_FLAGS],
+            linker[:FLAGS], # --all_load
+            linker[:EXE_FLAG],
+            get_executable_name, # -o debug/x.exe
+            get_object_filenames, # debug/src/abc.o debug/src/xy.o
+            @linker_script ? "#{@tcs[:LINKER][:SCRIPT]} #{@linker_script}" : "", # -T xy/xy.dld
+            @mapfile ? "#{linker[:MAP_FILE_FLAG]} >#{@output_dir + "/" + @mapfile}" : "", # -Wl,-m6 > xy.map
+            linker[:LIB_PREFIX_FLAGS], # "-Wl,--whole-archive "
+            remove_empty_strings_and_join(calc_linker_lib_string),
+            linker[:LIB_POSTFIX_FLAGS] # "-Wl,--no-whole-archive "
+          ])
 
-        show_command(cmd, "Linking #{executable}")
-        # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
-        consoleOutput = `#{cmd + " 2>" + get_temp_filename}`
-        consoleOutput.concat(read_file_or_empty_string(get_temp_filename))
-        process_console_output(consoleOutput, @tcs[:LINKER][:ERROR_PARSER])
-        check_system_command(cmd)
+          show_command(cmd, "Linking #{get_executable_name}")
+          # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
+          consoleOutput = `#{cmd + " 2>" + get_temp_filename}`
+          consoleOutput.concat(read_file_or_empty_string(get_temp_filename))
+          process_console_output(consoleOutput, @tcs[:LINKER][:ERROR_PARSER])
+          check_system_command(cmd)
+        end
       end
       res.enhance(@config_files)
-      res.enhance([script_file]) unless script_file.empty?
-      add_output_dir_dependency(executable, res, true)
+      res.enhance([@project_dir + "/" + @linker_script]) if @linker_script
+      add_output_dir_dependency(get_task_name, res, true)
 
-      add_grouping_tasks(executable)
+      add_grouping_tasks(get_task_name)
       setup_rake_dependencies(res)
       return res
-    end
-
-    def calc_linker_script
-      script_file = ""
-      script = ""
-      if @linker_script
-        script_file = File.relFromTo(@linker_script, @project_dir)
-        script = "#{@tcs[:LINKER][:SCRIPT]} #{script_file}"  # -T xy/xy.dld
-      end
-      return script_file, script
     end
 
     def add_grouping_tasks(executable)

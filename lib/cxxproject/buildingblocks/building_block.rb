@@ -74,9 +74,9 @@ module Cxxproject
 
     def calc_complete_output_dir
       if @output_dir_abs
-        output_dir
+        @output_dir
       else
-        File.join(@project_dir,  output_dir)
+        File.join(@project_dir,  @output_dir)
       end
     end
 
@@ -89,7 +89,7 @@ module Cxxproject
       @name = name
       @graph_name = name
       @config_files = []
-      @project_dir = "."
+      @project_dir = nil
       @tcs = nil
       @output_dir = nil
       @output_dir_abs = false

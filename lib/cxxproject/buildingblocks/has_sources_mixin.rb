@@ -66,11 +66,14 @@ module Cxxproject
       @define_string = {}
 
       @incArray = include_string_self.dup
-      all_dependencies.each do |d|
+      all_dependencies.each_with_index do |d,i|
         next if not HasIncludes === d
-        @incArray.concat(d.include_string_self)
+        next if i == 0
+        prefix = File.relFromToProject(@project_dir,d.project_dir)
+        next if not prefix
+        @incArray.concat(d.include_string_self.map {|inc| File.addPrefix(prefix,inc)})
       end
-
+      
       [:CPP, :C, :ASM].each do |type|
         @include_string[type] = get_include_string(@tcs, type)
         @define_string[type] = get_define_string(@tcs, type)
@@ -85,15 +88,16 @@ module Cxxproject
       tcs[:COMPILER][type][:DEFINES].map {|k| "#{tcs[:COMPILER][type][:DEFINE_FLAG]}#{k}"}.join(" ")
     end
 
-    def get_object_file(source)
-      parts = [complete_output_dir]
+    def get_object_file(sourceRel)
+      parts = [@output_dir]
 
       if @output_dir_abs
         parts << 'objects'
         parts << @name
       end
 
-      File.relFromTo(source, File.join(parts)) + ".o"
+      parts << sourceRel
+      File.join(parts) + ".o"
     end
 
     def get_dep_file(object)
@@ -153,62 +157,67 @@ module Cxxproject
     def create_object_file_tasks()
 
       sources_to_build = {} # todo: pair!
-      Dir.chdir @project_dir do
-        exclude_files = Set.new
-        exclude_sources.each do |p|
-          Dir.glob(p).each {|f| exclude_files << f}
-        end
-        files = Set.new  # do not build the same file twice
+      
+      exclude_files = Set.new
+      exclude_sources.each do |p|
+        Dir.glob(p).each {|f| exclude_files << f}
+      end
+      files = Set.new  # do not build the same file twice
 
-        sources.each do |f|
+      sources.each do |f|
+        next if exclude_files.include?(f)
+        next if files.include?(f)
+        files << f
+        sources_to_build[f] = tcs4source(f)
+      end
+
+      source_patterns.each do |p|
+        Dir.glob(p).each do |f|
           next if exclude_files.include?(f)
           next if files.include?(f)
           files << f
-          sources_to_build[f] = tcs4source(f)
+          sources_to_build[f] = tcs4source(p)
         end
-
-        source_patterns.each do |p|
-          Dir.glob(p).each do |f|
-            next if exclude_files.include?(f)
-            next if files.include?(f)
-            files << f
-            sources_to_build[f] = tcs4source(p)
-          end
-        end
-        
       end
-
+        
+      obj_tasks = []
       sources_to_build.each do |s, the_tcs|
         obj_task = create_object_file_task(s, the_tcs)
-        @obj_tasks << obj_task unless obj_task.nil?
+        obj_tasks << obj_task unless obj_task.nil?
       end
       
-      @obj_tasks
+      obj_tasks
     end
 
-    def create_object_file_task(s, the_tcs)
-      type = get_source_type(s)
+    def create_object_file_task(sourceRel, the_tcs)
+      type = get_source_type(sourceRel)
       if type.nil?
-        puts "Warning: no valid source type for #{File.relFromTo(s,@project_dir)}, will be ignored!"
+        puts "Warning: no valid source type for #{sourceRel}, will be ignored!"
         return nil
       end
 
-      source = File.relFromTo(s, @project_dir)
-      object = get_object_file(s)
-      depStr = type == :ASM ? "" : (the_tcs[:COMPILER][type][:DEP_FLAGS] + get_dep_file(object)) # -MMD -MF debug/src/abc.o.d
+      objectRel = get_object_file(sourceRel)
+      @objects << objectRel
+      object = File.expand_path(objectRel)
+      source = File.expand_path(sourceRel)
+      
+      depStr = ""
+      if type != :ASM 
+        dep_file = get_dep_file(objectRel)
+        depStr = the_tcs[:COMPILER][type][:DEP_FLAGS] + dep_file # -MMD -MF debug/src/abc.o.d
+      end
 
       compiler = the_tcs[:COMPILER][type]
-      dep_file = get_dep_file(object)
       cmd = remove_empty_strings_and_join([compiler[:COMMAND], compiler[:COMPILE_FLAGS], depStr, compiler[:FLAGS], # g++ -c -depstr -g3
         the_tcs == @tcs ? @include_string[type] : get_include_string(the_tcs, type), # -I include
         the_tcs == @tcs ? @define_string[type] : get_define_string(the_tcs, type), # -DDEBUG
-        compiler[:OBJECT_FILE_FLAG], object, source # -o abc.o src/abc.cpp
+        compiler[:OBJECT_FILE_FLAG], objectRel, sourceRel # -o abc.o src/abc.cpp
       ])
       res = typed_file_task Rake::Task::OBJECT, object => source do
-        show_command(cmd, "Compiling #{source}")
+        show_command(cmd, "Compiling #{sourceRel}")
         process_console_output(catch_output(cmd), compiler[:ERROR_PARSER])
         check_system_command(cmd)
-        convert_depfile(dep_file) if depStr != ""
+        convert_depfile(dep_file) if type != :ASM 
       end
       enhance_with_additional_files(res)
       add_output_dir_dependency(object, res, false)
@@ -237,11 +246,11 @@ module Cxxproject
     end
 
     def get_object_filenames
-      remove_empty_strings_and_join(@obj_tasks)
+      remove_empty_strings_and_join(@objects)
     end
 
     def prepare_tasks_for_objects
-      @obj_tasks = []
+      @objects = []
       t = multitask get_sources_task_name
       t.type = Rake::Task::SOURCEMULTI
       t.transparent_timestamp = true

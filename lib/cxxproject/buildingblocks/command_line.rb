@@ -37,10 +37,12 @@ module Cxxproject
 
     def convert_to_rake()
       res = task get_task_name do
-        cmd = get_command_line
-        show_command(cmd, cmd)
-        process_console_output(catch_output(cmd))
-        check_system_command(cmd)
+        Dir.chdir(@project_dir) do      
+          cmd = get_command_line
+          show_command(cmd, cmd)
+          process_console_output(catch_output(cmd))
+          check_system_command(cmd)
+        end
       end
       res.transparent_timestamp = true
       res.type = Rake::Task::COMMANDLINE

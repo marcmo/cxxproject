@@ -10,18 +10,21 @@ describe File do
   end
 
   it 'should find a good relative directory for subdirectories' do
-    File.relFromTo('src/test.c', 'a', File.join(Dir.pwd, 'b')).should eq('../a/src/test.c')
-    File.relFromTo('src/test.c', 'a', File.join(Dir.pwd, 'a', 'b')).should eq('../src/test.c')
-    this_dirname = Dir.pwd.split('/')[-1] # todo ... platform independent
-    File.relFromTo('src/test.c', 'a', File.expand_path(File.join(Dir.pwd, '..'))).should eq(File.join(this_dirname, 'a', 'src', 'test.c'))
+   File.relFromToProject('x/main/a', 'x/main/b').should eq('../b/')
+   File.relFromToProject('x/main/a/b', 'x/main').should eq('../../')
+   File.relFromToProject('x/main', 'x/main/a/b').should eq('a/b/')
+   File.relFromToProject('x/main', 'x/main').should eq('')
+   File.relFromToProject('x/main', nil).should eq(nil)
+   File.relFromToProject(nil, 'x/main').should eq(nil)
+   File.relFromToProject('x/a', 'y/b').should eq(nil)
+   File.relFromToProject('x/a', 'a').should eq(nil)
   end
-
-  it 'should return the absolute filename if this is shorter' do
-    File.relFromTo('/usr/include/cppunit/cppunit.h', 'a').should eq('/usr/include/cppunit/cppunit.h')
-  end
-
-  it 'should return the absolute filename if the files are on different partitions' do
-    File.relFromTo('c:/bla/bla.h', 'd:/working_dir').should eq('c:/bla/bla.h')
+  
+  it 'add prefix only if file is not absolute' do
+    File.addPrefix('abc/', '/usr/local').should eq('/usr/local')
+    File.addPrefix('abc/', 'nix/usr/local').should eq('abc/nix/usr/local')
+    File.addPrefix('abc/', 'c:/usr/local').should eq('c:/usr/local')
+    File.addPrefix('abc/', 'c:\\usr/local').should eq('c:\\usr/local')
   end
 
 end
