@@ -67,10 +67,12 @@ module Rake
     end
 
     def invoke_prerequisites(args, invocation_chain)
+      super(args, invocation_chain)
+      
       Dir.chdir(@bb.project_dir) do
-        enhance(@bb.create_object_file_tasks)
-        return unless @prerequisites
-        Jobs.new(@prerequisites.dup, application.max_parallel_tasks) do |jobs|
+        file_tasks = @bb.create_object_file_tasks
+        return if file_tasks.length == 0
+        Jobs.new(file_tasks, application.max_parallel_tasks) do |jobs|
           while true do
             job = jobs.get_next_or_nil
             break unless job
