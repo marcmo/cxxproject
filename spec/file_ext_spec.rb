@@ -10,14 +10,14 @@ describe File do
   end
 
   it 'should find a good relative directory for subdirectories' do
-   File.relFromToProject('x/main/a', 'x/main/b').should eq('../b/')
-   File.relFromToProject('x/main/a/b', 'x/main').should eq('../../')
-   File.relFromToProject('x/main', 'x/main/a/b').should eq('a/b/')
-   File.relFromToProject('x/main', 'x/main').should eq('')
-   File.relFromToProject('x/main', nil).should eq(nil)
-   File.relFromToProject(nil, 'x/main').should eq(nil)
-   File.relFromToProject('x/a', 'y/b').should eq(nil)
-   File.relFromToProject('x/a', 'a').should eq(nil)
+    File.relFromToProject('x/main/a', 'x/main/b').should eq('../b/')
+    File.relFromToProject('x/main/a/b', 'x/main').should eq('../../')
+    File.relFromToProject('x/main', 'x/main/a/b').should eq('a/b/')
+    File.relFromToProject('x/main', 'x/main').should eq('')
+    File.relFromToProject('x/main', nil).should eq(nil)
+    File.relFromToProject(nil, 'x/main').should eq(nil)
+    File.relFromToProject('x/a', 'y/b').should eq(nil)
+    File.relFromToProject('x/a', 'a').should eq(nil)
   end
   
   it 'add prefix only if file is not absolute' do
