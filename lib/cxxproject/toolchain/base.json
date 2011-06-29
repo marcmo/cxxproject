@@ -1,0 +1,77 @@
+{
+	name: base,
+  compiler :
+  {
+    cpp : {
+      command : "",
+      define_flag : "",
+      object_file_flag : "",
+      include_path_flag : "",
+      compile_flags : "",
+      defines : [],
+      flags : "",
+      source_file_endings : [".cxx", ".cpp", ".c++", ".cc", ".C"],
+      dep_flags : "",
+      error_parser : nil
+    },
+    c : {
+      command : "",
+      define_flag : "",
+      object_file_flag : "",
+      include_path_flag : "",
+      compile_flags : "",
+      defines : [],
+      flags : "",
+      source_file_endings : [".c"],
+      dep_flags : "",
+      error_parser : nil
+    },
+    asm : {
+      command : "",
+      define_flag : "",
+      object_file_flag : "",
+      include_path_flag : "",
+      compile_flags : "",
+      defines : [],
+      flags : "",
+      source_file_endings : [".asm", ".s", ".S"],
+      dep_flags : "",
+      error_parser : nil
+    }
+  },
+
+  archiver :
+  {
+    command : "",
+    archive_flags : "",
+    flags : "",
+    error_parser : nil
+  },
+
+  linker :
+  {
+    command : "",
+    must_flags : "",
+    script : "",
+    user_lib_flag : "",
+    exe_flag : "",
+    lib_flag : "",
+    lib_path_flag : "",
+    lib_prefix_flags : "", # "-Wl,--whole-archive",
+    lib_postfix_flags : "", # "-Wl,--no-whole-archive",
+    flags : "",
+    map_file_flag : "",
+    output_ending : ".exe", # or .elf
+    error_parser : nil
+  },
+
+  make :
+  {
+    command : "make",
+    make_flags : "",
+    flags : "-j",
+    file_flag : "-f",
+    dir_flag : "-C",
+    clean : "clean"
+  }
+}

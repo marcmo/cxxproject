@@ -1,7 +1,44 @@
 {
-	compiler :
-	{
-		command : "g++"
-	}
+	name: gcc,
+	basedOn: base,
+	compiler : {
+    cpp : {
+      command : "g++",
+      define_flag : "-D",
+      object_file_flag : "-o",
+      include_path_flag : "-I",
+      compile_flags : "-c ",
+      dep_flags : "-MMD -MF " // empty space at the end is important!
+    },
+    c : :cpp,
+    c : {
+      command : "gcc",
+      object_file_flag : "-o",
+      include_path_flag : "-I",
+      compile_flags : "-c ",
+      dep_flags : "-MMD -MF " // empty space at the end is important!
+    },
+    asm : :c
+	},
+	archiver : {
+  	command : "ar",
+  	archiver_flags : "-rc"
+  },
+  linker : {
+    command = "g++",
+    script = "-T",
+    user_lib_flag = "-l:",
+    exe_flag = "-o",
+    lib_flag = "-l",
+    lib_path_flag = "-L",
+    flags = "-all_load",
+    lib_prefix_flags = "-Wl,--whole-archive" unless Utils::OS.mac?,
+    lib_postfix_flags = "-Wl,--no-whole-archive" unless Utils::OS.mac?
+  },
+  console_highlighter = ColorizingFormatter
 }
+
+
+    GCCChain[:COMPILER][:ASM] = Utils.deep_copy(GCCChain[:COMPILER][:C])
+    GCCChain[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS]
 
