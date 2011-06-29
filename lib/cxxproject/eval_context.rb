@@ -1,5 +1,17 @@
+
 module Cxxproject
-  # additional ruby methods that are available in project.rb files.
+  class BinaryLibs
+    class << self
+      def [](*libs)
+        libraries = Array.new
+        libs.each do |x|
+          libraries << BinaryLibrary.new(x)
+        end
+        libraries
+      end
+    end
+  end
+
   class EvalContext
 
     attr_accessor :myblock, :all_blocks
