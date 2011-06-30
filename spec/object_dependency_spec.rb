@@ -15,6 +15,7 @@ describe Rake::Task do
 
   it 'should fail if source of object is missing' do
     file 'test.cc' => 'compiler'
+    File.delete('test.cc') if File.exists?('test.cc')
     sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc']).set_project_dir(".")
     cxx = CxxProject2Rake.new([], 'build', GCCChain)
 

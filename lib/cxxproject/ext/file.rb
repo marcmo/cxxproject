@@ -14,34 +14,41 @@ class File
     end
   end
 
-  def self.find_last_equal_character(s1, s2)
-    max = [s1.length, s2.length].min
-    i = 0
-    while i < max
-      break if s1[i] != s2[i]
-      i += 1
-    end
-    return i
+  def self.rel_from_to_project(from,to)
+    return nil if from.nil? or to.nil?
+    
+	toSplitted = to.split('/')
+	fromSplitted = from.split('/')
+	
+	max = [toSplitted.length, fromSplitted.length].min
+	
+	return nil if max < 1
+	
+	i = 0
+	while i < max
+      break if toSplitted[i] != fromSplitted[i] 
+	  i += 1
+	end
+	j = i
+	
+	res = []
+	while i < fromSplitted.length
+	  res << ".."
+	  i += 1
+	end
+	
+	while j < toSplitted.length
+	  res << toSplitted[j]
+	  j += 1
+	end
+	
+	if res.length == 0
+	  return ""
+	end
+	
+	res.join('/')+"/"
   end
 
-  def self.rel_from_to_project(from,toOrg)
-    return nil if from.nil? or toOrg.nil?
-    return "" if from==toOrg
-    to = toOrg + "/"
-    i = find_last_equal_character(from, to)
-    lastEqDir = to.rindex('/',i)
-    return nil if not lastEqDir
-    
-    beforeEq = from[lastEqDir+1..-1]
-    afterEq = to[lastEqDir+1..-1]
-    
-    return afterEq if not beforeEq
-    
-    splitted = beforeEq.split('/')
-    return nil if not splitted
-    
-    ("../" * splitted.length) + afterEq
-  end
   
   def self.add_prefix(prefix, file)
     if is_absolute?(file)

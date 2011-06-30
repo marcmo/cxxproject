@@ -16,8 +16,7 @@ describe File do
     File.rel_from_to_project('x/main', 'x/main').should eq('')
     File.rel_from_to_project('x/main', nil).should eq(nil)
     File.rel_from_to_project(nil, 'x/main').should eq(nil)
-    File.rel_from_to_project('x/a', 'y/b').should eq(nil)
-    File.rel_from_to_project('x/a', 'a').should eq(nil)
+    File.rel_from_to_project('x/a', 'y/b').should eq("../../y/b/")
   end
   
   it 'add prefix only if file is not absolute' do

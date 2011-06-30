@@ -55,7 +55,7 @@ module Cxxproject
     end
 
     def set_project_dir(x)
-      @project_dir = x
+      @project_dir = File.expand_path(x)
       if @output_dir_abs
         @output_dir_relPath = File.rel_from_to_project(@project_dir, @output_dir)
       end
@@ -64,11 +64,13 @@ module Cxxproject
 
     # if output dir is absolute, -L and -l is used for linker ("linux mode")
     def set_output_dir(x)
-      return self if output_dir
+      return self if @output_dir
 
       @output_dir = x
-      @output_dir_abs = File.is_absolute?(output_dir)
-      @output_dir_relPath = File.rel_from_to_project(@project_dir, @output_dir) 
+      @output_dir_abs = File.is_absolute?(@output_dir)
+      if @project_dir
+        @output_dir_relPath = File.rel_from_to_project(@project_dir, @output_dir)
+      end  
       self
     end
 
