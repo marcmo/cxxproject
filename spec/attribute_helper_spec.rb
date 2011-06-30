@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'cxxproject/attribute_helper'
 
 describe AttributeHelper do
-  it "should provide a method that always delivers a defaultvalue" do
+  it 'should provide a method that always delivers a defaultvalue' do
     class Test
       extend AttributeHelper
       lazy_attribute_with_default :test, 3
@@ -14,11 +14,28 @@ describe AttributeHelper do
       end
     end
 
-    t = Test.new
-    t.direct_test_access.should be(nil)
-    t.test.should eq(3)
-    t.test = 5
-    t.test.should eq(5)
+    t1 = Test.new
+    t2 = Test.new
+    t1.direct_test_access.should be(nil)
+    t1.test.should eq(3)
+    t1.test = 5
+    t1.test.should eq(5)
+    t2.test.should eq(3)
+  end
+
+  it 'should provide distinct values for objects' do
+    class Test
+      extend AttributeHelper
+      lazy_attribute_with_default :test, 3
+      def test=(i)
+        @test = i
+      end
+    end
+    t1 = Test.new
+    t2 = Test.new
+    t1.test.should eq(t2.test)
+    t1.test = 5
+    t1.test.should_not eq(t2.test)
   end
 
   it 'should provide lazy attributes with defaults' do
