@@ -56,6 +56,9 @@ module Cxxproject
 
     def set_project_dir(x)
       @project_dir = x
+      if @output_dir_abs
+        @output_dir_relPath = File.rel_from_to_project(@project_dir, @output_dir)
+      end
       self
     end
 
@@ -65,6 +68,7 @@ module Cxxproject
 
       @output_dir = x
       @output_dir_abs = File.is_absolute?(output_dir)
+      @output_dir_relPath = File.rel_from_to_project(@project_dir, @output_dir) 
       self
     end
 

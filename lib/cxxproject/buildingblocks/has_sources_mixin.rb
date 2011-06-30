@@ -90,8 +90,8 @@ module Cxxproject
 
     def get_object_file(sourceRel)
       parts = [@output_dir]
-
       if @output_dir_abs
+        parts = [@output_dir_relPath] if @output_dir_relPath
         parts << 'objects'
         parts << @name
       end

@@ -23,21 +23,30 @@ module Cxxproject
       super
     end
 
-    def get_archive_name()
+    def get_archive_name() # relative path
       return @archive_name if @archive_name
       parts = [@output_dir]
-      parts << 'libs' if @output_dir_abs
+      
+      if @output_dir_abs
+        parts = [@output_dir_relPath] if @output_dir_relPath
+        parts << 'libs'
+      end      
+      
       parts << "lib#{@name}.a"
 
       @archive_name = File.join(parts)
-      @archive_name
+      @archive_name 
     end
 
-    def get_task_name()
-      return @task_name if @task_name 
-      @task_name = get_archive_name
+    def get_task_name() # full path
+      return @task_name if @task_name
+      
+      parts = [@output_dir]
+      parts << 'libs' if @output_dir_abs
+      parts << "lib#{@name}.a"
+      @task_name = File.join(parts)
       @task_name = @project_dir + "/" + @task_name unless @output_dir_abs
-      @task_name
+      @task_name 
     end
 
     # task that will link the given object files to a static lib
@@ -56,7 +65,6 @@ module Cxxproject
             get_archive_name, # debug/x.a
             get_object_filenames # debug/src/abc.o debug/src/xy.o
           ])
-
           show_command(cmd, "Creating #{get_archive_name}")
           process_console_output(catch_output(cmd), @tcs[:ARCHIVER][:ERROR_PARSER])
           check_system_command(cmd)

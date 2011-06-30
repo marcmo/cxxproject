@@ -43,20 +43,30 @@ module Cxxproject
     end
 
 
-    def get_executable_name()
+    def get_executable_name() # relative path
       return @exe_name if @exe_name
       
       parts = [@output_dir]
-      parts << 'exes' if @output_dir_abs
+      
+      if @output_dir_abs
+        parts = [@output_dir_relPath] if @output_dir_relPath
+        parts << 'exes'
+      end
+      
       parts << "#{@name}#{@tcs[:LINKER][:OUTPUT_ENDING]}"
 
       @exe_name = File.join(parts)
       @exe_name
     end
 
-    def get_task_name()
+    def get_task_name() # full path
       return @task_name if @task_name 
-      @task_name = get_executable_name
+      
+      parts = [@output_dir]
+      parts << 'exes' if @output_dir_abs
+      parts << "#{@name}#{@tcs[:LINKER][:OUTPUT_ENDING]}"
+      @task_name = File.join(parts)
+
       @task_name = @project_dir + "/" + @task_name unless @output_dir_abs
       @task_name
     end    
