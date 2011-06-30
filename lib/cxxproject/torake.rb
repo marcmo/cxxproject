@@ -33,6 +33,11 @@ module Cxxproject
       create_multitask
       create_bail_on_first_task
       describe_clean_task
+      create_console_task
+    end
+
+    def create_console_task
+      require 'cxxproject/utils/console'
     end
 
     def initialize_logging

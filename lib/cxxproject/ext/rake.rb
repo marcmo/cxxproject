@@ -234,7 +234,7 @@ module Rake
     end
 
     def new_execute(execute_org, arg)
-      s = StringIO.new
+      s = name == 'console' ? nil : StringIO.new
       Thread.current[:stdout] = s
 
       begin
