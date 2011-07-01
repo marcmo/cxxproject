@@ -81,10 +81,11 @@ module Cxxproject
     # returns all binary libs as array
     def bin_libs(*names)
       res = []
-      names.each do |name|
+      mapped = names.map{|n|n.to_s}
+      mapped.each do |name|
         res << BinaryLibrary.new(name)
       end
-      names
+      mapped
     end
 
     def compile(name, hash)

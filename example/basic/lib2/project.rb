@@ -1,8 +1,8 @@
 cxx_configuration do
   if Utils::OS.linux?
-    deps = ['1'] + bin_libs('z', 'dl')
+    deps = ['1'] + bin_libs(:z, :dl)
   else
-    deps = ['1']
+    deps = ['1'] + bin_libs(:z)
   end
 
   source_lib "2",
