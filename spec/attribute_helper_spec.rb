@@ -47,16 +47,23 @@ describe AttributeHelper do
     t.test2.should eq([1,2,3])
   end
 
-  it 'should be possible to calculate the lazt value with a function of the object' do
+  it 'should be possible to calculate the lazy value with a function of the object' do
     class Test3
       extend AttributeHelper
       lazy_attribute_from_calculation :test, :calc_test
+      attr_reader :count
+      def initialize
+        @count = 0
+      end
       def calc_test
+        @count += 1
         3
       end
     end
     t = Test3.new
     t.test.should eq(3)
+    t.test.should eq(3)
+    t.count.should eq(1)
   end
 
 end
