@@ -1,8 +1,10 @@
 module Cxxproject
+  # additional ruby methods that are available in project.rb files.
   class EvalContext
 
     attr_accessor :myblock, :all_blocks
 
+    # must be called to add building blocks
     def cxx_configuration(&block)
       @myblock = block
       @all_blocks = []
@@ -22,6 +24,13 @@ module Cxxproject
       hash.keys.map {|k| raise "#{k} is not a valid specifier!" unless allowed.include?(k) }
     end
 
+    # specify an executable
+    # hash supports:
+    # * :sources
+    # * :includes
+    # * :dependencies
+    # * :libpath
+    # * :output_dir
     def exe(name, hash)
       raise "not a hash" unless hash.is_a?(Hash)
       check_hash hash,[:sources,:includes,:dependencies,:libpath,:output_dir]
@@ -33,6 +42,7 @@ module Cxxproject
       bblock.set_output_dir(hash[:output_dir]) if hash.has_key?(:output_dir)
       all_blocks << bblock
     end
+
     def calc_lib_searchpath(hash)
       if hash.has_key?(:libpath)
         hash[:libpath]
@@ -45,6 +55,14 @@ module Cxxproject
       end
     end
 
+    # spedify a sourcelib
+    # hash supports:
+    # * :sources
+    # * :includes
+    # * :dependencies
+    # * :toolchain
+    # * :file_dependencies
+    # * :output_dir
     def source_lib(name, hash)
       raise "not a hash" unless hash.is_a?(Hash)
       check_hash hash,[:sources, :includes, :dependencies, :toolchain, :file_dependencies, :output_dir]

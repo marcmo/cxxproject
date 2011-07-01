@@ -1,20 +1,17 @@
 require 'cxxproject/errorparser/error_parser'
 
-#
-# header of tcp msg from lake to eclipse:
-# 1 byte = type (problem = 0x01)
-# 4 bytes = length of msg
-#
-
-#
-# payload of problem type:
-# 4 bytes = length filename
-# x bytes = filename
-# 4 bytes = linenumber
-# 1 byte = severity (0..2)
-# rest    = error msg
-#
 module Cxxproject
+
+  # header of tcp msg from lake to eclipse:
+  # 1 byte = type (problem = 0x01)
+  # 4 bytes = length of msg
+
+  # payload of problem type:
+  # 4 bytes = length filename
+  # x bytes = filename
+  # 4 bytes = linenumber
+  # 1 byte = severity (0..2)
+  # rest    = error msg
   class IDEInterface < ErrorParser
 
     def initialize()
