@@ -55,7 +55,7 @@ module Cxxproject
       end
     end
 
-    # spedify a sourcelib
+    # specify a sourcelib
     # hash supports:
     # * :sources
     # * :includes
@@ -75,6 +75,16 @@ module Cxxproject
       bblock.file_dependencies = hash[:file_dependencies] if hash.has_key?(:file_dependencies)
       bblock.set_output_dir(hash[:output_dir]) if hash.has_key?(:output_dir)
       all_blocks << bblock
+    end
+
+    # specify some binary libs
+    # returns all binary libs as array
+    def bin_libs(*names)
+      res = []
+      names.each do |name|
+        res << BinaryLibrary.new(name)
+      end
+      names
     end
 
     def compile(name, hash)

@@ -1,6 +1,9 @@
 cxx_configuration do
-  deps = ['1', BinaryLibrary.new('z')]
-  deps << BinaryLibrary.new('dl') if Utils::OS.linux?
+  if Utils::OS.linux?
+    deps = ['1'] + bin_libs('z', 'dl')
+  else
+    deps = ['1']
+  end
 
   source_lib "2",
     :sources => FileList['**/*.cpp'],

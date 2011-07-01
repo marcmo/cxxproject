@@ -22,8 +22,8 @@ module Cxxproject
     end
 
     def direct_deps
-      return @direct_deps if @direct_deps 
-    
+      return @direct_deps if @direct_deps
+
       @all_dependencies_set = Set.new
       @all_dependencies_set << self
       @all_dependencies = [self]

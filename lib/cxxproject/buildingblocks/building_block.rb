@@ -101,11 +101,10 @@ module Cxxproject
       @output_dir_abs = false
       @complete_output_dir = nil
 
-      begin
-        raise "building block already exists: #{name}" if ALL_BUILDING_BLOCKS.include?@name
+      if ALL_BUILDING_BLOCKS.include?(@name) and not self.instance_of?(BinaryLibrary)
+        raise "building block already exists: #{name}"
+      else
         ALL_BUILDING_BLOCKS[@name] = self
-      rescue Exception => e
-        puts e unless self.instance_of?BinaryLibrary
       end
     end
 
