@@ -22,7 +22,6 @@ describe String do
   it "should be possible to replace existing settings" do
     tc = Toolchain.new(GCC_JSON)
     tc.compiler.c.source_file_endings.should == [".c"]
-    puts "type was #{tc.compiler.c.source_file_endings.class}"
     tc.compiler.c.source_file_endings = [".cc"]
     tc.compiler.c.source_file_endings.should == [".cc"]
   end
