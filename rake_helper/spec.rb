@@ -42,7 +42,7 @@ end
 def new_rspec
   require 'rspec/core/rake_task'
   desc "Run examples"
-  RSpec::Core::RakeTask.new(:spec) do |t|
+  RSpec::Core::RakeTask.new() do |t|
     t.pattern = SPEC_PATTERN
   end
 
@@ -73,4 +73,8 @@ namespace :spec do
     end
   end
 end
+task :spec do
+  puts 'Please use spec:spec or spec:coverage'
+end
 task :gem => [:spec]
+
