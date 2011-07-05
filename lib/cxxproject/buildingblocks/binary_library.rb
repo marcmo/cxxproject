@@ -8,13 +8,15 @@ module Cxxproject
     include HasLibraries
     include HasIncludes
 
-    def initialize(name)
+    def initialize(name, useNameAsLib = true)
       super(name)
-      libs_to_search << name
+      @useNameAsLib = useNameAsLib
+      libs_to_search << name if @useNameAsLib
     end
 
     def get_task_name()
-      libs_to_search[0]
+      return libs_to_search[0] if @useNameAsLib
+      @name
     end
 
 
