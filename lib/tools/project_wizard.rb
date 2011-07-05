@@ -23,18 +23,22 @@ def choose_generate_makefile
 end
 
 def prepare_project(d)
+  begin
+    require 'highline/import'
 
-  require 'highline/import'
+    if agree("This will create a new cxx-project config in dir \"#{d}\" \nAre you sure you want to continue? [yn] ")
+      bb = choose_building_block
+      generate_makefile = choose_generate_makefile
 
-  if agree("This will create a new cxx-project config in dir \"#{d}\" \nAre you sure you want to continue? [yn] ")
-    bb = choose_building_block
-    generate_makefile = choose_generate_makefile
-
-    create_project(d, bb, generate_makefile)
-  else
-    say "stopped project creation"
+      create_project(d, bb, generate_makefile)
+    else
+      say "stopped project creation"
+    end
+  rescue LoadError
+    puts "Please 'gem install highline'"
   end
 end
+
 
 def create_project(d, bb, generate_rakefile)
   rakefile_template = File.join(File.dirname(__FILE__),"..","tools","Rakefile.rb.template")
@@ -60,5 +64,3 @@ def write_template(name, template_string, b)
     f.write ERB.new(template_string).result(b)
   end
 end
-
-
