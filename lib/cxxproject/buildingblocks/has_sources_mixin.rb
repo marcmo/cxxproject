@@ -1,4 +1,5 @@
 require 'yaml'
+require 'cxxproject/utils/process'
 
 module Cxxproject
   module HasSources
@@ -83,11 +84,11 @@ module Cxxproject
     end
 
     def get_include_string(tcs, type)
-      @incArray.uniq.map!{|k| "#{tcs[:COMPILER][type][:INCLUDE_PATH_FLAG]}#{k}"}.join(" ")
+      @incArray.uniq.map!{|k| "#{tcs[:COMPILER][type][:INCLUDE_PATH_FLAG]}#{k}"}
     end
 
     def get_define_string(tcs, type)
-      tcs[:COMPILER][type][:DEFINES].map {|k| "#{tcs[:COMPILER][type][:DEFINE_FLAG]}#{k}"}.join(" ")
+      tcs[:COMPILER][type][:DEFINES].map {|k| "#{tcs[:COMPILER][type][:DEFINE_FLAG]}#{k}"}
     end
 
     def get_object_file(sourceRel)
@@ -208,16 +209,33 @@ module Cxxproject
         dep_file = get_dep_file(objectRel)
         depStr = the_tcs[:COMPILER][type][:DEP_FLAGS] + dep_file # -MMD -MF debug/src/abc.o.d
       end
-
-      compiler = the_tcs[:COMPILER][type]
-      cmd = remove_empty_strings_and_join([compiler[:COMMAND], compiler[:COMPILE_FLAGS], depStr, compiler[:FLAGS], # g++ -c -depstr -g3
-        the_tcs == @tcs ? @include_string[type] : get_include_string(the_tcs, type), # -I include
-        the_tcs == @tcs ? @define_string[type] : get_define_string(the_tcs, type), # -DDEBUG
-        compiler[:OBJECT_FILE_FLAG], objectRel, sourceRel # -o abc.o src/abc.cpp
-      ])
+            
       res = typed_file_task Rake::Task::OBJECT, object => source do
+        
+        i_array = the_tcs == @tcs ? @include_string[type] : get_include_string(the_tcs, type)
+        d_array = the_tcs == @tcs ? @define_string[type] : get_define_string(the_tcs, type)
+
+        compiler = the_tcs[:COMPILER][type]
+        cmd = [compiler[:COMMAND],
+            *(compiler[:COMPILE_FLAGS].split(" ")), 
+            *(depStr.split(" ")),
+            *(compiler[:FLAGS].split(" ")),
+            *i_array,
+            *d_array,
+            compiler[:OBJECT_FILE_FLAG],
+            objectRel,
+            sourceRel]
+
+        rd, wr = IO.pipe
+        sp = spawn(*cmd,
+          {
+            :err=>:out,
+            :err=>wr
+          })
+        consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
+
         show_command(cmd, "Compiling #{sourceRel}")
-        process_console_output(catch_output(cmd), compiler[:ERROR_PARSER])
+        process_console_output(consoleOutput, compiler[:ERROR_PARSER])
         check_system_command(cmd)
         convert_depfile(dep_file) if type != :ASM 
       end

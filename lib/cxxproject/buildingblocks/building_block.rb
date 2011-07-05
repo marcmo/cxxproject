@@ -162,7 +162,7 @@ module Cxxproject
     def check_system_command(cmd)
       if $?.to_i != 0
         raise if RakeFileUtils.verbose # no need to print the cmd twice
-        raise "System command failed: #{cmd}"
+        raise "System command failed: #{Array===cmd ? cmd.join(" ") : cmd}"
       end
     end
 
@@ -183,5 +183,6 @@ module Cxxproject
       new_command = "#{cmd} 2>&1"
       return `#{new_command}`
     end
+
   end
 end

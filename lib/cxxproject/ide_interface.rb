@@ -108,8 +108,14 @@ module Cxxproject
 
       mutex.synchronize { @socket.write(packet) if @socket }
     end
+    
+    def get_number_of_projects
+      @num ||= 0
+    end
 
     def set_number_of_projects(num)
+      @num = num
+    
       packet = ""
       force_encoding(packet)
 

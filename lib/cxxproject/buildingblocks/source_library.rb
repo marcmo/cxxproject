@@ -2,7 +2,7 @@ require 'cxxproject/buildingblocks/building_block'
 require 'cxxproject/buildingblocks/has_libraries_mixin'
 require 'cxxproject/buildingblocks/has_sources_mixin'
 require 'cxxproject/buildingblocks/has_includes_mixin'
-require 'cxxproject/utils/string'
+require 'cxxproject/utils/process'
 
 module Cxxproject
   class SourceLibrary < BuildingBlock
@@ -60,35 +60,24 @@ module Cxxproject
       res = typed_file_task Rake::Task::LIBRARY, get_task_name => object_multitask do
         Dir.chdir(@project_dir) do
 
-          objString = get_object_filenames
-          if objString.length > 8000
-            ar_arrays = StringUtils.splitString(objString,8000,".o ", 1)
-            archs = []
-            for i in 1..ar_arrays.length
-              cmd = remove_empty_strings_and_join([
-                archiver[:COMMAND], # ar
-                archiver[:ARCHIVE_FLAGS], # -rc
-                archiver[:FLAGS],
-                get_archive_name+"_"+i.to_s, # debug/x.a
-                ar_arrays[i-1] # debug/src/abc.o debug/src/xy.o
-                ])
-              show_command(cmd, "Creating #{get_archive_name}, part #{i} of #{ar_arrays.length}")
-              process_console_output(catch_output(cmd), @tcs[:ARCHIVER][:ERROR_PARSER])
-              check_system_command(cmd)
-              archs << get_archive_name+"_"+i.to_s
-            end
-            objString = archs.join(" ")
-          end
-          
-          cmd = remove_empty_strings_and_join([
-            archiver[:COMMAND], # ar
-            archiver[:ARCHIVE_FLAGS], # -rc
-            archiver[:FLAGS],
-            get_archive_name, # debug/x.a
-            objString # debug/src/abc.o debug/src/xy.o
-          ])
+          FileUtils.rm(get_archive_name) if File.exists?(get_archive_name)
+          cmd = [archiver[:COMMAND], # ar
+            *(archiver[:ARCHIVE_FLAGS].split(" ")), 
+            *(archiver[:FLAGS].split(" ")), # --all_load
+            get_archive_name, # -o debug/x.exe
+            *@objects]
+        
+          rd, wr = IO.pipe 
+          sp = spawn(*cmd,
+            {
+              :err=>:out,
+              :err=>wr
+            })
+
+          consoleOutput = ProcessHelper.readOutput(sp, rd, wr)      
+
           show_command(cmd, "Creating #{get_archive_name}")
-          process_console_output(catch_output(cmd), @tcs[:ARCHIVER][:ERROR_PARSER])
+          process_console_output(consoleOutput, @tcs[:ARCHIVER][:ERROR_PARSER])
           check_system_command(cmd)
         end
       end
