@@ -52,6 +52,9 @@ describe Cxxproject::BuildingBlock do
             set_dependencies(['1']).
             set_config_files(['config2']).
             set_project_dir('.')
-    Set.new(lib2.transitive_config_files).should eq(Set.new(['config2', 'config1']))
+    tc_array = lib2.transitive_config_files
+    tc_array.length.should eq(2)
+    tc_array.include?('config1').should eq(true)
+    tc_array.include?('config2').should eq(true)
   end
 end

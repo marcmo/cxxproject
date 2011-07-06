@@ -2,7 +2,8 @@ require 'cxxproject/buildingblocks/building_block'
 require 'cxxproject/buildingblocks/has_libraries_mixin'
 require 'cxxproject/buildingblocks/has_sources_mixin'
 require 'cxxproject/buildingblocks/has_includes_mixin'
-require 'cxxproject/utils/string'
+require 'cxxproject/utils/process'
+require 'cxxproject/utils/utils'
 
 module Cxxproject
   class SourceLibrary < BuildingBlock
@@ -54,53 +55,51 @@ module Cxxproject
     #
     def convert_to_rake()
       object_multitask = prepare_tasks_for_objects()
-
       archiver = @tcs[:ARCHIVER]
 
       res = typed_file_task Rake::Task::LIBRARY, get_task_name => object_multitask do
         Dir.chdir(@project_dir) do
 
-          objString = get_object_filenames
-          if objString.length > 8000
-            ar_arrays = StringUtils.splitString(objString,8000,".o ", 1)
-            archs = []
-            for i in 1..ar_arrays.length
-              cmd = remove_empty_strings_and_join([
-                archiver[:COMMAND], # ar
-                archiver[:ARCHIVE_FLAGS], # -rc
-                archiver[:FLAGS],
-                get_archive_name+"_"+i.to_s, # debug/x.a
-                ar_arrays[i-1] # debug/src/abc.o debug/src/xy.o
-                ])
-              show_command(cmd, "Creating #{get_archive_name}, part #{i} of #{ar_arrays.length}")
-              process_console_output(catch_output(cmd), @tcs[:ARCHIVER][:ERROR_PARSER])
-              check_system_command(cmd)
-              archs << get_archive_name+"_"+i.to_s
+          FileUtils.rm(get_archive_name) if File.exists?(get_archive_name)
+          cmd = [archiver[:COMMAND]] # ar
+          cmd += archiver[:ARCHIVE_FLAGS].split(" ")
+          cmd += archiver[:FLAGS].split(" ") # --all_load
+          cmd << get_archive_name # -o debug/x.exe
+          cmd += @objects
+
+          if Cxxproject::Utils.old_ruby?
+            cmdLine = cmd.join(" ")
+            if cmdLine.length > 8000
+              inputName = get_archive_name+".tmp"
+              File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
+              consoleOutput = `#{archiver[:COMMAND] + " @" + inputName}`
+            else
+              consoleOutput = `#{cmd.join(" ")}`
             end
-            objString = archs.join(" ")
+          else
+            rd, wr = IO.pipe
+            cmd << {
+             :err=>:out,
+             :out=>wr
+            }
+            sp = spawn(*cmd)
+            cmd.pop
+            
+            consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
           end
-          
-          cmd = remove_empty_strings_and_join([
-            archiver[:COMMAND], # ar
-            archiver[:ARCHIVE_FLAGS], # -rc
-            archiver[:FLAGS],
-            get_archive_name, # debug/x.a
-            objString # debug/src/abc.o debug/src/xy.o
-          ])
+
           show_command(cmd, "Creating #{get_archive_name}")
-          process_console_output(catch_output(cmd), @tcs[:ARCHIVER][:ERROR_PARSER])
+          process_console_output(consoleOutput, @tcs[:ARCHIVER][:ERROR_PARSER])
           check_system_command(cmd)
         end
       end
-      
+
       enhance_with_additional_files(res)
       add_output_dir_dependency(get_task_name, res, true)
-      
+
       add_grouping_tasks(get_task_name)
 
       setup_rake_dependencies(res)
-        
-     
       return res
     end
 

@@ -1,4 +1,6 @@
 require 'yaml'
+require 'cxxproject/utils/process'
+require 'cxxproject/utils/utils'
 
 module Cxxproject
   module HasSources
@@ -20,14 +22,14 @@ module Cxxproject
       @sources = x
       self
     end
-    
+
     def source_patterns
       @source_patterns ||= []
     end
     def set_source_patterns(x)
       @source_patterns = x
       self
-    end    
+    end
 
     def exclude_sources
       @exclude_sources ||= []
@@ -67,7 +69,7 @@ module Cxxproject
 
       @incArray = local_includes.dup
       @incArray.concat(includes)
-      
+
       all_dependencies.each_with_index do |d,i|
         next if not HasIncludes === d
         next if i == 0
@@ -75,7 +77,7 @@ module Cxxproject
         next if not prefix
         @incArray.concat(d.includes.map {|inc| File.add_prefix(prefix,inc)})
       end
-      
+
       [:CPP, :C, :ASM].each do |type|
         @include_string[type] = get_include_string(@tcs, type)
         @define_string[type] = get_define_string(@tcs, type)
@@ -83,11 +85,11 @@ module Cxxproject
     end
 
     def get_include_string(tcs, type)
-      @incArray.uniq.map!{|k| "#{tcs[:COMPILER][type][:INCLUDE_PATH_FLAG]}#{k}"}.join(" ")
+      @incArray.uniq.map!{|k| "#{tcs[:COMPILER][type][:INCLUDE_PATH_FLAG]}#{k}"}
     end
 
     def get_define_string(tcs, type)
-      tcs[:COMPILER][type][:DEFINES].map {|k| "#{tcs[:COMPILER][type][:DEFINE_FLAG]}#{k}"}.join(" ")
+      tcs[:COMPILER][type][:DEFINES].map {|k| "#{tcs[:COMPILER][type][:DEFINE_FLAG]}#{k}"}
     end
 
     def get_object_file(sourceRel)
@@ -159,7 +161,7 @@ module Cxxproject
     def create_object_file_tasks()
 
       sources_to_build = {} # todo: pair!
-      
+
       exclude_files = Set.new
       exclude_sources.each do |p|
         Dir.glob(p).each {|f| exclude_files << f}
@@ -181,13 +183,13 @@ module Cxxproject
           sources_to_build[f] = tcs4source(p)
         end
       end
-        
+
       obj_tasks = []
       sources_to_build.each do |s, the_tcs|
         obj_task = create_object_file_task(s, the_tcs)
         obj_tasks << obj_task unless obj_task.nil?
       end
-      
+
       obj_tasks
     end
 
@@ -202,24 +204,54 @@ module Cxxproject
       @objects << objectRel
       object = File.expand_path(objectRel)
       source = File.expand_path(sourceRel)
-      
+
       depStr = ""
-      if type != :ASM 
+      if type != :ASM
         dep_file = get_dep_file(objectRel)
         depStr = the_tcs[:COMPILER][type][:DEP_FLAGS] + dep_file # -MMD -MF debug/src/abc.o.d
       end
 
-      compiler = the_tcs[:COMPILER][type]
-      cmd = remove_empty_strings_and_join([compiler[:COMMAND], compiler[:COMPILE_FLAGS], depStr, compiler[:FLAGS], # g++ -c -depstr -g3
-        the_tcs == @tcs ? @include_string[type] : get_include_string(the_tcs, type), # -I include
-        the_tcs == @tcs ? @define_string[type] : get_define_string(the_tcs, type), # -DDEBUG
-        compiler[:OBJECT_FILE_FLAG], objectRel, sourceRel # -o abc.o src/abc.cpp
-      ])
       res = typed_file_task Rake::Task::OBJECT, object => source do
+
+        i_array = the_tcs == @tcs ? @include_string[type] : get_include_string(the_tcs, type)
+        d_array = the_tcs == @tcs ? @define_string[type] : get_define_string(the_tcs, type)
+
+        compiler = the_tcs[:COMPILER][type]
+        cmd = [compiler[:COMMAND]]
+        cmd += compiler[:COMPILE_FLAGS].split(" ")
+        cmd += depStr.split(" ")
+        cmd += compiler[:FLAGS].split(" ")
+        cmd += i_array
+        cmd += d_array
+        cmd << compiler[:OBJECT_FILE_FLAG]
+        cmd << objectRel
+        cmd << sourceRel
+
+        if Cxxproject::Utils.old_ruby?
+          cmdLine = cmd.join(" ")
+          if cmdLine.length > 8000
+            inputName = objectRel+".tmp"
+            File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
+            consoleOutput = `#{compiler[:COMMAND] + " @" + inputName}`
+          else
+            consoleOutput = `#{cmd.join(" ")}`
+          end
+        else
+          rd, wr = IO.pipe
+          cmd << {
+           :err=>:out,
+           :out=>wr
+          }
+          sp = spawn(*cmd)
+          cmd.pop
+          consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
+        end
+        
         show_command(cmd, "Compiling #{sourceRel}")
-        process_console_output(catch_output(cmd), compiler[:ERROR_PARSER])
+        process_console_output(consoleOutput, compiler[:ERROR_PARSER])
+        
         check_system_command(cmd)
-        convert_depfile(dep_file) if type != :ASM 
+        convert_depfile(dep_file) if type != :ASM
       end
       enhance_with_additional_files(res)
       add_output_dir_dependency(object, res, false)
@@ -228,8 +260,8 @@ module Cxxproject
     end
 
     def enhance_with_additional_files(task)
-      task.enhance(@config_files)
       task.enhance(file_dependencies)
+      task.enhance(@config_files)
     end
 
     def process_console_output(console_output, ep)
