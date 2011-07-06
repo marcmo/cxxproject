@@ -1,5 +1,6 @@
 require 'yaml'
 require 'cxxproject/utils/process'
+require 'cxxproject/utils/utils'
 
 module Cxxproject
   module HasSources
@@ -226,15 +227,29 @@ module Cxxproject
         cmd << objectRel
         cmd << sourceRel
 
-        rd, wr = IO.pipe
-        sp = spawn(*cmd, {
-            :err=>:out,
-            :out=>wr
-          })
-        consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
-
+        if Cxxproject::Utils.old_ruby?
+          cmdLine = cmd.join(" ")
+          if cmdLine.length > 8000
+            inputName = objectRel+".tmp"
+            File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
+            consoleOutput = `#{compiler[:COMMAND] + " @" + inputName}`
+          else
+            consoleOutput = `#{cmd.join(" ")}`
+          end
+        else
+          rd, wr = IO.pipe
+          cmd << {
+           :err=>:out,
+           :out=>wr
+          }
+          sp = spawn(*cmd)
+          cmd.pop
+          consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
+        end
+        
         show_command(cmd, "Compiling #{sourceRel}")
         process_console_output(consoleOutput, compiler[:ERROR_PARSER])
+        
         check_system_command(cmd)
         convert_depfile(dep_file) if type != :ASM
       end
@@ -246,7 +261,7 @@ module Cxxproject
 
     def enhance_with_additional_files(task)
       task.enhance(file_dependencies)
-      task.enhance(transitive_config_files)
+      task.enhance(@config_files)
     end
 
     def process_console_output(console_output, ep)

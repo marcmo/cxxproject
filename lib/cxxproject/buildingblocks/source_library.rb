@@ -3,6 +3,7 @@ require 'cxxproject/buildingblocks/has_libraries_mixin'
 require 'cxxproject/buildingblocks/has_sources_mixin'
 require 'cxxproject/buildingblocks/has_includes_mixin'
 require 'cxxproject/utils/process'
+require 'cxxproject/utils/utils'
 
 module Cxxproject
   class SourceLibrary < BuildingBlock
@@ -66,14 +67,26 @@ module Cxxproject
           cmd << get_archive_name # -o debug/x.exe
           cmd += @objects
 
-          rd, wr = IO.pipe
-          sp = spawn(*cmd,
-            {
-              :err=>:out,
-              :out=>wr
-            })
-
-          consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
+          if Cxxproject::Utils.old_ruby?
+            cmdLine = cmd.join(" ")
+            if cmdLine.length > 8000
+              inputName = get_archive_name+".tmp"
+              File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
+              consoleOutput = `#{archiver[:COMMAND] + " @" + inputName}`
+            else
+              consoleOutput = `#{cmd.join(" ")}`
+            end
+          else
+            rd, wr = IO.pipe
+            cmd << {
+             :err=>:out,
+             :out=>wr
+            }
+            sp = spawn(*cmd)
+            cmd.pop
+            
+            consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
+          end
 
           show_command(cmd, "Creating #{get_archive_name}")
           process_console_output(consoleOutput, @tcs[:ARCHIVER][:ERROR_PARSER])

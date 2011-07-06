@@ -3,6 +3,7 @@ require 'cxxproject/buildingblocks/has_libraries_mixin'
 require 'cxxproject/buildingblocks/has_sources_mixin'
 require 'cxxproject/buildingblocks/has_includes_mixin'
 require 'cxxproject/utils/process'
+require 'cxxproject/utils/utils'
 
 require 'tmpdir'
 require 'set'
@@ -139,23 +140,39 @@ module Cxxproject
           cmd += calc_linker_lib_string
           cmd += linker[:LIB_POSTFIX_FLAGS].split(" ") # "-Wl,--no-whole-archive "
 
-          rd, wr = IO.pipe
-          sp = spawn(*cmd,
-            {
+          mapfileStr = @mapfile ? " >#{@output_dir}/#{@mapfile}" : ""
+          if Cxxproject::Utils.old_ruby?
+            # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
+            cmdLine = cmd.join(" ") + " 2>" + get_temp_filename
+            if cmdLine.length > 8000
+              inputName = get_executable_name+".tmp"
+              File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
+              consoleOutput = `#{linker[:COMMAND] + " @" + inputName + mapfileStr + " 2>" + get_temp_filename}`
+            else
+              consoleOutput = `#{cmd.join(" ") + mapfileStr + " 2>" + get_temp_filename}`
+            end
+            consoleOutput.concat(read_file_or_empty_string(get_temp_filename))          
+          else
+            rd, wr = IO.pipe
+            cmd << {
              :out=> @mapfile ? "#{@output_dir}/#{@mapfile}" : :err, # > xy.map
              :err=>wr
-            })
+            }
+            sp = spawn(*cmd)
+            cmd.pop
 
-          # for console print
-          cmd << " >#{@output_dir}/#{@mapfile}" if @mapfile
-
-          consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
+            # for console print
+            cmd << " >#{@output_dir}/#{@mapfile}" if @mapfile
+            consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
+          end
+          
           show_command(cmd, "Linking #{get_executable_name}")
+          
           process_console_output(consoleOutput, @tcs[:LINKER][:ERROR_PARSER])
           check_system_command(cmd)
         end
       end
-      res.enhance(transitive_config_files)
+      res.enhance(@config_files)
       res.enhance([@project_dir + "/" + @linker_script]) if @linker_script
       add_output_dir_dependency(get_task_name, res, true)
 
@@ -185,6 +202,10 @@ module Cxxproject
 
     def run_command(task, command)
       sh "#{command}"
+    end
+
+    def get_temp_filename
+      Dir.tmpdir + "/lake.tmp"
     end
 
   end

@@ -29,5 +29,9 @@ module Cxxproject
       Marshal.load(Marshal.dump(x))
     end
 
+    def self.old_ruby?
+      RUBY_VERSION[0..2] == "1.8"
+    end
+
   end
 end

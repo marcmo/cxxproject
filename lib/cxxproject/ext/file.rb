@@ -1,13 +1,11 @@
+require 'cxxproject/utils/utils'
+
 class File
 
   SLASH = '/'
 
-  def self.old_ruby?
-    RUBY_VERSION[0..2] == "1.8"
-  end
-
   def self.is_absolute?(filename)
-    if old_ruby?
+    if Cxxproject::Utils.old_ruby?
       filename[0] == 47 or filename[1] == 58 # 47 = /, 58 = :
     else
       filename[0] == SLASH or filename[1] == ':'

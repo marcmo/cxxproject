@@ -1,5 +1,6 @@
 require 'cxxproject/buildingblocks/has_dependencies_mixin'
 require 'cxxproject/utils/dot/graph_writer'
+require 'cxxproject/attribute_helper'
 require 'cxxproject/ext/rake'
 require 'cxxproject/ext/file'
 require 'cxxproject/ide_interface'
