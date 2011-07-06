@@ -11,3 +11,4 @@ testdata
 *~
 coverage
 html
+*.gem
