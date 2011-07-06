@@ -65,5 +65,18 @@ describe AttributeHelper do
     t.test.should eq(3)
     t.count.should eq(1)
   end
+  it 'should be possible to subclass a class with lazy attributes' do
+    class Test4
+      extend AttributeHelper
+      lazy_attribute_from_calculation :test, :calc_test
+      def calc_test
+        3
+      end
+    end
+    class Test5 < Test4
+    end
+    t = Test5.new
+    t.test.should eq(3)
+  end
 
 end

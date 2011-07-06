@@ -46,14 +46,14 @@ module Cxxproject
 
     def get_executable_name() # relative path
       return @exe_name if @exe_name
-      
+
       parts = [@output_dir]
-      
+
       if @output_dir_abs
         parts = [@output_dir_relPath] if @output_dir_relPath
         parts << 'exes'
       end
-      
+
       parts << "#{@name}#{@tcs[:LINKER][:OUTPUT_ENDING]}"
 
       @exe_name = File.join(parts)
@@ -61,8 +61,8 @@ module Cxxproject
     end
 
     def get_task_name() # full path
-      return @task_name if @task_name 
-      
+      return @task_name if @task_name
+
       parts = [@output_dir]
       parts << 'exes' if @output_dir_abs
       parts << "#{@name}#{@tcs[:LINKER][:OUTPUT_ENDING]}"
@@ -70,7 +70,7 @@ module Cxxproject
 
       @task_name = @project_dir + "/" + @task_name unless @output_dir_abs
       @task_name
-    end    
+    end
 
     def collect_unique(array, set)
       ret = []
@@ -124,22 +124,23 @@ module Cxxproject
       linker = @tcs[:LINKER]
 
       res = typed_file_task Rake::Task::EXECUTABLE, get_task_name => object_multitask do
+        puts "Chaning for linking exe to #{@project_dir}"
         Dir.chdir(@project_dir) do
-        
-          cmd = [linker[:COMMAND], # g++
-            *(linker[:MUST_FLAGS].split(" ")), 
-            *(linker[:FLAGS].split(" ")), # --all_load
-            linker[:EXE_FLAG],
-            get_executable_name, # -o debug/x.exe
-            *@objects, # debug/src/abc.o debug/src/xy.o
-            @linker_script ? linker[:SCRIPT] : "", # -T 
-            @linker_script ? @linker_script : "", # xy/xy.dld
-            @mapfile ? linker[:MAP_FILE_FLAG] : "", # -Wl,-m6
-            *(linker[:LIB_PREFIX_FLAGS].split(" ")) , # "-Wl,--whole-archive "
-            *calc_linker_lib_string,
-            *(linker[:LIB_POSTFIX_FLAGS].split(" "))] # "-Wl,--no-whole-archive "
-          
-          rd, wr = IO.pipe          
+
+          cmd = [linker[:COMMAND]] # g++
+          cmd += linker[:MUST_FLAGS].split(" ")
+          cmd += linker[:FLAGS].split(" ") # --all_load
+          cmd << linker[:EXE_FLAG]
+          cmd << get_executable_name # -o debug/x.exe
+          cmd += @objects # debug/src/abc.o debug/src/xy.o
+          cmd << linker[:SCRIPT] if @linker_script # -T
+          cmd << @linker_script if @linker_script # xy/xy.dld
+          cmd << linker[:MAP_FILE_FLAG] if @mapfile # -Wl,-m6
+          cmd += linker[:LIB_PREFIX_FLAGS].split(" ") # "-Wl,--whole-archive "
+          cmd += calc_linker_lib_string
+          cmd += linker[:LIB_POSTFIX_FLAGS].split(" ") # "-Wl,--no-whole-archive "
+
+          rd, wr = IO.pipe
           sp = spawn(*cmd,
             {
              :out=> @mapfile ? "#{@output_dir}/#{@mapfile}" : :err, # > xy.map
@@ -148,15 +149,14 @@ module Cxxproject
 
           # for console print
           cmd << " >#{@output_dir}/#{@mapfile}" if @mapfile
-          
-          consoleOutput = ProcessHelper.readOutput(sp, rd, wr)     
-        
+
+          consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
           show_command(cmd, "Linking #{get_executable_name}")
           process_console_output(consoleOutput, @tcs[:LINKER][:ERROR_PARSER])
           check_system_command(cmd)
         end
       end
-      res.enhance(@config_files)
+      res.enhance(transitive_config_files)
       res.enhance([@project_dir + "/" + @linker_script]) if @linker_script
       add_output_dir_dependency(get_task_name, res, true)
 

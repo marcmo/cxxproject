@@ -54,42 +54,39 @@ module Cxxproject
     #
     def convert_to_rake()
       object_multitask = prepare_tasks_for_objects()
-
       archiver = @tcs[:ARCHIVER]
 
       res = typed_file_task Rake::Task::LIBRARY, get_task_name => object_multitask do
         Dir.chdir(@project_dir) do
 
           FileUtils.rm(get_archive_name) if File.exists?(get_archive_name)
-          cmd = [archiver[:COMMAND], # ar
-            *(archiver[:ARCHIVE_FLAGS].split(" ")), 
-            *(archiver[:FLAGS].split(" ")), # --all_load
-            get_archive_name, # -o debug/x.exe
-            *@objects]
-        
-          rd, wr = IO.pipe 
+          cmd = [archiver[:COMMAND]] # ar
+          cmd += archiver[:ARCHIVE_FLAGS].split(" ")
+          cmd += archiver[:FLAGS].split(" ") # --all_load
+          cmd << get_archive_name # -o debug/x.exe
+          cmd += @objects
+
+          rd, wr = IO.pipe
           sp = spawn(*cmd,
             {
               :err=>:out,
-              :err=>wr
+              :out=>wr
             })
 
-          consoleOutput = ProcessHelper.readOutput(sp, rd, wr)      
+          consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
 
           show_command(cmd, "Creating #{get_archive_name}")
           process_console_output(consoleOutput, @tcs[:ARCHIVER][:ERROR_PARSER])
           check_system_command(cmd)
         end
       end
-      
+
       enhance_with_additional_files(res)
       add_output_dir_dependency(get_task_name, res, true)
-      
+
       add_grouping_tasks(get_task_name)
 
       setup_rake_dependencies(res)
-        
-     
       return res
     end
 

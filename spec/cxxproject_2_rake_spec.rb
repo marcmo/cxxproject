@@ -58,8 +58,7 @@ def check_rebuilding (end_product, prereq_file, should_rebuild = true)
 end
 
 def execute_all_tasks(tasks)
-  tasks.each do |tn|
-    t = tn[:task]
+  tasks.each do |t|
     t.invoke
   end
 end

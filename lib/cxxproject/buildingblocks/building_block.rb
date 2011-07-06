@@ -17,10 +17,13 @@ module Cxxproject
 
   class BuildingBlock
     include HasDependencies
+    extend AttributeHelper
 
     attr_reader :name
     attr_reader :graph_name
     attr_reader :config_files
+    lazy_attribute_from_calculation :transitive_config_files, :calc_transitive_config_files
+
     attr_reader :project_dir
     attr_accessor :output_dir
     attr_reader :output_dir_abs
@@ -46,11 +49,6 @@ module Cxxproject
 
     def set_config_files(x)
       @config_files = x
-
-      @config_files.each do |cf|
-        Rake.application[cf].type = Rake::Task::CONFIG
-      end
-
       self
     end
 
@@ -70,7 +68,7 @@ module Cxxproject
       @output_dir_abs = File.is_absolute?(@output_dir)
       if @project_dir
         @output_dir_relPath = File.rel_from_to_project(@project_dir, @output_dir)
-      end  
+      end
       self
     end
 
@@ -122,10 +120,11 @@ module Cxxproject
     # convert all dependencies of a building block to rake task prerequisites (e.g. exe needs lib)
     #
     def setup_rake_dependencies(task)
-      dependencies.reverse.each do |d|
+      dependencies.reverse_each do |d|
         begin
-          raise "ERROR: tried to add the dependencies of \"#{d}\" to \"#{@name}\" but such a building block could not be found!" unless ALL_BUILDING_BLOCKS[d]
-          task.prerequisites.unshift(ALL_BUILDING_BLOCKS[d].get_task_name)
+          bb = ALL_BUILDING_BLOCKS[d]
+          raise "ERROR: tried to add the dependencies of \"#{d}\" to \"#{@name}\" but such a building block could not be found!" unless bb
+          task.prerequisites.unshift(bb.get_task_name)
         rescue Exception => e
           puts e
           exit
@@ -145,7 +144,11 @@ module Cxxproject
 
     def show_command(cmd, alternate)
       if RakeFileUtils.verbose
-        puts cmd
+        if cmd.is_a?(Array)
+          puts "#{cmd.join(' ')} in #{Dir.pwd}"
+        else
+          puts cmd
+        end
       else
         puts alternate unless Rake::application.options.silent
       end
@@ -184,5 +187,20 @@ module Cxxproject
       return `#{new_command}`
     end
 
+    def calc_transitive_config_files
+      return all_dependencies.inject(Set.new) do |memo, bb|
+        f = File.rel_from_to_project(project_dir, bb.project_dir)
+        bb.config_files.each do |cf|
+          if f.empty?
+            to_add = cf
+          else
+            to_add = File.join(f, cf)
+          end
+          memo.add(to_add)
+        end
+        memo
+      end.to_a
+    end
   end
+
 end

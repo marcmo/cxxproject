@@ -68,23 +68,27 @@ module Rake
 
     def invoke_prerequisites(args, invocation_chain)
       super(args, invocation_chain)
-      
+
       Dir.chdir(@bb.project_dir) do
         file_tasks = @bb.create_object_file_tasks
         enhance(file_tasks)
         return if file_tasks.length == 0
         Jobs.new(file_tasks, application.max_parallel_tasks) do |jobs|
-          while true do
-            job = jobs.get_next_or_nil
-            break unless job
-
-            prereq = application[job]
-            prereq.output_after_execute = false
-            prereq.invoke_with_call_chain(args, invocation_chain)
-            set_failed if prereq.failure
-            output(prereq.output_string)
-          end
+          handle_jobs(jobs, args, invocation_chain)
         end.join
+      end
+    end
+
+    def handle_jobs(jobs, args, invocation_chain)
+      while true do
+        job = jobs.get_next_or_nil
+        break unless job
+
+        prereq = application[job]
+        prereq.output_after_execute = false
+        prereq.invoke_with_call_chain(args, invocation_chain)
+        set_failed if prereq.failure
+        output(prereq.output_string)
       end
     end
 
@@ -119,7 +123,6 @@ module Rake
     attr_accessor :deps # used to store deps by depfile task for the apply task (no re-read of depsfile)
     attr_accessor :type
     attr_accessor :transparent_timestamp
-    attr_accessor :dismissed_prerequisites
     attr_accessor :progress_count
     attr_accessor :output_string
     attr_accessor :output_after_execute
@@ -153,26 +156,10 @@ module Rake
       @type = UNKNOWN
       @deps = nil
       @transparent_timestamp = false
-      @dismissed_prerequisites = []
-      @neededStored = nil # cache result for performance
-      progress_count = 0
+      @progress_count = 0
       @ignore = false
       @failure = false
       @output_after_execute = true
-      @dependency_set = Set.new
-    end
-
-    alias :enhance_org :enhance
-    def enhance(deps=nil, &block)
-      if deps
-        deps.each do |d|
-          if @dependency_set.add?(d)
-            @prerequisites << d
-          end
-        end
-      end
-      @actions << block if block_given?
-      self
     end
 
     define_method(:invoke) do |*args|

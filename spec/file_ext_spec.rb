@@ -17,8 +17,9 @@ describe File do
     File.rel_from_to_project('x/main', nil).should eq(nil)
     File.rel_from_to_project(nil, 'x/main').should eq(nil)
     File.rel_from_to_project('x/a', 'y/b').should eq("../../y/b/")
+    File.rel_from_to_project('x/x', 'x/x').should eq('')
   end
-  
+
   it 'add prefix only if file is not absolute' do
     File.add_prefix('abc/', '/usr/local').should eq('/usr/local')
     File.add_prefix('abc/', 'nix/usr/local').should eq('abc/nix/usr/local')

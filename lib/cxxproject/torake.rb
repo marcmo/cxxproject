@@ -122,22 +122,18 @@ module Cxxproject
     def instantiate_tasks
       check_for_project_configs
 
-      @log.debug "project_configs:"
-      @projects.each { |c| @log.debug " *  #{c}" }
+      if @log.debug?
+        @log.debug "project_configs:"
+        @projects.each { |c| @log.debug " *  #{c}" }
+      end
       register_projects()
-
-      tasks = []
-      #todo: sort ALL_BUILDING_BLOCKS (circular deps)
-      ALL_BUILDING_BLOCKS.each do |name,block|
+      ALL_BUILDING_BLOCKS.values.each do |block|
         prepare_block(block)
       end
-
-      ALL_BUILDING_BLOCKS.each do |name,block|
-        @log.debug "creating task for block: #{block.name}/taskname: #{block.get_task_name} (#{block})"
-        t = block.convert_to_rake()
-        tasks << { :task => t, :name => name } if t
+      ALL_BUILDING_BLOCKS.values.inject([]) do |memo,block|
+        @log.debug "creating tasks for block: #{block.name}/taskname: #{block.get_task_name} (#{block})"
+        memo << block.convert_to_rake()
       end
-      tasks
     end
 
     def check_for_project_configs
@@ -151,13 +147,12 @@ module Cxxproject
     def prepare_block(block)
       block.set_tcs(@toolchain) unless block.has_tcs?
       block.set_output_dir(Dir.pwd + "/" + @build_dir)
-      block.set_config_files(@rel_projects)
       block.complete_init()
     end
 
     def register_projects()
       cd(@base,:verbose => false) do |b|
-        @projects.each do |project_file|
+        @projects.each_with_index do |project_file, i|
           @log.debug "register project #{project_file}"
           dirname = File.dirname(project_file)
           @log.debug "dirname for project was: #{dirname}"
@@ -173,14 +168,14 @@ module Cxxproject
       begin
         loadContext.eval_project(File.read(File.basename(project_file)))
       rescue Exception => e
-        pwd = `pwd`
-        warn "problems with #{File.join(b, project_file)} in dir: #{pwd}"
+        warn "problems with #{File.join(b, project_file)} in dir: #{Dir.pwd}"
         warn {e.inspect}
         raise e
       end
       loadContext.myblock.call()
       loadContext.all_blocks.each do |block|
         block.set_project_dir(Dir.pwd)
+        block.set_config_files([project_file])
         if block.respond_to?(:sources) && block.sources.instance_of?(Rake::FileList)
           block.set_sources(block.sources.to_a)
         end

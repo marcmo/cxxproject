@@ -7,8 +7,7 @@ RSPECDIR = File.dirname(__FILE__)
 describe CxxProject2Rake do
 
   def execute_all_tasks(tasks)
-    tasks.each do |tn|
-      t = tn[:task]
+    tasks.each do |t|
       t.invoke
     end
   end
