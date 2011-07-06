@@ -14,3 +14,5 @@ initialize_simplecov = lambda do
   end
 end
 Cxxproject::Utils::optional_package(initialize_simplecov, nil)
+
+RakeFileUtils.send(:verbose, false)

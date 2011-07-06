@@ -124,7 +124,6 @@ module Cxxproject
       linker = @tcs[:LINKER]
 
       res = typed_file_task Rake::Task::EXECUTABLE, get_task_name => object_multitask do
-        puts "Chaning for linking exe to #{@project_dir}"
         Dir.chdir(@project_dir) do
 
           cmd = [linker[:COMMAND]] # g++
