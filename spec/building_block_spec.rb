@@ -45,8 +45,13 @@ describe Cxxproject::BuildingBlock do
   end
 
   it 'should calc correct transitive_config_files' do
-    lib1 = Cxxproject::SourceLibrary.new('1').set_config_files(['config1']).set_project_dir('.')
-    lib2 = Cxxproject::SourceLibrary.new('2').set_dependencies(['1']).set_config_files(['config2']).set_project_dir('.')
-    lib2.transitive_config_files.should eq(['config2', 'config1'])
+    lib1 = Cxxproject::SourceLibrary.new('1').
+            set_config_files(['config1']).
+            set_project_dir('.')
+    lib2 = Cxxproject::SourceLibrary.new('2').
+            set_dependencies(['1']).
+            set_config_files(['config2']).
+            set_project_dir('.')
+    Set.new(lib2.transitive_config_files).should eq(Set.new(['config2', 'config1']))
   end
 end
