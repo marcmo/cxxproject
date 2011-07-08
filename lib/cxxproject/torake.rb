@@ -174,8 +174,9 @@ module Cxxproject
       end
       loadContext.myblock.call()
       loadContext.all_blocks.each do |block|
-        block.set_project_dir(Dir.pwd)
-        block.set_config_files([project_file])
+        block.
+          set_project_dir(Dir.pwd).
+          set_config_files([project_file])
         if block.respond_to?(:sources) && block.sources.instance_of?(Rake::FileList)
           block.set_sources(block.sources.to_a)
         end
