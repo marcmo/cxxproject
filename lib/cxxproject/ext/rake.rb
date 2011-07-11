@@ -27,6 +27,13 @@ module Rake
       @command_line_number += 1
       res
     end
+    
+    def makefile_number
+      @makefile_number ||= 1
+      res = @makefile_number
+      @makefile_number += 1
+      res
+    end
   end
 
   $exit_code = 0

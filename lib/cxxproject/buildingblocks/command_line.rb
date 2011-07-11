@@ -26,9 +26,9 @@ module Cxxproject
     end
 
     def initialize(name)
-      super(name)
       @line = name
       @num = Rake.application.command_line_number
+      super(get_task_name)
     end
 
     def get_task_name()

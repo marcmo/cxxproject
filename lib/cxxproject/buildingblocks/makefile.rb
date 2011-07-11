@@ -23,14 +23,15 @@ module Cxxproject
       @target
     end
 
-    def initialize(name)
-      super(name)
-      @target = "all"
-      @makefile = nil
+    def initialize(mfile, mtarget)
+      @target = mtarget != "" ? mtarget : "all"
+      @makefile = mfile
+      @num = Rake.application.makefile_number  
+      super(get_task_name)
     end
 
     def get_task_name()
-      get_makefile+"_"+get_target
+      "makefile (#{@num}): " + get_makefile + (get_target ? ("_"+get_target) : "")    
     end
 
     def convert_to_rake()
