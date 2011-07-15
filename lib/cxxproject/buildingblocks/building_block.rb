@@ -1,5 +1,6 @@
 require 'cxxproject/buildingblocks/has_dependencies_mixin'
 require 'cxxproject/utils/dot/graph_writer'
+require 'cxxproject/utils/exit_helper'
 require 'cxxproject/attribute_helper'
 require 'cxxproject/ext/rake'
 require 'cxxproject/ext/file'
@@ -126,9 +127,11 @@ module Cxxproject
           bb = ALL_BUILDING_BLOCKS[d]
           raise "ERROR: tried to add the dependencies of \"#{d}\" to \"#{@name}\" but such a building block could not be found!" unless bb
           task.prerequisites.unshift(bb.get_task_name)
+        rescue ExitHelperException
+          raise
         rescue Exception => e
           puts e
-          exit
+          ExitHelper.exit(1)
         end
       end
       task

@@ -1,5 +1,6 @@
 require 'cxxproject/ext/stdout'
 require 'cxxproject/utils/dot/graph_writer'
+require 'cxxproject/utils/exit_helper'
 
 require 'rake'
 require 'stringio'
@@ -35,8 +36,6 @@ module Rake
       res
     end
   end
-
-  $exit_code = 0
 
   class Jobs
     def initialize(jobs, max, &block)
@@ -170,10 +169,10 @@ module Rake
     end
 
     define_method(:invoke) do |*args|
-      $exit_code = 0
+      Cxxproject::ExitHelper.set_exit_code(0)
       invoke_org.bind(self).call(*args)
       if @failure or Rake.application.idei.get_abort
-        $exit_code = 1
+        Cxxproject::ExitHelper.set_exit_code(1)
       end
     end
 
@@ -195,6 +194,8 @@ module Rake
             prereq_args = task_args.new_scope(prereq.arg_names)
             prereq.invoke_with_call_chain(prereq_args, invocation_chain)
             set_failed if prereq.failure
+          rescue Cxxproject::ExitHelperException
+            raise
           rescue Exception => e
             if prereq and Rake::Task[n].ignore
               @prerequisites.delete(n)
@@ -233,6 +234,8 @@ module Rake
 
       begin
         execute_org.bind(self).call(arg)
+      rescue Cxxproject::ExitHelperException
+        raise
       rescue Exception => ex1
         handle_error(ex1)
       end
@@ -298,11 +301,6 @@ module Rake
       end
     end
 
-  end
-
-
-  at_exit do
-    exit($exit_code)
   end
 
 end

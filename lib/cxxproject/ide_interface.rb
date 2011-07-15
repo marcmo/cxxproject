@@ -24,13 +24,23 @@ module Cxxproject
     end
 
     def connect(port)
-      @socket = TCPSocket.new('localhost', port)
+      begin
+        @socket = TCPSocket.new('localhost', port)
+      rescue Exception => e
+        puts "Error: #{e.message}"
+        ExitHelper.exit(1)
+      end
     end
 
     def disconnect()
       if @socket
         sleep 0.1 # hack to let ruby send all data via streams before closing ... strange .. perhaps this should be synchronized!
-        @socket.close
+        begin
+          @socket.close
+        rescue Exception => e
+          puts "Error: #{e.message}"
+          ExitHelper.exit(1)
+        end
         @socket = nil
       end
     end
@@ -64,7 +74,12 @@ module Cxxproject
       if @socket
         error_array.each do |msg|
           packet = create_error_packet(msg)
-          mutex.synchronize { @socket.write(packet) }
+          begin
+            mutex.synchronize { @socket.write(packet) }
+          rescue Exception => e
+            puts "Error: #{e.message}"            
+            set_abort(true)
+          end
         end
       end
     end
@@ -106,7 +121,13 @@ module Cxxproject
 
       packet << name
 
-      mutex.synchronize { @socket.write(packet) if @socket }
+      begin
+        mutex.synchronize { @socket.write(packet) if @socket }
+      rescue Exception => e
+        puts "Error: #{e.message}"            
+        set_abort(true)
+      end
+      
     end
     
     def get_number_of_projects
@@ -129,18 +150,28 @@ module Cxxproject
       packet << (num % 256)
       packet << (num / 256)
 
-      mutex.synchronize { @socket.write(packet) if @socket }
+      begin
+        mutex.synchronize { @socket.write(packet) if @socket }
+      rescue Exception => e
+        puts "Error: #{e.message}"            
+        set_abort(true)
+      end
+      
     end
 
     def get_abort()
+      return @abort if @abort
       if @socket
         mutex.synchronize {
           begin
             @socket.recv_nonblock(1)
-            @abort = true # currently this is the only possible input
+            set_abort(true) # currently this is the only possible input
           rescue IO::WaitReadable
             # this is not an error but the default "return"-value of recv_nonblock
-          end
+          rescue Exception => e
+            puts "Error: #{e.message}"            
+            set_abort(true)
+          end          
         }
       end
 
