@@ -1,5 +1,4 @@
 require 'cxxproject/buildingblocks/has_dependencies_mixin'
-require 'cxxproject/utils/dot/graph_writer'
 require 'cxxproject/utils/exit_helper'
 require 'cxxproject/attribute_helper'
 require 'cxxproject/ext/rake'
@@ -22,7 +21,6 @@ module Cxxproject
     extend AttributeHelper
 
     attr_reader :name
-    attr_reader :graph_name
     attr_reader :config_files
     lazy_attribute_from_calculation :transitive_config_files, :calc_transitive_config_files
 
@@ -86,14 +84,8 @@ module Cxxproject
       end
     end
 
-    def set_graph_name(x)
-      @graph_name = x
-      self
-    end
-
     def initialize(name)
       @name = name
-      @graph_name = name
       @config_files = []
       @project_dir = nil
       @tcs = nil

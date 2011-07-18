@@ -1,5 +1,4 @@
 require 'cxxproject/ext/stdout'
-require 'cxxproject/utils/dot/graph_writer'
 require 'cxxproject/utils/exit_helper'
 
 require 'rake'
@@ -115,10 +114,6 @@ module Rake
 
   end
 
-  ###########
-  # - Go on if a task fails (but to not execute the parent)
-  # - showInGraph is used for GraphWriter (internal tasks are not shown)
-  #############
   class Task
     class << self
       attr_accessor :bail_on_first_error
