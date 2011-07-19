@@ -155,7 +155,7 @@ module Cxxproject
           else
             rd, wr = IO.pipe
             cmd << {
-             :out=> @mapfile ? "#{@output_dir}/#{@mapfile}" : :err, # > xy.map
+             :out=> @mapfile ? "#{@output_dir}/#{@mapfile}" : wr, # > xy.map
              :err=>wr
             }
             sp = spawn(*cmd)

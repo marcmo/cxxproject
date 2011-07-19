@@ -239,14 +239,14 @@ module Cxxproject
         else
           rd, wr = IO.pipe
           cmd << {
-           :err=>:out,
+           :err=>wr,
            :out=>wr
           }
           sp = spawn(*cmd)
           cmd.pop
           consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
         end
-        
+
         show_command(cmd, "Compiling #{sourceRel}")
         process_console_output(consoleOutput, compiler[:ERROR_PARSER])
         

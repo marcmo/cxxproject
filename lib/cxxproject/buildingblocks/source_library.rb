@@ -79,7 +79,7 @@ module Cxxproject
           else
             rd, wr = IO.pipe
             cmd << {
-             :err=>:out,
+             :err=>wr,
              :out=>wr
             }
             sp = spawn(*cmd)
