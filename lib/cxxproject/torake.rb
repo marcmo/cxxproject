@@ -76,10 +76,10 @@ module Cxxproject
     def create_console_colorization
       # default is on
       Cxxproject::ColorizingFormatter.enabled = true
-      desc 'Toggle colorization of console output (use true|t|yes|y|1 for true ... everything else is false)'
+      desc 'Toggle colorization of console output (use true|t|yes|y|1|on for true ... everything else is false)'
       task :toggle_colorize, :on_off do |t, args|
         arg = args[:on_off] || 'false'
-        on_off = arg.match(/(true|t|yes|y|1)$/) != nil
+        on_off = arg.match(/(true|t|yes|y|1|on)$/) != nil
         Cxxproject::ColorizingFormatter.enabled = on_off
       end
     end

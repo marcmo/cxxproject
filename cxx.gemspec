@@ -2,7 +2,7 @@ require 'rake'
 
 include FileUtils
 
-PKG_VERSION = '0.5.3'
+PKG_VERSION = '0.5.4'
 PKG_FILES = FileList[
   'lib/**/*.rb',
   'Rakefile.rb',
@@ -22,9 +22,8 @@ Gem::Specification.new do |s|
   s.author = 'oliver mueller'
   s.email = 'oliver.mueller@gmail.com'
   s.homepage = 'https://github.com/marcmo/cxxproject'
-  # optional, shall not be mandatory (on windows these gems require even more...)
-  # s.add_dependency('highline', '>= 1.6.0')
-  # s.add_dependency('colored')
-  # s.add_dependency('progressbar')
+  s.add_dependency('highline', '>= 1.6.0')
+  s.add_dependency('colored')
+  s.add_dependency('progressbar')
   s.executables = ['cxx']
 end
