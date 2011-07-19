@@ -264,7 +264,7 @@ module Cxxproject
       task.enhance(@config_files)
     end
 
-    def process_console_output(console_output, ep)
+    def process_console_output(console_output, error_parser)
       if not console_output.empty?
         highlighter = @tcs[:CONSOLE_HIGHLIGHTER]
         if (highlighter and highlighter.enabled?)
@@ -273,8 +273,8 @@ module Cxxproject
           puts console_output
         end
 
-        if ep
-          Rake.application.idei.set_errors(ep.scan(console_output, @project_dir))
+        if error_parser
+          Rake.application.idei.set_errors(error_parser.scan(console_output, @project_dir))
         end
       end
     end
