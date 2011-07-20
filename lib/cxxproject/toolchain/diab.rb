@@ -6,8 +6,8 @@ require 'cxxproject/errorparser/diab_linker_error_parser'
 module Cxxproject
   module Toolchain
 
-    diabErrorParser = DiabErrorParser.new
-    diabLinkerErrorParser = DiabLinkerErrorParser.new
+    diabErrorParser = DiabErrorParser.new(/\"(.+)\", line ([0-9]+): [catastrophic ]*([A-Za-z]+) (.+)[\r\n]+(.+)/)
+    diabLinkerErrorParser = DiabLinkerErrorParser.new(/dld: ([A-Za-z]+): (.+)/)
 
     DiabChainDebug = Provider.add("Diab_Debug")
 

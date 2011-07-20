@@ -1,5 +1,6 @@
 require 'cxxproject/toolchain/provider'
 require 'cxxproject/toolchain/colorizing_formatter'
+require 'cxxproject/errorparser/error_parser'
 require 'cxxproject/utils/utils'
 
 module Cxxproject
@@ -34,6 +35,6 @@ module Cxxproject
     CLANG_CHAIN[:LINKER][:FLAGS] = ""
     #    CLANG_CHAIN[:LINKER][:LIB_PREFIX_FLAGS] = "-Wl,--whole-archive" unless OS.mac?
     #    CLANG_CHAIN[:LINKER][:LIB_POSTFIX_FLAGS] = "-Wl,--no-whole-archive" unless OS.mac?
-    CLANG_CHAIN[:CONSOLE_HIGHLIGHTER] = ColorizingFormatter.new
+    CLANG_CHAIN[:CONSOLE_HIGHLIGHTER] = ColorizingFormatter.new(ErrorParser.new(/(.+):([0-9]+): [catastrophic ]*([A-Za-z]+): (.+)/))
   end
 end

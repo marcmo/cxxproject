@@ -1,5 +1,6 @@
 require 'cxxproject/toolchain/provider'
 require 'cxxproject/toolchain/colorizing_formatter'
+require 'cxxproject/errorparser/error_parser'
 require 'cxxproject/utils/utils'
 
 module Cxxproject
@@ -34,6 +35,6 @@ module Cxxproject
     GCCChain[:LINKER][:FLAGS] = "-all_load"
     GCCChain[:LINKER][:LIB_PREFIX_FLAGS] = "-Wl,--whole-archive" unless Utils::OS.mac?
     GCCChain[:LINKER][:LIB_POSTFIX_FLAGS] = "-Wl,--no-whole-archive" unless Utils::OS.mac?
-    GCCChain[:CONSOLE_HIGHLIGHTER] = ColorizingFormatter.new
+    GCCChain[:CONSOLE_HIGHLIGHTER] = ColorizingFormatter.new(ErrorParser.new(/(.+):([0-9]+): [catastrophic ]*([A-Za-z]+): (.+)/))
   end
 end

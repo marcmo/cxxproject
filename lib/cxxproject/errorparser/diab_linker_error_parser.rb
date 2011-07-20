@@ -17,7 +17,7 @@ module Cxxproject
 
     def scan(consoleOutput, proj_dir)
       res = []
-      consoleOutput.scan(/dld: ([A-Za-z]+): (.+)/).each do |e|
+      consoleOutput.scan(@error_expression).each do |e|
         res << [
           proj_dir,
           0,
