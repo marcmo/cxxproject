@@ -1,5 +1,4 @@
 require 'rake/clean'
-
 require './rake_helper/spec.rb'
 
 desc "Default Task"
@@ -55,4 +54,46 @@ rescue LoadError => e
 end
 
 
+def two_digits(x)
+  if x.length > 1
+    x
+  else
+    "0#{x}"
+  end
+end
+
+begin
+  require 'grit'
+  include Grit
+
+  desc 'generate version history'
+  task :generate_history do
+      repo = Repo.new('.')
+      tag_names = repo.tags.collect {|t| t.name }
+      relevant_tags = repo.tags.reject {|t| !t.name.start_with?("v_")}
+      sorted_tags = relevant_tags.sort_by.each do |t|
+        /v_(?<x>\d+)\.(?<y>\d+)\.(?<z>\d+)/ =~ t.name
+        "#{two_digits(x)}-#{two_digits(y)}-#{two_digits(z)}"
+      end
+
+      zipped = sorted_tags[0..-2].zip(sorted_tags[1..-1])
+      zipped.reverse.each do |a,b|
+        puts ""
+        puts "#{a.name} => #{b.name}"
+        puts ""
+        cs = repo.commits_between(a.commit, b.commit)
+        cm = cs.each do |c| 
+          change_lines = c.message.lines.to_a
+          first = change_lines.first
+          change_text = "    * " + first + "#{change_lines[1..-1].collect {|l| "      #{l}"}.join("")}"
+          puts change_text
+        end
+      end
+  end
+rescue LoadError => e
+  puts 'please gem install grit'
+end
+
+
 require './rake_helper/perftools'
+
