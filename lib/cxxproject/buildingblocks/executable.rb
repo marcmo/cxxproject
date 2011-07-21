@@ -132,10 +132,12 @@ module Cxxproject
       res = typed_file_task Rake::Task::EXECUTABLE, get_task_name => object_multitask do
         Dir.chdir(@project_dir) do
 
-          oname = File.expand_path(get_object_file(@linkinfo))
-          tinfo = Rake.application[oname]
-          if not tinfo.needed?
-            tinfo.execute(nil)
+          if @linkinfo
+            oname = File.expand_path(get_object_file(@linkinfo))
+            tinfo = Rake.application[oname]
+            if not tinfo.needed?
+              tinfo.execute(nil)
+            end
           end 
 
           cmd = [linker[:COMMAND]] # g++
