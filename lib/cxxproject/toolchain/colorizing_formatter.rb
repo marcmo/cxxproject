@@ -22,10 +22,6 @@ module Cxxproject
       RED = [255, 0, 0]
       YELLOW = [255, 255, 0]
 
-      def initialize(error_parser)
-        @error_parser = error_parser
-      end
-
       def severity_string(colors, string)
         colors[:severity].inject(string) {|m,x| m.send(x)}
       end
@@ -37,16 +33,24 @@ module Cxxproject
       def line_string(colors, string)
         colors[:line].inject(string) {|m,x| m.send(x)}
       end
+      
+      def line_number_string(colors, string)
+        colors[:file].inject(string) {|m,x| m.send(x)}
+      end      
+      
+      def in_string(colors, string)
+        colors[:line].inject(string) {|m,x| m.send(x)}
+      end      
 
       def description_string(colors, string)
         colors[:description].inject(string) {|m,x| m.send(x)}
       end
 
       # formats several lines of usually compiler output
-      def format(compiler_output)
+      def format(compiler_output, project_dir, error_parser)
         return compiler_output if not enabled?
         res = ""
-        error_descs = @error_parser.scan_lines(compiler_output)
+        error_descs = error_parser.scan_lines(compiler_output, project_dir)
         zipped = compiler_output.lines.zip(error_descs)
         zipped.each do |l,desc|
           if desc.severity != 255
@@ -54,14 +58,24 @@ module Cxxproject
             if desc.severity == ErrorParser::SEVERITY_WARNING
               coloring = {:file => [:yellow,:bold], :line => [:yellow], :severity => [:yellow,:bold], :description => [:yellow]}
             elsif desc.severity == ErrorParser::SEVERITY_ERROR
-              coloring = {:file => [:yellow], :line => [:yellow,:bold], :severity => [:red,:bold], :description => [:red]}
+              coloring = {:file => [:red,:bold],    :line => [:red],    :severity => [:red,:bold],    :description => [:red]}
             else
-              coloring = {:file => [:white,:bold], :line => [:white], :severity => [:white,:bold], :description => [:white]}
+              coloring = {:file => [:white,:bold],  :line => [:white],  :severity => [:white,:bold],  :description => [:white]}
             end
-            res << severity_string(coloring, @error_parser.severity_to_str(desc.severity))
-            res << " in file " + file_string(coloring, "#{desc.file_name}")
-            res << line_string(coloring, " (line:#{desc.line_number})") + "\n"
-            res << description_string(coloring, "msg: #{desc.message}") + "\n"
+            
+            if desc.file_name and desc.file_name != ""
+              res << severity_string(coloring, error_parser.severity_to_str(desc.severity))
+              res << in_string(coloring, " in ")
+              res << file_string(coloring, "#{desc.file_name}")
+              if desc.line_number and desc.line_number > 0
+                res << line_string(coloring, ", line ")
+                res << line_number_string(coloring, "#{desc.line_number}")
+              end
+              res << line_string(coloring, ": ")
+            end
+            
+            res << description_string(coloring, "#{desc.message}") + "\n"
+                        
           else
            res << l
           end

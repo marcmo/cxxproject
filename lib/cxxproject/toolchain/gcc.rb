@@ -1,10 +1,14 @@
 require 'cxxproject/toolchain/provider'
-require 'cxxproject/toolchain/colorizing_formatter'
 require 'cxxproject/errorparser/error_parser'
 require 'cxxproject/utils/utils'
+require 'cxxproject/errorparser/gcc_compiler_error_parser'
+require 'cxxproject/errorparser/gcc_linker_error_parser'
 
 module Cxxproject
   module Toolchain
+    gccCompilerErrorParser = GCCCompilerErrorParser.new
+    gccLinkerErrorParser = GCCLinkerErrorParser.new
+      
     GCCChain = Provider.add("GCC")
 
     GCCChain[:COMPILER][:CPP].update({
@@ -13,7 +17,8 @@ module Cxxproject
       :OBJECT_FILE_FLAG => "-o",
       :INCLUDE_PATH_FLAG => "-I",
       :COMPILE_FLAGS => "-c ",
-      :DEP_FLAGS => "-MMD -MF " # empty space at the end is important!
+      :DEP_FLAGS => "-MMD -MF ", # empty space at the end is important!
+      :ERROR_PARSER => gccCompilerErrorParser
     })
 
     GCCChain[:COMPILER][:C] = Utils.deep_copy(GCCChain[:COMPILER][:CPP])
@@ -35,6 +40,6 @@ module Cxxproject
     GCCChain[:LINKER][:FLAGS] = "-all_load"
     GCCChain[:LINKER][:LIB_PREFIX_FLAGS] = "-Wl,--whole-archive" unless Utils::OS.mac?
     GCCChain[:LINKER][:LIB_POSTFIX_FLAGS] = "-Wl,--no-whole-archive" unless Utils::OS.mac?
-    GCCChain[:CONSOLE_HIGHLIGHTER] = ColorizingFormatter.new(ErrorParser.new(/(.+):([0-9]+): [catastrophic ]*([A-Za-z]+): (.+)/))
+    GCCChain[:LINKER][:ERROR_PARSER] = gccLinkerErrorParser
   end
 end

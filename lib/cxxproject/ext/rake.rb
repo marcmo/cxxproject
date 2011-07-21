@@ -245,7 +245,7 @@ module Rake
       # todo: debug log, no puts here!
       if not Rake.application.idei.get_abort()
         puts "Error for task: #{@name} (execution from dir: #{Dir.pwd})"
-        puts "#{ex1.message} "
+        puts "#{ex1.message}"
       end
       begin
         FileUtils.rm(@name) if File.exists?(@name) # todo: error parsing?

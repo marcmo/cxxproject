@@ -1,3 +1,5 @@
+require 'cxxproject/toolchain/colorizing_formatter'
+
 module Cxxproject
   module Toolchain
 
@@ -78,7 +80,8 @@ module Cxxproject
           :DIR_FLAG => "-C",
           :CLEAN => "clean"
         },
-
+        
+        :CONSOLE_HIGHLIGHTER => ColorizingFormatter.new
       }
 
       def self.add(name, basedOn = nil)

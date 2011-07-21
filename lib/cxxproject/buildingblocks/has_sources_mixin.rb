@@ -268,7 +268,7 @@ module Cxxproject
       if not console_output.empty?
         highlighter = @tcs[:CONSOLE_HIGHLIGHTER]
         if (highlighter and highlighter.enabled?)
-          puts highlighter.format(console_output)
+          puts highlighter.format(console_output, @project_dir, error_parser)
         else
           puts console_output
         end
