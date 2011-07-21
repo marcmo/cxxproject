@@ -212,7 +212,6 @@ module Cxxproject
       end
 
       res = typed_file_task Rake::Task::OBJECT, object => source do
-
         i_array = the_tcs == @tcs ? @include_string[type] : get_include_string(the_tcs, type)
         d_array = the_tcs == @tcs ? @define_string[type] : get_define_string(the_tcs, type)
 

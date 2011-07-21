@@ -217,15 +217,13 @@ module Rake
     define_method(:execute) do |arg|
       break if @failure # check if a prereq has failed
       break if Rake.application.idei.get_abort
-
       new_execute(execute_org, arg)
-
-      Thread.current[:stdout].sync_flush if Thread.current[:stdout]
     end
 
     def new_execute(execute_org, arg)
       s = name == 'console' ? nil : StringIO.new
-      Thread.current[:stdout] = s
+      tmp = Thread.current[:stdout]
+      Thread.current[:stdout] = s unless tmp
 
       begin
         execute_org.bind(self).call(arg)
@@ -236,7 +234,7 @@ module Rake
       end
 
       self.output_string = s.string
-      Thread.current[:stdout] = nil
+      Thread.current[:stdout] = tmp
 
       output(self.output_string)
     end

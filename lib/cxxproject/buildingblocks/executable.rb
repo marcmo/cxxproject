@@ -38,10 +38,15 @@ module Cxxproject
       super(name)
       @linker_script = nil
       @mapfile = nil
+      @linkinfo = nil
     end
 
     def linker_libs_string
       @linkerString ||= ""
+    end
+    
+    def set_link_info(name)
+      @linkinfo = name
     end
 
 
@@ -126,6 +131,12 @@ module Cxxproject
 
       res = typed_file_task Rake::Task::EXECUTABLE, get_task_name => object_multitask do
         Dir.chdir(@project_dir) do
+
+          oname = File.expand_path(get_object_file(@linkinfo))
+          tinfo = Rake.application[oname]
+          if not tinfo.needed?
+            tinfo.execute(nil)
+          end 
 
           cmd = [linker[:COMMAND]] # g++
           cmd += linker[:MUST_FLAGS].split(" ")
