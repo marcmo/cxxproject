@@ -21,7 +21,7 @@ module Cxxproject
     end
 
     def get_severity(str)
-      if str == "info"
+      if str == "info" || str == "note"
         SEVERITY_INFO
       elsif str == "warning"
         SEVERITY_WARNING
