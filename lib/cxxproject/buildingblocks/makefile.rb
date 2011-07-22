@@ -15,6 +15,11 @@ module Cxxproject
       self
     end
 
+    def set_path_to(array)
+      @path_to = array
+      self
+    end
+
     def get_makefile
       @makefile
     end
@@ -26,6 +31,7 @@ module Cxxproject
     def initialize(mfile, mtarget)
       @target = mtarget != "" ? mtarget : "all"
       @makefile = mfile
+      @path_to = []
       @num = Rake.application.makefile_number  
       super(get_task_name)
     end
@@ -34,7 +40,26 @@ module Cxxproject
       "makefile (#{@num}): " + get_makefile + (get_target ? ("_"+get_target) : "")    
     end
 
+    def calc_pathes_to_projects
+      vars = []
+      @path_to.each do |p|
+        # todo: error msgs
+        bb = ALL_BUILDING_BLOCKS[p]
+        if bb
+          pref = File.rel_from_to_project(@project_dir,bb.project_dir)
+          rex = Regexp.new "\\.\\.\\/(.*)#{p}"
+          var = pref.scan(rex)[0]
+          if var
+            vars << "PATH_TO_#{p}=#{var[0]}"
+          end
+        end
+      end
+      vars.join(" ")
+    end
+
     def convert_to_rake()
+      pathes_to_projects = calc_pathes_to_projects
+    
       mfile = get_makefile()
       make = @tcs[:MAKE]
       cmd = remove_empty_strings_and_join([
@@ -45,8 +70,11 @@ module Cxxproject
         make[:DIR_FLAG], # -C
         File.dirname(mfile), # x/y
         make[:FILE_FLAG], # -f
-        File.basename(mfile) # x/y/makefile
+        File.basename(mfile), # x/y/makefile
+        pathes_to_projects
       ])
+      
+      
       mfileTask = task get_task_name do
         Dir.chdir(@project_dir) do
           consoleOutput = catch_output(cmd)
@@ -57,12 +85,12 @@ module Cxxproject
       mfileTask.type = Rake::Task::MAKE
       mfileTask.enhance(@config_files)
 
-      create_clean_task(@project_dir+"/"+mfile)
+      create_clean_task(@project_dir+"/"+mfile, pathes_to_projects)
       setup_rake_dependencies(mfileTask)
       mfileTask
     end
 
-    def create_clean_task(mfile)
+    def create_clean_task(mfile, pathes_to_projects)
       # generate the clean task
       if not Rake.application["clean"].prerequisites.include?(mfile+"Clean")
         cmd = remove_empty_strings_and_join([@tcs[:MAKE][:COMMAND], # make
@@ -70,7 +98,8 @@ module Cxxproject
           @tcs[:MAKE][:DIR_FLAG], # -C
           File.dirname(mfile), # x/y
           @tcs[:MAKE][:FILE_FLAG], # -f
-          File.basename(mfile) # x/y/makefile
+          File.basename(mfile), # x/y/makefile
+          pathes_to_projects
         ])
         mfileCleanTask = task mfile+"Clean" do
           consoleOutput = catch_output(cmd)
