@@ -4,6 +4,7 @@ require 'cxxproject/attribute_helper'
 require 'cxxproject/ext/rake'
 require 'cxxproject/ext/file'
 require 'cxxproject/ide_interface'
+require 'cxxproject/utils/printer'
 
 # no deprecated warning for rake >= 0.9.x
 include Rake::DSL if defined?(Rake::DSL)
@@ -122,7 +123,7 @@ module Cxxproject
         rescue ExitHelperException
           raise
         rescue Exception => e
-          puts e
+          Printer.printError e
           ExitHelper.exit(1)
         end
       end
@@ -138,15 +139,27 @@ module Cxxproject
       end
     end
 
-    def show_command(cmd, alternate)
-      if RakeFileUtils.verbose
+    def process_result(cmd, console_output, error_parser = nil, alternate = nil)
+
+      hasError = $?.to_i != 0
+ 
+      if hasError or RakeFileUtils.verbose or (alternate.nil? and not Rake::application.options.silent)
+        exedIn = ""
+        exedIn = " (executed in '#{Dir.pwd}')" if (hasError or RakeFileUtils.verbose)
         if cmd.is_a?(Array)
-          puts "#{cmd.join(' ')} in #{Dir.pwd}"
+          puts cmd.join(' ') + exedIn
         else
-          puts cmd
+          puts cmd + exedIn
         end
       else
         puts alternate unless Rake::application.options.silent
+      end
+
+      process_console_output(console_output, error_parser)
+      
+      if hasError
+        Printer.printError "Error: system command failed"
+        raise SystemCommandFailed.new
       end
     end
 
@@ -155,13 +168,6 @@ module Cxxproject
         return File.read(filename)
       rescue
         return ""
-      end
-    end
-
-    def check_system_command(cmd)
-      if $?.to_i != 0
-        raise if RakeFileUtils.verbose # no need to print the cmd twice
-        raise "System command failed: #{Array===cmd ? cmd.join(" ") : cmd}"
       end
     end
 

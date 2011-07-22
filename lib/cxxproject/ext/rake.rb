@@ -5,6 +5,13 @@ require 'rake'
 require 'stringio'
 require 'thread'
 
+require 'cxxproject/utils/printer'
+
+module Cxxproject
+  class SystemCommandFailed < Exception
+  end
+end
+
 module Rake
 
   class Application
@@ -199,7 +206,10 @@ module Rake
               end
               return
             end
-            puts "Error #{name}: #{e.message}"
+            Printer.printError "Error #{name}: #{e.message}"
+            if RakeFileUtils.verbose
+              puts e.backtrace
+            end            
             set_failed
           end
 
@@ -229,8 +239,10 @@ module Rake
         execute_org.bind(self).call(arg)
       rescue Cxxproject::ExitHelperException
         raise
+      rescue Cxxproject::SystemCommandFailed => scf
+        handle_error(scf, true)
       rescue Exception => ex1
-        handle_error(ex1)
+        handle_error(ex1, false)
       end
 
       self.output_string = s.string
@@ -239,17 +251,20 @@ module Rake
       output(self.output_string)
     end
 
-    def handle_error(ex1)
-      # todo: debug log, no puts here!
+    def handle_error(ex1, isSysCmd)
       if not Rake.application.idei.get_abort()
-        puts "Error for task: #{@name} (execution from dir: #{Dir.pwd})"
-        puts "#{ex1.message}"
+        if not isSysCmd
+          Printer.printError "Error for task #{@name}: #{ex1.message}"
+          if RakeFileUtils.verbose
+            puts ex1.backtrace
+          end
+        end
       end
       begin
         FileUtils.rm(@name) if File.exists?(@name) # todo: error parsing?
       rescue Exception => ex2
         # todo: debug log, no puts here!
-        puts "Error: Could not delete #{@name}: #{ex2.message}"
+        Printer.printError "Error: Could not delete #{@name}: #{ex2.message}"
       end
       set_failed
     end

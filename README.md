@@ -5,6 +5,10 @@ see documentation page: [cxxproject](http://marcmo.github.com/cxxproject)
 
 ## Change History:
 
+v_0.5.5 => v_0.5.6
+    * improved colorization and output
+    * added "linkinfo-feature
+
 v_0.5.4 => v_0.5.5
 
     * startet to add new errorparser (#82)

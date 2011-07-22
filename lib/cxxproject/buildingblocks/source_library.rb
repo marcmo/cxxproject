@@ -88,9 +88,7 @@ module Cxxproject
             consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
           end
 
-          show_command(cmd, "Creating #{get_archive_name}")
-          process_console_output(consoleOutput, @tcs[:ARCHIVER][:ERROR_PARSER])
-          check_system_command(cmd)
+          process_result(cmd, consoleOutput, archiver[:ERROR_PARSER], "Creating #{get_archive_name}")
         end
       end
 

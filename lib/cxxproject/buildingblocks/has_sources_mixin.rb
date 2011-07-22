@@ -1,6 +1,7 @@
 require 'yaml'
 require 'cxxproject/utils/process'
 require 'cxxproject/utils/utils'
+require 'cxxproject/utils/printer'
 
 module Cxxproject
   module HasSources
@@ -196,7 +197,7 @@ module Cxxproject
     def create_object_file_task(sourceRel, the_tcs)
       type = get_source_type(sourceRel)
       if type.nil?
-        puts "Warning: no valid source type for #{sourceRel}, will be ignored!"
+        Printer.printWarning "Warning: no valid source type for #{sourceRel}, will be ignored!"
         return nil
       end
 
@@ -246,10 +247,8 @@ module Cxxproject
           consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
         end
 
-        show_command(cmd, "Compiling #{sourceRel}")
-        process_console_output(consoleOutput, compiler[:ERROR_PARSER])
+        process_result(cmd, consoleOutput, compiler[:ERROR_PARSER], "Compiling #{sourceRel}")
         
-        check_system_command(cmd)
         convert_depfile(dep_file) if type != :ASM
       end
       enhance_with_additional_files(res)

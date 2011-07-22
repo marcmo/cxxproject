@@ -49,9 +49,8 @@ module Cxxproject
       ])
       mfileTask = task get_task_name do
         Dir.chdir(@project_dir) do
-          show_command(cmd, cmd)
-          process_console_output(catch_output(cmd))
-          check_system_command(cmd)
+          consoleOutput = catch_output(cmd)
+          process_result(cmd, consoleOutput)
         end
       end
       mfileTask.transparent_timestamp = true
@@ -74,15 +73,14 @@ module Cxxproject
           File.basename(mfile) # x/y/makefile
         ])
         mfileCleanTask = task mfile+"Clean" do
-          show_command(cmd, cmd)
-          process_console_output(catch_output(cmd))
-          check_system_command(cmd)
+          consoleOutput = catch_output(cmd)
+          process_result(cmd, consoleOutput)
         end
         Rake.application["clean"].enhance([mfileCleanTask])
       end
     end
 
-    def process_console_output(consoleOutput)
+    def process_console_output(consoleOutput, errorParser)
       if not consoleOutput.empty?
         puts consoleOutput
 

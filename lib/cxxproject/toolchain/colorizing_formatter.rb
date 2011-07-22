@@ -46,6 +46,27 @@ module Cxxproject
         colors[:description].inject(string) {|m,x| m.send(x)}
       end
 
+      def printError(str)
+        [:red,:bold].inject(str) {|m,x| m.send(x)}
+      end
+
+      def printWarning(str)
+        [:yellow,:bold].inject(str) {|m,x| m.send(x)}
+      end
+
+      def printInfo(str)
+        [:white,:bold].inject(str) {|m,x| m.send(x)}
+      end
+
+      def printAdditionalInfo(str)
+        [:cyan,:bold].inject(str) {|m,x| m.send(x)}
+      end
+
+      def printSuccess(str)
+        [:green,:bold].inject(str) {|m,x| m.send(x)}
+      end
+
+
       # formats several lines of usually compiler output
       def format(compiler_output, project_dir, error_parser)
         return compiler_output if not enabled?
