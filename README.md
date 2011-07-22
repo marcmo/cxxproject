@@ -5,6 +5,9 @@ see documentation page: [cxxproject](http://marcmo.github.com/cxxproject)
 
 ## Change History:
 
+v_0.5.6 => v_0.5.7
+    * possibility to add pathes to makefile
+
 v_0.5.5 => v_0.5.6
     * improved colorization and output
     * added "linkinfo-feature
