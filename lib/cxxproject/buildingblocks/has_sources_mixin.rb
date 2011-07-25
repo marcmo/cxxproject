@@ -234,7 +234,7 @@ module Cxxproject
             File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
             consoleOutput = `#{compiler[:COMMAND] + " @" + inputName}`
           else
-            consoleOutput = `#{cmd.join(" ")}`
+            consoleOutput = `#{cmd.join(" ")} 2>&1`
           end
         else
           rd, wr = IO.pipe
