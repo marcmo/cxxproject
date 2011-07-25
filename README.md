@@ -9,6 +9,8 @@ v_0.5.7 => v_0.5.8
 
     * better matches for gcc warnings/error parser
     * some formatter tweaking...
+      
+      added rake task to automatically generate and update release history
 
 v_0.5.6 => v_0.5.7
 

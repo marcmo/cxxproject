@@ -101,7 +101,6 @@ begin
     change_line = "## Change History:"
     readme = 'README.md'
     content = File.read(readme)
-    # puts content.gsub(/^#{change_line}.*/m, ([change_line] << git_history).join("\n"))
     File.open(readme, 'w') do |f|
       f.puts content.gsub(/^#{change_line}.*/m, ([change_line] << git_history).join("\n"))
     end

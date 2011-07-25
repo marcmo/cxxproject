@@ -1,10 +1,12 @@
-require 'cxxproject/toolchain/provider'
-require 'cxxproject/toolchain/colorizing_formatter'
-require 'cxxproject/errorparser/error_parser'
 require 'cxxproject/utils/utils'
+require 'cxxproject/toolchain/provider'
+require 'cxxproject/errorparser/error_parser'
+require 'cxxproject/errorparser/gcc_compiler_error_parser'
 
 module Cxxproject
   module Toolchain
+    gccCompilerErrorParser = GCCCompilerErrorParser.new
+
     CLANG_CHAIN = Provider.add("CLANG")
 
     CLANG_CHAIN[:COMPILER][:CPP].update({
@@ -13,7 +15,8 @@ module Cxxproject
       :OBJECT_FILE_FLAG => "-o",
       :INCLUDE_PATH_FLAG => "-I",
       :COMPILE_FLAGS => "-c ",
-      :DEP_FLAGS => "-MMD -MF " # empty space at the end is important!
+      :DEP_FLAGS => "-MMD -MF ", # empty space at the end is important!
+      :ERROR_PARSER => gccCompilerErrorParser
     })
 
     CLANG_CHAIN[:COMPILER][:C] = Utils.deep_copy(CLANG_CHAIN[:COMPILER][:CPP])
