@@ -206,7 +206,7 @@ module Rake
               end
               return
             end
-            Printer.printError "Error #{name}: #{e.message}"
+            Cxxproject::Printer.printError "Error #{name}: #{e.message}"
             if RakeFileUtils.verbose
               puts e.backtrace
             end            

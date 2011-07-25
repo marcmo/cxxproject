@@ -141,7 +141,7 @@ module Cxxproject
 
     def process_result(cmd, console_output, error_parser = nil, alternate = nil)
 
-      hasError = $?.to_i != 0
+      hasError = ($?.success? == false)
  
       if hasError or RakeFileUtils.verbose or (alternate.nil? and not Rake::application.options.silent)
         exedIn = ""

@@ -53,7 +53,7 @@ module Cxxproject
       if not consoleOutput.empty?
         puts consoleOutput
 
-        if Rake.application.idei and $?.to_i != 0
+        if Rake.application.idei and $?.success? == false
           res = []
           res << (@defined_in ? @defined_in : @project_dir)
           res << 0

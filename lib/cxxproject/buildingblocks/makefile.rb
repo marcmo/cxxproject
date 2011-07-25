@@ -113,7 +113,7 @@ module Cxxproject
       if not consoleOutput.empty?
         puts consoleOutput
 
-        if $?.to_i != 0
+        if $?.success? == false
           res = []
           res << @project_dir + "/" + get_makefile()
           res << 1
