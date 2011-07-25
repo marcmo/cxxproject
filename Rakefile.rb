@@ -66,30 +66,47 @@ begin
   require 'grit'
   include Grit
 
+  def git_history      
+    repo = Repo.new('.')
+    tag_names = repo.tags.collect {|t| t.name }
+    relevant_tags = repo.tags.reject {|t| !t.name.start_with?("v_")}
+    sorted_tags = relevant_tags.sort_by.each do |t|
+      /v_(?<x>\d+)\.(?<y>\d+)\.(?<z>\d+)/ =~ t.name
+      "#{two_digits(x)}-#{two_digits(y)}-#{two_digits(z)}"
+    end
+
+    change_text = []
+    zipped = sorted_tags[0..-2].zip(sorted_tags[1..-1])
+    zipped.reverse.each do |a,b|
+      change_text << ""
+      change_text << "#{a.name} => #{b.name}"
+      change_text << ""
+      cs = repo.commits_between(a.commit, b.commit)
+      cm = cs.each do |c| 
+        change_lines = c.message.lines.to_a
+        first = change_lines.first
+        change_text << "    * " + first + "#{change_lines[1..-1].collect {|l| "      #{l}"}.join("")}"
+      end
+    end
+    change_text
+  end
+      
   desc 'generate version history'
   task :generate_history do
-      repo = Repo.new('.')
-      tag_names = repo.tags.collect {|t| t.name }
-      relevant_tags = repo.tags.reject {|t| !t.name.start_with?("v_")}
-      sorted_tags = relevant_tags.sort_by.each do |t|
-        /v_(?<x>\d+)\.(?<y>\d+)\.(?<z>\d+)/ =~ t.name
-        "#{two_digits(x)}-#{two_digits(y)}-#{two_digits(z)}"
-      end
-
-      zipped = sorted_tags[0..-2].zip(sorted_tags[1..-1])
-      zipped.reverse.each do |a,b|
-        puts ""
-        puts "#{a.name} => #{b.name}"
-        puts ""
-        cs = repo.commits_between(a.commit, b.commit)
-        cm = cs.each do |c| 
-          change_lines = c.message.lines.to_a
-          first = change_lines.first
-          change_text = "    * " + first + "#{change_lines[1..-1].collect {|l| "      #{l}"}.join("")}"
-          puts change_text
-        end
-      end
+    puts git_history
   end
+
+  desc 'generate and update version history'
+  task :update_version_history do
+    change_line = "## Change History:"
+    readme = 'README.md'
+    content = File.read(readme)
+    # puts content.gsub(/^#{change_line}.*/m, ([change_line] << git_history).join("\n"))
+    File.open(readme, 'w') do |f|
+      f.puts content.gsub(/^#{change_line}.*/m, ([change_line] << git_history).join("\n"))
+    end
+  end
+
 rescue LoadError => e
   puts 'please gem install grit'
 end

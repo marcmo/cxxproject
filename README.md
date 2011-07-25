@@ -5,12 +5,23 @@ see documentation page: [cxxproject](http://marcmo.github.com/cxxproject)
 
 ## Change History:
 
+v_0.5.7 => v_0.5.8
+
+    * better matches for gcc warnings/error parser
+    * some formatter tweaking...
+
 v_0.5.6 => v_0.5.7
-    * possibility to add pathes to makefile
+
+    * possibility to add path vars for makefile
+    * version 0.5.7
 
 v_0.5.5 => v_0.5.6
-    * improved colorization and output
-    * added "linkinfo-feature
+
+    * added version history
+    * error parsing for diab, nicer output, error parser for linker
+    * compile linkinfo only if necessary
+    * bugfix: error if linkinfo not set
+    * improved color and output
 
 v_0.5.4 => v_0.5.5
 
