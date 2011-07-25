@@ -254,7 +254,7 @@ module Rake
     def handle_error(ex1, isSysCmd)
       if not Rake.application.idei.get_abort()
         if not isSysCmd
-          Printer.printError "Error for task #{@name}: #{ex1.message}"
+          Cxxproject::Printer.printError "Error for task #{@name}: #{ex1.message}"
           if RakeFileUtils.verbose
             puts ex1.backtrace
           end
@@ -264,7 +264,7 @@ module Rake
         FileUtils.rm(@name) if File.exists?(@name) # todo: error parsing?
       rescue Exception => ex2
         # todo: debug log, no puts here!
-        Printer.printError "Error: Could not delete #{@name}: #{ex2.message}"
+        Cxxproject::Printer.printError "Error: Could not delete #{@name}: #{ex2.message}"
       end
       set_failed
     end
