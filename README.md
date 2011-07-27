@@ -5,6 +5,14 @@ see documentation page: [cxxproject](http://marcmo.github.com/cxxproject)
 
 ## Change History:
 
+v_0.5.9 => v_0.5.10
+
+    * bugfixes
+    
+v_0.5.8 => v_0.5.9
+
+    * bugfixes
+    
 v_0.5.7 => v_0.5.8
 
     * better matches for gcc warnings/error parser
