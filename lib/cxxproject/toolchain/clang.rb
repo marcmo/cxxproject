@@ -35,8 +35,5 @@ module Cxxproject
     CLANG_CHAIN[:LINKER][:EXE_FLAG] = "-o"
     CLANG_CHAIN[:LINKER][:LIB_FLAG] = "-l"
     CLANG_CHAIN[:LINKER][:LIB_PATH_FLAG] = "-L"
-    CLANG_CHAIN[:LINKER][:FLAGS] = ""
-    #    CLANG_CHAIN[:LINKER][:LIB_PREFIX_FLAGS] = "-Wl,--whole-archive" unless OS.mac?
-    #    CLANG_CHAIN[:LINKER][:LIB_POSTFIX_FLAGS] = "-Wl,--no-whole-archive" unless OS.mac?
   end
 end
