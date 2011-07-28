@@ -5,6 +5,7 @@ desc "Default Task"
 task :default => [:install]
 
 require 'rubygems/package_task'
+require 'yaml'
 spec = Gem::Specification.load('cxx.gemspec')
 Gem::PackageTask.new(spec){|pkg|}
 
