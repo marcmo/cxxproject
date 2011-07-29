@@ -4,7 +4,7 @@ include FileUtils
 
 YAML::ENGINE.yamler = 'syck'
 
-PKG_VERSION = "0.5.10"
+PKG_VERSION = "0.5.11"
 PKG_FILES = FileList[
   "lib/**/*.rb",
   "Rakefile.rb",

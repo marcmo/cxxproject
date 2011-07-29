@@ -5,6 +5,11 @@ see documentation page: [cxxproject](http://marcmo.github.com/cxxproject)
 
 ## Change History:
 
+v_0.5.10 => v_0.5.11
+
+    * removed default flags from toolchains
+    * added possibility to add pre and post linker flags for libs
+
 v_0.5.9 => v_0.5.10
 
     * bugfixes
