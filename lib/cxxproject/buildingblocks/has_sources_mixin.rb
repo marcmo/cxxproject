@@ -12,10 +12,6 @@ module Cxxproject
       @file_dependencies ||= []
     end
 
-    def object_deps
-      @object_deps ||= []
-    end
-
     def sources
       @sources ||= []
     end
@@ -129,11 +125,12 @@ module Cxxproject
     def convert_depfile(depfile)
       deps_string = read_file_or_empty_string(depfile)
       deps = parse_includes(deps_string)
+      if deps.nil?
+        return # ok, because next run the source will be recompiled due to invalid depfile
+      end
       expanded_deps = deps.map do |d|
         File.expand_path(d)
       end
-      od = object_deps()
-      od += expanded_deps
 
       FileUtils.mkpath File.dirname(depfile)
       File.open(depfile, 'wb') do |f|
@@ -148,7 +145,6 @@ module Cxxproject
         deps.each do |d|
           f = file d
           f.ignore_missing_file
-          object_deps << d
         end
         outfileTask.enhance(deps)
       rescue
