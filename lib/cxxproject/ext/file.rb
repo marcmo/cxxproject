@@ -49,7 +49,7 @@ class File
 
   
   def self.add_prefix(prefix, file)
-    if is_absolute?(file)
+    if not prefix or is_absolute?(file)
       file
     else
       prefix + file

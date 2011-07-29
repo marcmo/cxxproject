@@ -95,7 +95,7 @@ module Cxxproject
       collect_unique(d.lib_searchpaths, s1).each do |v|
         tmp = File.add_prefix(prefix, v)
         res << "#{linker[:LIB_PATH_FLAG]}#{tmp}"
-      end if prefix
+      end 
       collect_unique(d.libs_to_search, s2).each do |v|
         res << "#{linker[:LIB_FLAG]}#{v}"
       end
@@ -104,7 +104,7 @@ module Cxxproject
       end
       collect_unique(d.libs_with_path, s4).each do |v|
         res <<  File.add_prefix(prefix, v)
-      end if prefix
+      end 
       res
     end
 
