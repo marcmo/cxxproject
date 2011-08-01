@@ -94,6 +94,7 @@ module Cxxproject
       linker = @tcs[:LINKER]
       collect_unique(d.lib_searchpaths, s1).each do |v|
         tmp = File.add_prefix(prefix, v)
+        tmp = "\"" + tmp + "\"" if tmp.include?(" ")
         res << "#{linker[:LIB_PATH_FLAG]}#{tmp}"
       end 
       collect_unique(d.libs_to_search, s2).each do |v|
@@ -103,7 +104,9 @@ module Cxxproject
         res << "#{linker[:USER_LIB_FLAG]}#{v}"
       end
       collect_unique(d.libs_with_path, s4).each do |v|
-        res <<  File.add_prefix(prefix, v)
+        tmp = File.add_prefix(prefix, v)
+        tmp = "\"" + tmp + "\"" if tmp.include?(" ")
+        res <<  tmp
       end 
       res
     end
