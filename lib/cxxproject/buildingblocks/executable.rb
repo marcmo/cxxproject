@@ -57,7 +57,6 @@ module Cxxproject
 
       if @output_dir_abs
         parts = [@output_dir_relPath] if @output_dir_relPath
-        parts << 'exes'
       end
 
       parts << "#{@name}#{@tcs[:LINKER][:OUTPUT_ENDING]}"
@@ -70,7 +69,6 @@ module Cxxproject
       return @task_name if @task_name
 
       parts = [@output_dir]
-      parts << 'exes' if @output_dir_abs
       parts << "#{@name}#{@tcs[:LINKER][:OUTPUT_ENDING]}"
       @task_name = File.join(parts)
 

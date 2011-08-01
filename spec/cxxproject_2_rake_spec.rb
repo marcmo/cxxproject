@@ -163,7 +163,7 @@ describe CxxProject2Rake do
       headerC = 'lib2/lib2.h'
       sourceC = 'lib2/lib2.cpp'
       projectC = 'lib2/project.rb'
-      exe = 'output/exes/basic.exe'
+      exe = 'output/basic.exe'
       libB = 'output/libs/lib1.a'
       libC = 'output/libs/lib2.a'
 

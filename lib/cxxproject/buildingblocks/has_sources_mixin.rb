@@ -192,10 +192,7 @@ module Cxxproject
 
     def create_object_file_task(sourceRel, the_tcs)
       type = get_source_type(sourceRel)
-      if type.nil?
-        Printer.printWarning "Warning: no valid source type for #{sourceRel}, will be ignored!"
-        return nil
-      end
+      return nil if type.nil?
 
       objectRel = get_object_file(sourceRel)
       @objects << objectRel
@@ -278,6 +275,10 @@ module Cxxproject
     end
 
     def prepare_tasks_for_objects
+      if (@output_dir_abs)
+        CLEAN.include(@output_dir + "/objects/" + @name)
+      end    
+    
       @objects = []
       t = multitask get_sources_task_name
       t.type = Rake::Task::SOURCEMULTI

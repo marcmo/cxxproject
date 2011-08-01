@@ -99,8 +99,9 @@ module Cxxproject
                 res << in_string(coloring, " in ")
                 res << file_string(coloring, "#{desc.file_name}")
                 if desc.line_number and desc.line_number > 0
-                  res << line_string(coloring, " (line #{desc.line_number}): ")
+                  res << line_string(coloring, " (line #{desc.line_number})")
                 end
+                res << line_string(coloring, ": ")
               end
               res << description_string(coloring, "#{desc.message}") + "\n"
             else

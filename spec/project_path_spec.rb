@@ -33,8 +33,8 @@ describe CxxProject2Rake do
   def test_on_level(base, outputdir)
     libOne = "#{outputdir}/libs/lib1.a"
     libTwo = "#{outputdir}/libs/lib2.a"
-    exe = "#{outputdir}/exes/basic.exe"
-    exe2 = "#{outputdir}/exes/debug.exe"
+    exe = "#{outputdir}/basic.exe"
+    exe2 = "#{outputdir}/debug.exe"
 
     rm_r outputdir if File.directory?(outputdir)
     tasks = fresh_cxx(outputdir, base).all_tasks

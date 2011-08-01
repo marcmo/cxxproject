@@ -134,8 +134,13 @@ module Cxxproject
       d = File.dirname(file)
       directory d
       taskOfFile.enhance([d])
+      
       if addDirToCleanTask
-        CLEAN.include(complete_output_dir)
+        if (@output_dir_abs)
+          CLEAN.include(file)
+        else
+          CLEAN.include(complete_output_dir)
+        end
       end
     end
 
