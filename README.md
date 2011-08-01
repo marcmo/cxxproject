@@ -5,6 +5,10 @@ see documentation page: [cxxproject](http://marcmo.github.com/cxxproject)
 
 ## Change History:
 
+v_0.5.12 => v_0.5.13
+
+    * bugfixes
+
 v_0.5.11 => v_0.5.12
 
     * bugfixes
