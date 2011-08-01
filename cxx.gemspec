@@ -1,10 +1,13 @@
+$:.unshift(File.dirname(__FILE__)+"/")
+
 require "rake"
+require "lib/cxxproject/version"
 
 include FileUtils
 
 YAML::ENGINE.yamler = 'syck'
 
-PKG_VERSION = "0.5.12"
+PKG_VERSION = Cxxproject::Version.cxxproject
 PKG_FILES = FileList[
   "lib/**/*.rb",
   "Rakefile.rb",
