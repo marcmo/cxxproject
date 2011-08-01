@@ -6,7 +6,7 @@ module ThreadOut
     if Thread.current[:stdout] then
       Thread.current[:stdout].write stuff
     else
-      STDOUT.write stuff
+      STDERR.write stuff
     end
   end
 
@@ -14,7 +14,7 @@ module ThreadOut
     if Thread.current[:stdout] then
       Thread.current[:stdout].puts stuff
     else
-      STDERR.puts stuff
+      STDOUT.puts stuff
     end
   end
   def self.print(stuff='')
@@ -39,4 +39,3 @@ STDOUT.sync = true
 STDERR.sync = true
 $stdout = ThreadOut
 $stderr = ThreadOut
-
