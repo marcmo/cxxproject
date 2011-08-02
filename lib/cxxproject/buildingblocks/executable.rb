@@ -86,13 +86,24 @@ module Cxxproject
       ret
     end
 
+    def adaptPath(v, d, prefix)
+      tmp = nil
+      if File.is_absolute?(v)
+        tmp = File.rel_from_to_project(@project_dir,v,false)
+      else
+        prefix ||= File.rel_from_to_project(@project_dir,d.project_dir)
+        tmp = File.add_prefix(prefix, v)
+      end
+      tmp = "\"" + tmp + "\"" if tmp.include?(" ")
+      [tmp, prefix]
+    end
+
     def calc_linker_lib_string_for_dependency(d, s1, s2, s3, s4)
       res = []
-      prefix = File.rel_from_to_project(@project_dir,d.project_dir)
+      prefix = nil
       linker = @tcs[:LINKER]
       collect_unique(d.lib_searchpaths, s1).each do |v|
-        tmp = File.add_prefix(prefix, v)
-        tmp = "\"" + tmp + "\"" if tmp.include?(" ")
+        tmp, prefix = adaptPath(v, d, prefix)
         res << "#{linker[:LIB_PATH_FLAG]}#{tmp}"
       end 
       collect_unique(d.libs_to_search, s2).each do |v|
@@ -102,8 +113,7 @@ module Cxxproject
         res << "#{linker[:USER_LIB_FLAG]}#{v}"
       end
       collect_unique(d.libs_with_path, s4).each do |v|
-        tmp = File.add_prefix(prefix, v)
-        tmp = "\"" + tmp + "\"" if tmp.include?(" ")
+        tmp, prefix = adaptPath(v, d, prefix)
         res <<  tmp
       end 
       res
@@ -154,7 +164,7 @@ module Cxxproject
           cmd += calc_linker_lib_string
           cmd += linker[:LIB_POSTFIX_FLAGS].split(" ") # "-Wl,--no-whole-archive "
 
-          mapfileStr = @mapfile ? " >#{@output_dir}/#{@mapfile}" : ""
+          mapfileStr = @mapfile ? " >#{@mapfile}" : ""
           if Cxxproject::Utils.old_ruby?
             # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
             cmdLine = cmd.join(" ") + " 2>" + get_temp_filename
@@ -169,14 +179,14 @@ module Cxxproject
           else
             rd, wr = IO.pipe
             cmd << {
-             :out=> @mapfile ? "#{@output_dir}/#{@mapfile}" : wr, # > xy.map
+             :out=> @mapfile ? "#{@mapfile}" : wr, # > xy.map
              :err=>wr
             }
             sp = spawn(*cmd)
             cmd.pop
 
             # for console print
-            cmd << " >#{@output_dir}/#{@mapfile}" if @mapfile
+            cmd << " >#{@mapfile}" if @mapfile
             consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
           end
           

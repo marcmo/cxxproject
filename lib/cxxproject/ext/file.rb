@@ -12,7 +12,7 @@ class File
     end
   end
 
-  def self.rel_from_to_project(from,to)
+  def self.rel_from_to_project(from,to,endWithSlash = true)
     return nil if from.nil? or to.nil?
     
 	toSplitted = to.split('/')
@@ -44,7 +44,9 @@ class File
 	  return ""
 	end
 	
-	res.join('/')+"/"
+	res = res.join('/')
+	res += "/" if endWithSlash 
+	res
   end
 
   
