@@ -7,25 +7,35 @@ see documentation page: [cxxproject](http://marcmo.github.com/cxxproject)
 
 v_0.5.12 => v_0.5.13
 
-    * bugfixes
+    * version available in code
+    * stderr and stdout were mixed up
+    * added double ticks if lib pathes have spaces
+    * fixed cleaning and some other minor stuff
+    * 0.5.13
 
 v_0.5.11 => v_0.5.12
 
-    * bugfixes
-    
+    * minor code cleanup
+    * fixed linker lib string, some stuff may have been missed
+    * 0.5.12
+
 v_0.5.10 => v_0.5.11
 
-    * removed default flags from toolchains
-    * added possibility to add pre and post linker flags for libs
+    * Fixed gemspec, should be compatible to more rubygems versions
+    * yaml required before loading gemspec
+    * Removed default flags from toolchains
+    * 0.5.11
 
-v_0.5.9 => v_0.5.10
+v_0.5.8 => v_0.5.10
 
-    * bugfixes
-    
-v_0.5.8 => v_0.5.9
+    * Fixed some bugs like handling of 0, specs are running again
+    * fixed clang compiler formatter (runtime error because formatter api changed)
+    * console output was not captured correctly for old ruby versions
+      
+      happened for ruby versions < 1.9.2...fixed with this commit
+    * fixed namespace error for Printer
+    * 0.5.10
 
-    * bugfixes
-    
 v_0.5.7 => v_0.5.8
 
     * better matches for gcc warnings/error parser
