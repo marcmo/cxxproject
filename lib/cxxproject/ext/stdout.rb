@@ -1,41 +1,44 @@
 require 'stringio'
 
-module ThreadOut
+class ThreadOut
 
-  def self.write(stuff='')
+  def initialize(out)
+    @out = out
+  end
+
+  def write(stuff='')
     if Thread.current[:stdout] then
       Thread.current[:stdout].write stuff
     else
-      STDERR.write stuff
+      @out.write stuff
     end
   end
 
-  def self.puts(stuff='')
+  def puts(stuff='')
     if Thread.current[:stdout] then
       Thread.current[:stdout].puts stuff
     else
-      STDOUT.puts stuff
+      @out.puts stuff
     end
   end
-  def self.print(stuff='')
+  def print(stuff='')
     if Thread.current[:stdout] then
       Thread.current[:stdout].puts stuff
     else
-      STDOUT.write stuff
+      @out.print stuff
     end
   end
 
-  def self.flush
+  def flush
     if Thread.current[:stdout] then
       Thread.current[:stdout].flush
     else
-      STDOUT.flush
-      STDERR.flush
+      @out.flush
     end
   end
 end
 
 STDOUT.sync = true
 STDERR.sync = true
-$stdout = ThreadOut
-$stderr = ThreadOut
+$stdout = ThreadOut.new(STDOUT)
+$stderr = ThreadOut.new(STDERR)
