@@ -114,14 +114,14 @@ module Cxxproject
         puts consoleOutput
 
         if $?.success? == false
-          res = []
-          res << @project_dir + "/" + get_makefile()
-          res << 1
-          res << 2
+          res = ErrorDesc.new
+          res.file_name = @project_dir + "/" + get_makefile()
+          res.line_number = 1
+          res.severity = ErrorParser::SEVERITY_ERROR
           if get_target != ""
-            res << "Target \"#{get_target}\" failed"
+            res.message = "Target \"#{get_target}\" failed"
           else
-            res << "Failed"
+            res.message = "Failed"
           end
           Rake.application.idei.set_errors([res])
         end

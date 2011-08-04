@@ -72,7 +72,19 @@ module Cxxproject
 
     def set_errors(error_array)
       if @socket
+        
+        merged_messages = []
+        last_msg = nil
         error_array.each do |msg|
+          if msg.file_name.nil?
+            last_msg.message += "\r\n#{msg.message}" 
+          else
+            last_msg = msg.dup
+            merged_messages << last_msg
+          end
+        end
+        
+        merged_messages.each do |msg|  
           packet = create_error_packet(msg)
           begin
             mutex.synchronize { @socket.write(packet) }
@@ -81,25 +93,21 @@ module Cxxproject
             set_abort(true)
           end
         end
+        
       end
     end
 
     def create_error_packet(msg)
-      filename = msg[0]
-      line_number = msg[1].to_i
-      severity = msg[2]
-      error_msg = msg[3]
-
       packet = ""
-      [packet, filename, error_msg].each {|s|force_encoding(s)}
+      [packet, msg.file_name, msg.message].each {|s|force_encoding(s)}
 
       packet << 1 # error type
       write_long(packet,0) # length (will be corrected below)
 
-      write_string(packet, filename)
-      write_long(packet,line_number)
-      packet << (severity & 0xFF)
-      packet << error_msg
+      write_string(packet, msg.file_name)
+      write_long(packet,msg.line_number)
+      packet << (msg.severity & 0xFF)
+      packet << msg.message
 
       set_length_in_header(packet)
       packet

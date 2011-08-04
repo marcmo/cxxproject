@@ -15,6 +15,7 @@ module Cxxproject
     SEVERITY_INFO = 0
     SEVERITY_WARNING = 1
     SEVERITY_ERROR = 2
+    SEVERITY_OK = 255
 
     def scan(consoleOutput, proj_dir)
       raise "Use specialized classes only"
@@ -58,10 +59,6 @@ module Cxxproject
       raise "Use specialized classes only"
     end
 
-    # to be removed after ide_interface refac
-    def scan(consoleOutput, proj_dir)
-      return []
-    end
 
   end
 end

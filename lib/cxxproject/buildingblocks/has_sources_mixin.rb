@@ -182,7 +182,7 @@ module Cxxproject
       end
 
       obj_tasks = []
-      sources_to_build.each do |s, the_tcs|
+      sources_to_build.sort.each do |s, the_tcs|
         obj_task = create_object_file_task(s, the_tcs)
         obj_tasks << obj_task unless obj_task.nil?
       end
@@ -191,6 +191,10 @@ module Cxxproject
     end
 
     def create_object_file_task(sourceRel, the_tcs)
+      if File.is_absolute?(sourceRel)
+        sourceRel = File.rel_from_to_project(@project_dir, sourceRel, false)
+      end
+    
       type = get_source_type(sourceRel)
       return nil if type.nil?
 
@@ -261,11 +265,11 @@ module Cxxproject
         if (highlighter and highlighter.enabled?)
           puts highlighter.format(console_output, @project_dir, error_parser)
         else
-          puts console_output
+          puts console_output.gsub!(/[\r]/, "")
         end
 
         if error_parser
-          Rake.application.idei.set_errors(error_parser.scan(console_output, @project_dir))
+          Rake.application.idei.set_errors(error_parser.scan_lines(console_output, @project_dir))
         end
       end
     end

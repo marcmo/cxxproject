@@ -23,6 +23,16 @@ class File
 	return nil if max < 1
 	
 	i = 0
+
+	# path letter in windows may be case different
+	if toSplitted[0].length > 1 and fromSplitted[0].length > 1
+      if Cxxproject::Utils.old_ruby?
+        i = 1 if toSplitted[0][1] == 58 and fromSplitted[0][1] == 58 and toSplitted[0].swapcase[0] == fromSplitted[0][0] 
+      else
+        i = 1  if toSplitted[0][1] == ':' and fromSplitted[0][1] == ':' and toSplitted[0].swapcase[0] == fromSplitted[0][0]
+      end	
+	end
+	
 	while i < max
       break if toSplitted[i] != fromSplitted[i] 
 	  i += 1

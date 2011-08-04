@@ -17,13 +17,22 @@ module Cxxproject
     end
 
     def set_defined_in_file(x)
-      @defined_in = x
+      @defined_in_file = x
       self
     end
 
     def get_defined_in_file
-      @defined_in
+      @defined_in_file
     end
+    
+    def set_defined_in_line(x)
+      @defined_in_line = x
+      self
+    end
+
+    def get_defined_in_line
+      @defined_in_line
+    end    
 
     def initialize(name)
       @line = name
@@ -54,11 +63,13 @@ module Cxxproject
         puts consoleOutput
 
         if Rake.application.idei and $?.success? == false
-          res = []
-          res << (@defined_in ? @defined_in : @project_dir)
-          res << 0
-          res << 2
-          res << "Command \"#{get_command_line}\" failed"
+        
+          res = ErrorDesc.new
+          res.file_name = (@defined_in_file ? @defined_in_file : @project_dir)
+          res.line_number = (@defined_in_line ? @defined_in_line : 0)
+          res.severity = ErrorParser::SEVERITY_ERROR
+          res.message = "Command \"#{get_command_line}\" failed"
+        
           Rake.application.idei.set_errors([res])
         end
       end
