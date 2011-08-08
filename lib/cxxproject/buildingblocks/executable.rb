@@ -153,7 +153,7 @@ module Cxxproject
 
           cmd = [linker[:COMMAND]] # g++
           cmd += linker[:MUST_FLAGS].split(" ")
-          cmd += linker[:FLAGS].split(" ") # --all_load
+          cmd += linker[:FLAGS].gsub(/\"/,"").split(" ") # double quotes within string do not work on windows...
           cmd << linker[:EXE_FLAG]
           cmd << get_executable_name # -o debug/x.exe
           cmd += @objects # debug/src/abc.o debug/src/xy.o

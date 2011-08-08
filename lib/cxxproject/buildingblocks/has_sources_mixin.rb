@@ -177,7 +177,9 @@ module Cxxproject
           next if exclude_files.include?(f)
           next if files.include?(f)
           files << f
-          sources_to_build[f] = tcs4source(p)
+          t = tcs4source(f)
+          t = tcs4source(p) if t == nil 
+          sources_to_build[f] = t
         end
       end
 
@@ -217,7 +219,7 @@ module Cxxproject
         cmd = [compiler[:COMMAND]]
         cmd += compiler[:COMPILE_FLAGS].split(" ")
         cmd += depStr.split(" ")
-        cmd += compiler[:FLAGS].split(" ")
+        cmd += compiler[:FLAGS].gsub(/\"/,"").split(" ") # double quotes within string do not work on windows...
         cmd += i_array
         cmd += d_array
         cmd << compiler[:OBJECT_FILE_FLAG]
