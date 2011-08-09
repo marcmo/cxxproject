@@ -190,7 +190,7 @@ module Cxxproject
             consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
           end
           
-          process_result(cmd, consoleOutput, linker[:ERROR_PARSER], "Linking #{File.basename(get_executable_name)}")
+          process_result(cmd, consoleOutput, linker[:ERROR_PARSER], "Linking #{get_executable_name}")
         end
       end
       res.enhance(@config_files)

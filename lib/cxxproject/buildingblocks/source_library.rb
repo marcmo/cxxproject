@@ -63,11 +63,10 @@ module Cxxproject
         aname = get_archive_name
         
         if @output_dir_abs
-          dir = @output_dir + "/objects/" + @name
+          dir = @output_dir
           prefix = File.rel_from_to_project(@project_dir, @output_dir)
-          lengthToObj = (prefix +  "/objects/" + @name).length
-          objs.map! { |m| m[lengthToObj..-1] }
-          aname = "../../"+aname[prefix.length..-1]
+          objs.map! { |m| m[prefix.length..-1] }
+          aname = aname[prefix.length..-1]
         end
       
         Dir.chdir(dir) do
@@ -100,7 +99,7 @@ module Cxxproject
             consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
           end
 
-          process_result(cmd, consoleOutput, archiver[:ERROR_PARSER], "Creating #{File.basename(aname)}")
+          process_result(cmd, consoleOutput, archiver[:ERROR_PARSER], "Creating #{aname}")
         end
       end
 
