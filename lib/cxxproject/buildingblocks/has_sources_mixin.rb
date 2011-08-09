@@ -182,13 +182,29 @@ module Cxxproject
           sources_to_build[f] = t
         end
       end
-
+      
+      
+      ordered = sources_to_build.keys.sort()
+      
+      dirs = []
+      filemap = {}      
+      ordered.reverse.each do |o|
+        d = File.dirname(o)
+        if filemap.include?(d)
+          filemap[d] << o
+        else
+          filemap[d] = [o]
+	      dirs << d
+        end
+      end 
+      
       obj_tasks = []
-      sources_to_build.sort.each do |s, the_tcs|
-        obj_task = create_object_file_task(s, the_tcs)
-        obj_tasks << obj_task unless obj_task.nil?
+      dirs.each do |d|
+        filemap[d].reverse.each do |f|
+          obj_task = create_object_file_task(f, sources_to_build[f])
+          obj_tasks << obj_task unless obj_task.nil?
+        end
       end
-
       obj_tasks
     end
 

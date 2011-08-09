@@ -58,19 +58,32 @@ module Cxxproject
       archiver = @tcs[:ARCHIVER]
 
       res = typed_file_task Rake::Task::LIBRARY, get_task_name => object_multitask do
-        Dir.chdir(@project_dir) do
+        dir = @project_dir
+        objs = @objects
+        aname = get_archive_name
+        
+        if @output_dir_abs
+          dir = @output_dir + "/objects/" + @name
+          prefix = File.rel_from_to_project(@project_dir, @output_dir)
+          lengthToObj = (prefix +  "/objects/" + @name).length
+          objs.map! { |m| m[lengthToObj..-1] }
+          @output_dir.split
+          aname = "../../"+aname[prefix.length..-1]
+        end
+      
+        Dir.chdir(dir) do
 
-          FileUtils.rm(get_archive_name) if File.exists?(get_archive_name)
+          FileUtils.rm(aname) if File.exists?(aname)
           cmd = [archiver[:COMMAND]] # ar
           cmd += archiver[:ARCHIVE_FLAGS].split(" ")
           cmd += archiver[:FLAGS].split(" ") # --all_load
-          cmd << get_archive_name # -o debug/x.exe
-          cmd += @objects
+          cmd << aname # -o debug/x.exe
+          cmd += objs
 
           if Cxxproject::Utils.old_ruby?
             cmdLine = cmd.join(" ")
             if cmdLine.length > 8000
-              inputName = get_archive_name+".tmp"
+              inputName = aname+".tmp"
               File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
               consoleOutput = `#{archiver[:COMMAND] + " @" + inputName}`
             else
@@ -88,7 +101,7 @@ module Cxxproject
             consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
           end
 
-          process_result(cmd, consoleOutput, archiver[:ERROR_PARSER], "Creating #{get_archive_name}")
+          process_result(cmd, consoleOutput, archiver[:ERROR_PARSER], "Creating #{File.basename(aname)}")
         end
       end
 
