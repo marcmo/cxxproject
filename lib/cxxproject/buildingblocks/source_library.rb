@@ -67,7 +67,6 @@ module Cxxproject
           prefix = File.rel_from_to_project(@project_dir, @output_dir)
           lengthToObj = (prefix +  "/objects/" + @name).length
           objs.map! { |m| m[lengthToObj..-1] }
-          @output_dir.split
           aname = "../../"+aname[prefix.length..-1]
         end
       
