@@ -9,6 +9,16 @@ module Cxxproject
       @target = x
       self
     end
+    
+    def set_flags(x)
+      @flags = x
+      self
+    end  
+      
+    def get_flags(x)
+      @flags
+    end    
+      
 
     def set_makefile(x)
       @makefile = x
@@ -31,6 +41,7 @@ module Cxxproject
     def initialize(mfile, mtarget)
       @target = mtarget != "" ? mtarget : "all"
       @makefile = mfile
+      @flags = ""
       @path_to = []
       @num = Rake.application.makefile_number  
       super(get_task_name)
@@ -66,7 +77,7 @@ module Cxxproject
         make[:COMMAND], # make
         get_target, # all
         make[:MAKE_FLAGS],
-        make[:FLAGS], # -j
+        @flags, # -j
         make[:DIR_FLAG], # -C
         File.dirname(mfile), # x/y
         make[:FILE_FLAG], # -f

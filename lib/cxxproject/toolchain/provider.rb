@@ -74,7 +74,6 @@ module Cxxproject
         :MAKE =>
         {
           :COMMAND => "make",
-          :MAKE_FLAGS => "",
           :FLAGS => "-j",
           :FILE_FLAG => "-f",
           :DIR_FLAG => "-C",
