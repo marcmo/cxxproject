@@ -4,7 +4,7 @@ module Cxxproject
   class DiabCompilerErrorParser < ErrorParser
 
     def initialize()
-      @error_expression_start = /\"(.+)\", line ([0-9]+): (catastrophic )*([A-Za-z]+) (.+)/  
+      @error_expression_start = /\"(.+)\", line ([0-9]+): (catastrophic |fatal )*([A-Za-z]+) (.+)/  
       @error_expression_end = /^[ \t]*\^/ # well, it may end without "^"... in this case the error will last the next one starts or console text ends
     end
 
