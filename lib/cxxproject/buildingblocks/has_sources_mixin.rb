@@ -157,7 +157,7 @@ module Cxxproject
 
     def create_object_file_tasks()
 
-      sources_to_build = {} # todo: pair!
+      sources_to_build = {}
 
       exclude_files = Set.new
       exclude_sources.each do |p|

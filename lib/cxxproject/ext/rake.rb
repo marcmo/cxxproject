@@ -266,9 +266,8 @@ module Rake
         end
       end
       begin
-        FileUtils.rm(@name) if File.exists?(@name) # todo: error parsing?
+        FileUtils.rm(@name) if File.exists?(@name)
       rescue Exception => ex2
-        # todo: debug log, no puts here!
         Cxxproject::Printer.printError "Error: Could not delete #{@name}: #{ex2.message}"
       end
       set_failed

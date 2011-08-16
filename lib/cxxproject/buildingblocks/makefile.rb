@@ -1,5 +1,6 @@
 require 'cxxproject/buildingblocks/building_block'
 require 'cxxproject/buildingblocks/has_libraries_mixin'
+require 'cxxproject/utils/printer'
 
 module Cxxproject
   class Makefile < BuildingBlock
@@ -54,7 +55,6 @@ module Cxxproject
     def calc_pathes_to_projects
       vars = []
       @path_to.each do |p|
-        # todo: error msgs
         bb = ALL_BUILDING_BLOCKS[p]
         if bb
           pref = File.rel_from_to_project(@project_dir,bb.project_dir)
@@ -63,6 +63,8 @@ module Cxxproject
           if var
             vars << "PATH_TO_#{p}=#{var[0]}"
           end
+        else
+          Printer.printWarning "Warning: Project '#{@path_to}' not found for makefile #{@project_dir}/#{@makefile}}"
         end
       end
       vars.join(" ")

@@ -45,8 +45,6 @@ module Cxxproject
       end
     end
 
-    # TODO: move and adapt comment
-    #
     # scan the output from the console line by line and return a list of ErrorDesc objects.
     # for none-error/warning lines the description object will indicate that as severity 255
     # for single line errors/warnings: description will contain severity, line-number, message and file-name
