@@ -7,7 +7,10 @@ module Cxxproject
         
       consoleOutput = ""
       while not rd.eof? 
-        consoleOutput << rd.read_nonblock(1000)
+         tmp = rd.read(1000)
+         if (tmp != nil)
+           consoleOutput << tmp
+         end  
       end
         
       Process.wait(sp)

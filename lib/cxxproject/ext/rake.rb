@@ -255,14 +255,9 @@ module Rake
       if not Rake.application.idei.get_abort()
         if not isSysCmd
           Cxxproject::Printer.printError "Error for task #{@name}: #{ex1.message}"
-          
-          #if RakeFileUtils.verbose
-          #  puts ex1.backtrace
-          #end
-          
-          # TODO: replace it by the three lines above after finding bad filedescriptor bug
-          puts ex1.backtrace 
-          puts "\nPlease  F-O-R-W-A-R-D  T-H-I-S  E-R-R-O-R  to aschaal@lear.com\n\n"
+          if RakeFileUtils.verbose
+            puts ex1.backtrace
+          end
         end
       end
       begin
