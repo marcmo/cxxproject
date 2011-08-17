@@ -12,10 +12,6 @@ module Cxxproject
       @line
     end
 
-    def get_target
-      @target
-    end
-
     def set_defined_in_file(x)
       @defined_in_file = x
       self
