@@ -279,11 +279,12 @@ module Cxxproject
 
     def process_console_output(console_output, error_parser)
       if not console_output.empty?
+        console_output.gsub!(/[\r]/, "")
         highlighter = @tcs[:CONSOLE_HIGHLIGHTER]
         if (highlighter and highlighter.enabled?)
           puts highlighter.format(console_output, @project_dir, error_parser)
         else
-          puts console_output.gsub!(/[\r]/, "")
+          puts console_output
         end
 
         if error_parser
