@@ -7,6 +7,8 @@ require 'cxxproject/utils/utils'
 
 require 'tmpdir'
 require 'set'
+require 'etc'
+
 module Cxxproject
 
   class Executable < BuildingBlock
@@ -14,9 +16,9 @@ module Cxxproject
     include HasSources
     include HasIncludes
 
-    attr_reader :linker_script
-    attr_reader :mapfile
-    attr_reader :output_file
+    @@version_filename_c = "src/version.c"
+    @@version_filename_h = "include/version.h"
+    @@linkinfo_filename_c = "src/linkinfo.c"
 
     def set_linker_script(x)
       @linker_script = x
@@ -27,28 +29,29 @@ module Cxxproject
       @mapfile = x
       self
     end
-
-    # set during creating the task - note: depends on the used tcs
-    def set_output_file(x)
-      @output_file = x
-      self
+    
+    def set_build_version_file(x)
+      @build_version_file = x
+    end
+    def set_build_linkinfo(x)
+      @linkinfo = x
     end
 
     def initialize(name)
       super(name)
       @linker_script = nil
       @mapfile = nil
-      @linkinfo = nil
+      @build_linkinfo = false
+      @build_version_file = false
     end
 
     def linker_libs_string
       @linkerString ||= ""
     end
     
-    def set_link_info(name)
-      @linkinfo = name
+    def set_executable_name(name) # ensure it's relative
+      @exe_name = name
     end
-
 
     def get_executable_name() # relative path
       return @exe_name if @exe_name
@@ -66,14 +69,7 @@ module Cxxproject
     end
 
     def get_task_name() # full path
-      return @task_name if @task_name
-
-      parts = [@output_dir]
-      parts << "#{@name}#{@tcs[:LINKER][:OUTPUT_ENDING]}"
-      @task_name = File.join(parts)
-
-      @task_name = @project_dir + "/" + @task_name unless @output_dir_abs
-      @task_name
+      @project_dir + "/" + get_executable_name
     end
 
     def collect_unique(array, set)
@@ -133,6 +129,14 @@ module Cxxproject
       res
     end
 
+    def create_object_file_tasks
+      t = super()
+      ovf = @build_version_file ? File.expand_path(get_object_file(@@version_filename_c)) : "" 
+      oli = @build_linkinfo ? File.expand_path(get_object_file(@@linkinfo_filename_c)) : ""
+      t.delete_if { |f| f.name == ovf or f.name == oli }
+      t
+    end
+
     # create a task that will link an executable from a set of object files
     #
     def convert_to_rake()
@@ -143,13 +147,28 @@ module Cxxproject
       res = typed_file_task Rake::Task::EXECUTABLE, get_task_name => object_multitask do
         Dir.chdir(@project_dir) do
 
-          if @linkinfo
-            oname = File.expand_path(get_object_file(@linkinfo))
+          if @build_linkinfo
+            oname = File.expand_path(get_object_file(@@linkinfo_filename_c))
             tinfo = Rake.application[oname]
-            if not tinfo.needed?
-              tinfo.execute(nil)
+            tinfo.execute(nil)
+            throw "LinkInfo failed" if tinfo.failure
+          end
+          
+          # generate version
+          if @build_version_file          
+            File.open(@@version_filename_c, 'w') do |f|
+              spExeName = get_executable_name.split("/")
+              f.write("#include \"../include/version.h\"\n");
+              f.write("\n");
+              f.write("#ifndef _VERSION_H_\n"); 
+              f.write("const char* BIN_FILE = \"#{spExeName[spExeName.length-1]} #{Time.now} #{Etc.getlogin}\";\n")
+              f.write("#endif\n"); 
             end
-          end 
+            oname = File.expand_path(get_object_file("src/version.c"))
+            vers = Rake.application[oname]
+            vers.execute(nil)
+            throw "VersionGenerator failed" if vers.failure
+          end
 
           cmd = [linker[:COMMAND]] # g++
           cmd += linker[:MUST_FLAGS].split(" ")
@@ -195,8 +214,19 @@ module Cxxproject
       end
       res.enhance(@config_files)
       res.enhance([@project_dir + "/" + @linker_script]) if @linker_script
-      add_output_dir_dependency(get_task_name, res, true)
 
+      if @build_version_file
+        res.enhance([@project_dir + "/" + @@version_filename_c]) 
+        res.enhance([@project_dir + "/" + @@version_filename_h])
+      end
+      if @build_linkinfo
+        res.enhance([@project_dir + "/" + @@linkinfo_filename_c])
+      end 
+      if @build_version_file or @build_linkinfo
+        add_output_dir_dependency(@project_dir + "/" + get_object_file("src/dummy"), res, true)
+      end
+      
+      add_output_dir_dependency(get_task_name, res, true)
       add_grouping_tasks(get_task_name)
       setup_rake_dependencies(res)
       return res
