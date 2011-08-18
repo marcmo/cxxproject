@@ -1,5 +1,7 @@
 require 'cxxproject/ext/stdout'
 require 'cxxproject/utils/exit_helper'
+require 'cxxproject/errorparser/error_parser'
+
 
 require 'rake'
 require 'stringio'
@@ -82,6 +84,26 @@ module Rake
       super(args, invocation_chain)
 
       Dir.chdir(@bb.project_dir) do
+        if Dir.pwd != @bb.project_dir and File.dirname(Dir.pwd) != File.dirname(@bb.project_dir)
+          isSym = false
+          begin
+            isSym = File.symlink?(@bb.project_dir)
+          rescue
+          end
+          if isSym
+            message = "Symlinks only allowed with the same parent dir as the target: #{@bb.project_dir} --> #{Dir.pwd}"
+            res = Cxxproject::ErrorDesc.new
+            res.file_name = @bb.project_dir
+            res.line_number = 0
+            res.severity = Cxxproject::ErrorParser::SEVERITY_ERROR
+            res.message = message
+            Rake.application.idei.set_errors([res])
+            Cxxproject::Printer.printError message
+            set_failed
+            return
+          end
+        end
+      
         file_tasks = @bb.create_object_file_tasks
         enhance(file_tasks)
         return if file_tasks.length == 0
