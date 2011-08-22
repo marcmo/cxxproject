@@ -10,25 +10,14 @@ module Cxxproject
       self
     end
 
-    # if set, includes and libs are taken from this array, not from @dependencies.
-    # task deps are still taken from @dependencies.
-    # use case: circular deps are allowed on "include-level", but not on "task-level".
-    def helper_dependencies
-      @helper_dependencies ||= []
-    end
-
-    def set_helper_dependencies(deps)
-      @helper_dependencies = deps.map { |dep| dep.instance_of?(String) ? dep : dep.name }
-    end
-
     def direct_deps
       return @direct_deps if @direct_deps
 
       @all_dependencies_set = Set.new
       @all_dependencies_set << self
       @all_dependencies = [self]
-      depList = helper_dependencies.length > 0 ? helper_dependencies : dependencies
-      depList.each do |d|
+
+      dependencies.each do |d|
 
         bb = ALL_BUILDING_BLOCKS[d]
         if not bb

@@ -67,12 +67,15 @@ module Cxxproject
       @incArray = local_includes.dup
       @incArray.concat(includes)
 
-      all_dependencies.each_with_index do |d,i|
-        next if not HasIncludes === d
-        next if i == 0
-        prefix = File.rel_from_to_project(@project_dir,d.project_dir)
-        next if not prefix
-        @incArray.concat(d.includes.map {|inc| File.add_prefix(prefix,inc)})
+      if Rake::application.deriveIncludes
+        all_dependencies.each_with_index do |d,i|
+          next if not HasIncludes === d
+          next if i == 0
+          prefix = File.rel_from_to_project(@project_dir,d.project_dir)
+          next if not prefix
+         @incArray.concat(d.includes.map {|inc| File.add_prefix(prefix,inc)})
+        end
+        @incArray.uniq!
       end
 
       [:CPP, :C, :ASM].each do |type|
@@ -82,7 +85,7 @@ module Cxxproject
     end
 
     def get_include_string(tcs, type)
-      @incArray.uniq.map!{|k| "#{tcs[:COMPILER][type][:INCLUDE_PATH_FLAG]}#{k}"}
+      @incArray.map {|k| "#{tcs[:COMPILER][type][:INCLUDE_PATH_FLAG]}#{k}"}
     end
 
     def get_define_string(tcs, type)
@@ -259,7 +262,14 @@ module Cxxproject
           }
           sp = spawn(*cmd)
           cmd.pop
-          consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
+          begin
+            consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
+          rescue Exception=>e
+            warn "Debug output:"
+            warn sp.inspect
+            warn e.backtrace
+            raise
+          end
         end
 
         process_result(cmd, consoleOutput, compiler[:ERROR_PARSER], "Compiling #{sourceRel}")
