@@ -18,6 +18,7 @@ module Rake
 
   class Application
     attr_writer :max_parallel_tasks
+    attr_writer :deriveIncludes
     def max_parallel_tasks
       @max_parallel_tasks ||= 8
     end
@@ -43,6 +44,11 @@ module Rake
       @makefile_number += 1
       res
     end
+    
+    def deriveIncludes
+      @deriveIncludes ||= false
+    end
+    
   end
 
   class Jobs

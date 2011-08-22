@@ -28,6 +28,8 @@ module Cxxproject
       # TODO: this should be cleaned up somehow...
       toolchain[:LINKER][:LIB_PREFIX_FLAGS] = "-Wl,--whole-archive"
       toolchain[:LINKER][:LIB_POSTFIX_FLAGS] = "-Wl,--no-whole-archive"
+      
+      Rake::application.deriveIncludes = true
 
       initialize_logging
       @all_tasks = instantiate_tasks
