@@ -19,11 +19,9 @@ module Cxxproject
 
   class BuildingBlock
     include HasDependencies
-    extend AttributeHelper
 
     attr_reader :name
     attr_reader :config_files
-    lazy_attribute_from_calculation :transitive_config_files, :calc_transitive_config_files
 
     attr_reader :project_dir
     attr_accessor :output_dir
@@ -194,20 +192,6 @@ module Cxxproject
       return `#{new_command}`
     end
 
-    def calc_transitive_config_files
-      return all_dependencies.inject(Set.new) do |memo, bb|
-        f = File.rel_from_to_project(project_dir, bb.project_dir)
-        bb.config_files.each do |cf|
-          if f.empty?
-            to_add = cf
-          else
-            to_add = File.join(f, cf)
-          end
-          memo.add(to_add)
-        end
-        memo
-      end.to_a
-    end
   end
-
+  
 end
