@@ -64,7 +64,7 @@ module Cxxproject
             vars << "PATH_TO_#{p}=#{var[0]}"
           end
         else
-          Printer.printWarning "Warning: Project '#{@path_to}' not found for makefile #{@project_dir}/#{@makefile}}"
+          Printer.printWarning "Warning: Project '#{p}' not found for makefile #{@project_dir}/#{@makefile}}"
         end
       end
       vars.join(" ")
