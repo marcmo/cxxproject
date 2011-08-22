@@ -44,17 +44,4 @@ describe Cxxproject::BuildingBlock do
     end.to raise_exception(RuntimeError, 'ERROR: while reading config file for 1: dependent building block "unresolved" was specified but not found!')
   end
 
-  it 'should calc correct transitive_config_files' do
-    lib1 = Cxxproject::SourceLibrary.new('1').
-            set_config_files(['config1']).
-            set_project_dir('.')
-    lib2 = Cxxproject::SourceLibrary.new('2').
-            set_dependencies(['1']).
-            set_config_files(['config2']).
-            set_project_dir('.')
-    tc_array = lib2.transitive_config_files
-    tc_array.length.should eq(2)
-    tc_array.include?('config1').should eq(true)
-    tc_array.include?('config2').should eq(true)
-  end
 end
