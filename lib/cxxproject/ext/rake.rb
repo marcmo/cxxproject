@@ -18,9 +18,14 @@ module Rake
 
   class Application
     attr_writer :max_parallel_tasks
+    attr_writer :check_unnecessary_includes
     attr_writer :deriveIncludes
     def max_parallel_tasks
       @max_parallel_tasks ||= 8
+    end
+    
+    def check_unnecessary_includes
+      @check_unnecessary_includes ||= false
     end
 
     def idei
@@ -117,17 +122,19 @@ module Rake
           handle_jobs(jobs, args, invocation_chain)
         end.join
       
-        if not @failure # otherwise the dependency files might be incorrect or not complete
-          @bb.incArray.each do |i|
-            if not @bb.deps_in_depFiles.any? { |d| d.index(i) == 0 }
-              msg = "INFO: Include to #{i} seems to be unnecessary"
-              Cxxproject::Printer.printInfo msg
-              res = Cxxproject::ErrorDesc.new
-              res.file_name = @project_dir
-              res.line_number = 0
-              res.severity = Cxxproject::ErrorParser::SEVERITY_INFO
-              res.message = msg
-              Rake.application.idei.set_errors([res])              
+        if @check_unnecessary_includes
+          if not @failure # otherwise the dependency files might be incorrect or not complete
+            @bb.incArray.each do |i|
+              if not @bb.deps_in_depFiles.any? { |d| d.index(i) == 0 }
+                msg = "INFO: Include to #{i} seems to be unnecessary"
+                Cxxproject::Printer.printInfo msg
+                res = Cxxproject::ErrorDesc.new
+                res.file_name = @project_dir
+                res.line_number = 0
+                res.severity = Cxxproject::ErrorParser::SEVERITY_INFO
+                res.message = msg
+                Rake.application.idei.set_errors([res])              
+              end
             end
           end
         end
