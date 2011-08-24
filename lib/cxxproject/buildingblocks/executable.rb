@@ -34,7 +34,14 @@ module Cxxproject
       @build_version_file = x
     end
     def set_build_linkinfo(x)
-      @linkinfo = x
+      @build_linkinfo = x
+    end
+
+    def get_build_version_file
+      @build_version_file
+    end
+    def get_build_linkinfo
+      @build_linkinfo
     end
 
     def initialize(name)
