@@ -7,6 +7,7 @@ module Cxxproject
   module HasSources
 
     attr_writer :file_dependencies
+    attr_reader :incArray
 
     def file_dependencies
       @file_dependencies ||= []
@@ -18,6 +19,10 @@ module Cxxproject
     def set_sources(x)
       @sources = x
       self
+    end
+    
+    def deps_in_depFiles
+      @deps_in_depFiles ||= Set.new
     end
 
     def source_patterns
@@ -77,7 +82,7 @@ module Cxxproject
         end
         @incArray.uniq!
       end
-
+      
       [:CPP, :C, :ASM].each do |type|
         @include_string[type] = get_include_string(@tcs, type)
         @define_string[type] = get_define_string(@tcs, type)
@@ -132,7 +137,9 @@ module Cxxproject
         return # ok, because next run the source will be recompiled due to invalid depfile
       end
       expanded_deps = deps.map do |d|
-        File.expand_path(d)
+        tmp = d.gsub(/[\\]/,'/')
+        deps_in_depFiles << tmp
+        tmp
       end
 
       FileUtils.mkpath File.dirname(depfile)
@@ -146,6 +153,7 @@ module Cxxproject
       begin
         deps = YAML.load_file(depfile)
         deps.each do |d|
+          deps_in_depFiles << d
           f = file d
           f.ignore_missing_file
         end
