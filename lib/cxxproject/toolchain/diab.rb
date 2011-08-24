@@ -6,9 +6,6 @@ require 'cxxproject/errorparser/diab_linker_error_parser'
 module Cxxproject
   module Toolchain
 
-    diabCompilerErrorParser = DiabCompilerErrorParser.new
-    diabLinkerErrorParser = DiabLinkerErrorParser.new
-
     DiabChain = Provider.add("Diab")
 
     DiabChain[:COMPILER][:C].update({
@@ -18,8 +15,7 @@ module Cxxproject
       :OBJECT_FILE_FLAG => "-o",
       :INCLUDE_PATH_FLAG => "-I",
       :COMPILE_FLAGS => "-c",
-      :DEP_FLAGS => "-Xmake-dependency=6 -Xmake-dependency-savefile=",
-      :ERROR_PARSER => diabCompilerErrorParser
+      :DEP_FLAGS => "-Xmake-dependency=6 -Xmake-dependency-savefile="
     })
 
     DiabChain[:COMPILER][:CPP] = Utils.deep_copy(DiabChain[:COMPILER][:C])
@@ -32,7 +28,6 @@ module Cxxproject
 
     DiabChain[:ARCHIVER][:COMMAND] = "dar"
     DiabChain[:ARCHIVER][:ARCHIVE_FLAGS] = "-rc"
-    DiabChain[:ARCHIVER][:ERROR_PARSER] = diabCompilerErrorParser
 
     DiabChain[:LINKER][:COMMAND] = "dcc"
     DiabChain[:LINKER][:SCRIPT] = "-Wm"
@@ -42,7 +37,13 @@ module Cxxproject
     DiabChain[:LINKER][:LIB_PATH_FLAG] = "-L"
     DiabChain[:LINKER][:MAP_FILE_FLAG] = "-Wl,-m6" # no map file if this string is empty, otherwise -Wl,-m6>abc.map
     DiabChain[:LINKER][:OUTPUT_ENDING] = ".elf"
-    DiabChain[:LINKER][:ERROR_PARSER] = diabLinkerErrorParser
+
+    diabCompilerErrorParser =                   DiabCompilerErrorParser.new
+    DiabChain[:COMPILER][:C][:ERROR_PARSER] =   diabCompilerErrorParser
+    DiabChain[:COMPILER][:CPP][:ERROR_PARSER] = diabCompilerErrorParser
+    DiabChain[:COMPILER][:ASM][:ERROR_PARSER] = diabCompilerErrorParser
+    DiabChain[:ARCHIVER][:ERROR_PARSER] =       diabCompilerErrorParser
+    DiabChain[:LINKER][:ERROR_PARSER] =         DiabLinkerErrorParser.new
     
   end
 end

@@ -6,8 +6,6 @@ require 'cxxproject/errorparser/gcc_linker_error_parser'
 
 module Cxxproject
   module Toolchain
-    gccCompilerErrorParser = GCCCompilerErrorParser.new
-    gccLinkerErrorParser = GCCLinkerErrorParser.new
       
     GCCChain = Provider.add("GCC")
 
@@ -17,8 +15,7 @@ module Cxxproject
       :OBJECT_FILE_FLAG => "-o",
       :INCLUDE_PATH_FLAG => "-I",
       :COMPILE_FLAGS => "-c ",
-      :DEP_FLAGS => "-MMD -MF ", # empty space at the end is important!
-      :ERROR_PARSER => gccCompilerErrorParser
+      :DEP_FLAGS => "-MMD -MF " # empty space at the end is important!
     })
 
     GCCChain[:COMPILER][:C] = Utils.deep_copy(GCCChain[:COMPILER][:CPP])
@@ -37,6 +34,13 @@ module Cxxproject
     GCCChain[:LINKER][:EXE_FLAG] = "-o"
     GCCChain[:LINKER][:LIB_FLAG] = "-l"
     GCCChain[:LINKER][:LIB_PATH_FLAG] = "-L"
-    GCCChain[:LINKER][:ERROR_PARSER] = gccLinkerErrorParser
+
+    gccCompilerErrorParser =                   GCCCompilerErrorParser.new
+    GCCChain[:COMPILER][:C][:ERROR_PARSER] =   gccCompilerErrorParser
+    GCCChain[:COMPILER][:CPP][:ERROR_PARSER] = gccCompilerErrorParser
+    GCCChain[:COMPILER][:ASM][:ERROR_PARSER] = gccCompilerErrorParser
+    GCCChain[:ARCHIVER][:ERROR_PARSER] =       gccCompilerErrorParser
+    GCCChain[:LINKER][:ERROR_PARSER] =         GCCLinkerErrorParser.new
+    
   end
 end
