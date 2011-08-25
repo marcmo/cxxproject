@@ -5,8 +5,17 @@ module Cxxproject
       @dependencies ||= []
     end
 
-    def set_dependencies(deps)
+    def helper_dependencies
+      @helper_dependencies ||= []
+    end
+    
+   def set_dependencies(deps)
       @dependencies = deps.map { |dep| dep.instance_of?(String) ? dep : dep.name }
+      self
+    end
+    
+    def set_helper_dependencies(deps)
+      @helper_dependencies = deps.map { |dep| dep.instance_of?(String) ? dep : dep.name }
       self
     end
 
@@ -17,11 +26,12 @@ module Cxxproject
       @all_dependencies_set << self
       @all_dependencies = [self]
 
-      dependencies.each do |d|
+      depList = helper_dependencies.length > 0 ? helper_dependencies : dependencies
 
+      depList.each do |d|
         bb = ALL_BUILDING_BLOCKS[d]
         if not bb
-          raise "ERROR: while reading config file for #{self.name}: dependent building block \"#{d}\" was specified but not found!"
+          raise "Error: while reading config file for #{self.name}: dependent building block \"#{d}\" was specified but not found!"
         end
         next if @all_dependencies_set.include?bb
 

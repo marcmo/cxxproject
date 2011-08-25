@@ -126,7 +126,7 @@ module Rake
           if not @failure # otherwise the dependency files might be incorrect or not complete
             @bb.incArray.each do |i|
               if not @bb.deps_in_depFiles.any? { |d| d.index(i) == 0 }
-                msg = "INFO: Include to #{i} seems to be unnecessary"
+                msg = "Info: Include to #{i} seems to be unnecessary"
                 Cxxproject::Printer.printInfo msg
                 res = Cxxproject::ErrorDesc.new
                 res.file_name = @project_dir

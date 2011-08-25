@@ -116,7 +116,7 @@ module Cxxproject
       dependencies.reverse_each do |d|
         begin
           bb = ALL_BUILDING_BLOCKS[d]
-          raise "ERROR: tried to add the dependencies of \"#{d}\" to \"#{@name}\" but such a building block could not be found!" unless bb
+          raise "Error: tried to add the dependencies of \"#{d}\" to \"#{@name}\" but such a building block could not be found!" unless bb
           task.prerequisites.unshift(bb.get_task_name)
         rescue ExitHelperException
           raise

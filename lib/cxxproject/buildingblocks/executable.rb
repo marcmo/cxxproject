@@ -50,12 +50,10 @@ module Cxxproject
       @mapfile = nil
       @build_linkinfo = false
       @build_version_file = false
+      @linker_deps = nil
+      @linker_deps_calced = false
     end
 
-    def linker_libs_string
-      @linkerString ||= ""
-    end
-    
     def set_executable_name(name) # ensure it's relative
       @exe_name = name
     end
@@ -129,6 +127,7 @@ module Cxxproject
       s3 = Set.new
       s4 = Set.new
       res = []
+      
       all_dependencies.each do |d|
         next if not HasLibraries === d
         res += calc_linker_lib_string_for_dependency(d, s1, s2, s3, s4)
