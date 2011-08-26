@@ -7,15 +7,16 @@ require 'cxxproject/buildingblocks/has_includes_mixin'
 # can be used as wrapper for other tasks
 module Cxxproject
   class ModuleBuildingBlock < BuildingBlock
-    include HasLibraries
-    include HasSources
-    include HasIncludes
 
-    attr_accessor :content
+    attr_accessor :contents
+    attr_accessor :main_content
+    attr_accessor :last_content
 
     def initialize(name)
       super
-      content = []
+      @contents = []
+      @last_content = self
+      @main_content = nil
     end
 
     def get_task_name()

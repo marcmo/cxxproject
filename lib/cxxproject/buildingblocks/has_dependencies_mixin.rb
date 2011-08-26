@@ -40,7 +40,7 @@ module Cxxproject
 
         # deps in modules may be splitted into its contents
         if ModuleBuildingBlock === bb
-          bb.content.each do |c|
+          bb.contents.each do |c|
             next if @all_dependencies_set.include?c
             @all_dependencies << c
             @all_dependencies_set << c
