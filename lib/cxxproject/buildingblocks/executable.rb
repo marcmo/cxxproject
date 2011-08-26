@@ -44,6 +44,10 @@ module Cxxproject
       @build_linkinfo
     end
 
+    def set_suppress_linker(x)
+      @suppress_linker = x
+    end
+
     def initialize(name)
       super(name)
       @linker_script = nil
@@ -52,6 +56,7 @@ module Cxxproject
       @build_version_file = false
       @linker_deps = nil
       @linker_deps_calced = false
+      @suppress_linker = false
     end
 
     def set_executable_name(name) # ensure it's relative
@@ -175,47 +180,51 @@ module Cxxproject
             vers.execute(nil)
             throw "VersionGenerator failed" if vers.failure
           end
-
-          cmd = [linker[:COMMAND]] # g++
-          cmd += linker[:MUST_FLAGS].split(" ")
-          cmd += linker[:FLAGS].gsub(/\"/,"").split(" ") # double quotes within string do not work on windows...
-          cmd << linker[:EXE_FLAG]
-          cmd << get_executable_name # -o debug/x.exe
-          cmd += @objects # debug/src/abc.o debug/src/xy.o
-          cmd << linker[:SCRIPT] if @linker_script # -T
-          cmd << @linker_script if @linker_script # xy/xy.dld
-          cmd << linker[:MAP_FILE_FLAG] if @mapfile # -Wl,-m6
-          cmd += linker[:LIB_PREFIX_FLAGS].split(" ") # "-Wl,--whole-archive "
-          cmd += calc_linker_lib_string
-          cmd += linker[:LIB_POSTFIX_FLAGS].split(" ") # "-Wl,--no-whole-archive "
-
-          mapfileStr = @mapfile ? " >#{@mapfile}" : ""
-          if Cxxproject::Utils.old_ruby?
-            # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
-            cmdLine = cmd.join(" ") + " 2>" + get_temp_filename
-            if cmdLine.length > 8000
-              inputName = get_executable_name+".tmp"
-              File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
-              consoleOutput = `#{linker[:COMMAND] + " @" + inputName + mapfileStr + " 2>" + get_temp_filename}`
-            else
-              consoleOutput = `#{cmd.join(" ") + mapfileStr + " 2>" + get_temp_filename}`
-            end
-            consoleOutput.concat(read_file_or_empty_string(get_temp_filename))          
-          else
-            rd, wr = IO.pipe
-            cmd << {
-             :out=> @mapfile ? "#{@mapfile}" : wr, # > xy.map
-             :err=>wr
-            }
-            sp = spawn(*cmd)
-            cmd.pop
-
-            # for console print
-            cmd << " >#{@mapfile}" if @mapfile
-            consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
-          end
           
-          process_result(cmd, consoleOutput, linker[:ERROR_PARSER], "Linking #{get_executable_name}")
+          if not @suppress_linker
+          
+            cmd = [linker[:COMMAND]] # g++
+            cmd += linker[:MUST_FLAGS].split(" ")
+            cmd += linker[:FLAGS].gsub(/\"/,"").split(" ") # double quotes within string do not work on windows...
+            cmd << linker[:EXE_FLAG]
+            cmd << get_executable_name # -o debug/x.exe
+            cmd += @objects # debug/src/abc.o debug/src/xy.o
+            cmd << linker[:SCRIPT] if @linker_script # -T
+            cmd << @linker_script if @linker_script # xy/xy.dld
+            cmd << linker[:MAP_FILE_FLAG] if @mapfile # -Wl,-m6
+            cmd += linker[:LIB_PREFIX_FLAGS].split(" ") # "-Wl,--whole-archive "
+            cmd += calc_linker_lib_string
+            cmd += linker[:LIB_POSTFIX_FLAGS].split(" ") # "-Wl,--no-whole-archive "
+
+            mapfileStr = @mapfile ? " >#{@mapfile}" : ""
+            if Cxxproject::Utils.old_ruby?
+              # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
+              cmdLine = cmd.join(" ") + " 2>" + get_temp_filename
+              if cmdLine.length > 8000
+                inputName = get_executable_name+".tmp"
+                File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
+                consoleOutput = `#{linker[:COMMAND] + " @" + inputName + mapfileStr + " 2>" + get_temp_filename}`
+              else
+                consoleOutput = `#{cmd.join(" ") + mapfileStr + " 2>" + get_temp_filename}`
+              end
+              consoleOutput.concat(read_file_or_empty_string(get_temp_filename))          
+            else
+              rd, wr = IO.pipe
+              cmd << {
+               :out=> @mapfile ? "#{@mapfile}" : wr, # > xy.map
+               :err=>wr
+              }
+              sp = spawn(*cmd)
+              cmd.pop
+
+              # for console print
+              cmd << " >#{@mapfile}" if @mapfile
+              consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
+            end
+          
+            process_result(cmd, consoleOutput, linker[:ERROR_PARSER], "Linking #{get_executable_name}")
+            
+          end
         end
       end
       res.enhance(@config_files)
