@@ -296,7 +296,7 @@ v_0.4.8 => v_0.4.9
     * multiple include Rake::DSL causes errors
     * simplified source for roodi - #24
     * Fixed error introduced while working on #24
-    * Added method to get all toolchains (lake can print out informations about toolchain settings)
+    * Added method to get all toolchains (lake can print out information  about toolchain settings)
     * Collect object deps for dep checking (lake)
     * Removed puts of num threads
     * roodi refactorings - Fixes #24
@@ -304,7 +304,7 @@ v_0.4.8 => v_0.4.9
       
       commit was accidental...
       This reverts commit e92885c1615c1c3d593b54bfea2b33c7ea40a88a.
-    * dont use static fields as much - Fixes #53
+    * don't use static fields as much - Fixes #53
     * string rename - #56
     * extract method refactorings - #54
     * refactoring - make methods smaller - #54
@@ -377,7 +377,7 @@ v_0.4.5 => v_0.4.6
     * better cleanup in rspecs
     * Bugfix: errors in prereqs of unneeded tasks, e.g. multitask, were ignored
     * Bugfix of bugfix: now failure handling should work again
-    * splitted dot graph writers into severals files, moved some stuff to lake
+    * split    dot graph writers into severals files, moved some stuff to lake
     * corrected gemspec
     * added rspec tests for dealing with different path settings
     * updated gem version
@@ -491,7 +491,7 @@ v_0.4.1 => v_0.4.2
     * some refactorings and renames
     * default to whole-archive linker option on gcc
       
-      this is neccessary when linking c++ code where global instances register in constructors (as in cppunit)
+      this is necessary  when linking c++ code where global instances register in constructors (as in cppunit)
     * refactoring name of function
 
 v_0.4.0 => v_0.4.1
