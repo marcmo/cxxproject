@@ -18,9 +18,24 @@ module Cxxproject
     # simple class to colorize compiler output
     # the class depends on the rainbow gem
     class ColorizingFormatter
-
-      RED = [255, 0, 0]
-      YELLOW = [255, 255, 0]
+    
+      # colors are not instance vars due to caching the building blocks
+      def self.setColorScheme(scheme)
+        if scheme == :black
+          @@warning_color = :yellow
+          @@error_color = :red
+          @@info_color = :white
+          @@additional_info_color = :cyan
+          @@success_color = :green
+        elsif scheme == :white
+          @@warning_color = :magenta
+          @@error_color = :red
+          @@info_color = :black
+          @@additional_info_color = :blue
+          @@success_color = :green
+        end
+      end
+      ColorizingFormatter.setColorScheme(:black) # default
 
       def severity_string(colors, string)
         colors[:severity].inject(string) {|m,x| m.send(x)}
@@ -47,23 +62,23 @@ module Cxxproject
       end
 
       def printError(str)
-        [:red,:bold].inject(str) {|m,x| m.send(x)}
+        [@@error_color,:bold].inject(str) {|m,x| m.send(x)}
       end
 
       def printWarning(str)
-        [:yellow,:bold].inject(str) {|m,x| m.send(x)}
+        [@@warning_color,:bold].inject(str) {|m,x| m.send(x)}
       end
 
       def printInfo(str)
-        [:white,:bold].inject(str) {|m,x| m.send(x)}
+        [@@info_color,:bold].inject(str) {|m,x| m.send(x)}
       end
 
       def printAdditionalInfo(str)
-        [:cyan,:bold].inject(str) {|m,x| m.send(x)}
+        [@@additional_info_color,:bold].inject(str) {|m,x| m.send(x)}
       end
 
       def printSuccess(str)
-        [:green,:bold].inject(str) {|m,x| m.send(x)}
+        [@@success_color,:bold].inject(str) {|m,x| m.send(x)}
       end
 
 
@@ -78,20 +93,20 @@ module Cxxproject
             if desc.severity != 255
               coloring = {}
               if desc.severity == ErrorParser::SEVERITY_WARNING
-                coloring = {:file => [:yellow],
-                            :line => [],
-                            :severity => [:yellow,:bold],
-                            :description => [:yellow,:bold]}
+                coloring = {:file => [@@warning_color,:bold],
+                            :line => [@@warning_color],
+                            :severity => [@@warning_color,:bold],
+                            :description => [@@warning_color,:bold]}
               elsif desc.severity == ErrorParser::SEVERITY_ERROR
-                coloring = {:file => [:red],
-                            :line => [],
-                            :severity => [:red,:bold],
-                            :description => [:red,:bold]}
+                coloring = {:file => [@@error_color,:bold],
+                            :line => [@@error_color],
+                            :severity => [@@error_color,:bold],
+                            :description => [@@error_color,:bold]}
               else
-                coloring = {:file => [:white], 
-                            :line => [], 
-                            :severity => [:white,:bold], 
-                            :description => [:white,:bold]}
+                coloring = {:file => [@@info_color,:bold], 
+                            :line => [@@info_color], 
+                            :severity => [@@info_color,:bold], 
+                            :description => [@@info_color,:bold]}
               end
               
               if desc.file_name and desc.file_name != ""
