@@ -54,8 +54,6 @@ module Cxxproject
       @mapfile = nil
       @build_linkinfo = false
       @build_version_file = false
-      @linker_deps = nil
-      @linker_deps_calced = false
       @suppress_linker = false
     end
 
@@ -244,6 +242,33 @@ module Cxxproject
       add_output_dir_dependency(get_task_name, res, true)
       add_grouping_tasks(get_task_name)
       setup_rake_dependencies(res)
+      
+      # check that all source libs are checked even if they are not a real rake dependency (can happen if "build this project only")
+      begin
+        libChecker = task get_task_name+"LibChecker" do
+          if File.exists?(get_task_name) # otherwise the task will be executed anyway
+            all_dependencies.each do |h|
+              bb = ALL_BUILDING_BLOCKS[h]
+              if bb and SourceLibrary === bb
+                f = ALL_BUILDING_BLOCKS[h].get_task_name # = abs path of library
+                if not File.exists?(f) or File.mtime(f) > File.mtime(get_task_name)
+                  def res.needed?
+                    true
+                  end
+                end
+              end
+            end
+          end
+        end
+      rescue
+        def res.needed?
+          true
+        end
+      end
+      libChecker.transparent_timestamp = true
+      res.enhance([libChecker])
+
+      
       return res
     end
 
