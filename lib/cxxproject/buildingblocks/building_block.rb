@@ -121,10 +121,11 @@ module Cxxproject
         rescue ExitHelperException
           raise
         rescue Exception => e
-          Printer.printError e
+          Printer.printError e.message
           ExitHelper.exit(1)
         end
       end
+      
       task
     end
 
