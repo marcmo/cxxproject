@@ -174,7 +174,7 @@ module Cxxproject
           begin
             @socket.recv_nonblock(1)
             set_abort(true) # currently this is the only possible input
-          rescue IO::WaitReadable
+          rescue Errno::EWOULDBLOCK
             # this is not an error but the default "return"-value of recv_nonblock
           rescue Exception => e
             puts "Error: #{e.message}"            
