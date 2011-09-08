@@ -1,4 +1,5 @@
 require 'cxxproject/errorparser/error_parser'
+require 'cxxproject/utils/printer'
 
 module Cxxproject
 
@@ -27,7 +28,7 @@ module Cxxproject
       begin
         @socket = TCPSocket.new('localhost', port)
       rescue Exception => e
-        puts "Error: #{e.message}"
+        Printer.printError "Error: #{e.message}"
         ExitHelper.exit(1)
       end
     end
@@ -38,7 +39,7 @@ module Cxxproject
         begin
           @socket.close
         rescue Exception => e
-          puts "Error: #{e.message}"
+          Printer.printError "Error: #{e.message}"
           ExitHelper.exit(1)
         end
         @socket = nil
@@ -77,19 +78,20 @@ module Cxxproject
         last_msg = nil
         error_array.each do |msg|
           if msg.file_name.nil?
-            last_msg.message += "\r\n#{msg.message}" 
+            last_msg.message += "\r\n#{msg.message}" if last_msg 
           else
             last_msg = msg.dup
             merged_messages << last_msg
           end
         end
         
-        merged_messages.each do |msg|  
+        merged_messages.each do |msg|
+          msg.message.rstrip!  
           packet = create_error_packet(msg)
           begin
             mutex.synchronize { @socket.write(packet) }
           rescue Exception => e
-            puts "Error: #{e.message}"            
+            Printer.printError "Error: #{e.message}"            
             set_abort(true)
           end
         end
@@ -132,7 +134,7 @@ module Cxxproject
       begin
         mutex.synchronize { @socket.write(packet) if @socket }
       rescue Exception => e
-        puts "Error: #{e.message}"            
+        Printer.printError "Error: #{e.message}"            
         set_abort(true)
       end
       
@@ -161,7 +163,7 @@ module Cxxproject
       begin
         mutex.synchronize { @socket.write(packet) if @socket }
       rescue Exception => e
-        puts "Error: #{e.message}"            
+        Printer.printError "Error: #{e.message}"            
         set_abort(true)
       end
       
@@ -177,7 +179,7 @@ module Cxxproject
           rescue Errno::EWOULDBLOCK
             # this is not an error but the default "return"-value of recv_nonblock
           rescue Exception => e
-            puts "Error: #{e.message}"            
+            Printer.printError "Error: #{e.message}"            
             set_abort(true)
           end          
         }
