@@ -184,7 +184,11 @@ module Cxxproject
       end
 
       source_patterns.each do |p|
-        Dir.glob(p).each do |f|
+        globRes = Dir.glob(p)
+        if (globRes.length == 0)
+          Printer.printWarning "Warning: Source file pattern '#{p}' did not match to any file"
+        end
+        globRes.each do |f|
           next if exclude_files.include?(f)
           next if files.include?(f)
           files << f
@@ -270,14 +274,7 @@ module Cxxproject
           }
           sp = spawn(*cmd)
           cmd.pop
-          begin
-            consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
-          rescue Exception=>e
-            warn "Debug output:"
-            warn sp.inspect
-            warn e.backtrace
-            raise
-          end
+          consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
         end
 
         process_result(cmd, consoleOutput, compiler[:ERROR_PARSER], "Compiling #{sourceRel}")
