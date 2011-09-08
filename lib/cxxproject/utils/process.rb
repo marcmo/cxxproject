@@ -6,11 +6,15 @@ module Cxxproject
       wr.close
         
       consoleOutput = ""
-      while not rd.eof? 
-         tmp = rd.read(1000)
-         if (tmp != nil)
-           consoleOutput << tmp
-         end  
+      begin
+        while not rd.eof? 
+           tmp = rd.read(1000)
+           if (tmp != nil)
+             consoleOutput << tmp
+           end  
+        end
+      rescue Exception=>e
+        # sometimes there is a bad file descriptor on Windows instead of eof...
       end
         
       Process.wait(sp)
