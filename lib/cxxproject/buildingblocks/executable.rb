@@ -247,14 +247,14 @@ module Cxxproject
       begin
         libChecker = task get_task_name+"LibChecker" do
           if File.exists?(get_task_name) # otherwise the task will be executed anyway
-            all_dependencies.each do |h|
-              bb = ALL_BUILDING_BLOCKS[h]
+            all_dependencies.each do |bb|
               if bb and SourceLibrary === bb
-                f = ALL_BUILDING_BLOCKS[h].get_task_name # = abs path of library
+                f = bb.get_task_name # = abs path of library
                 if not File.exists?(f) or File.mtime(f) > File.mtime(get_task_name)
                   def res.needed?
                     true
                   end
+                  break
                 end
               end
             end
