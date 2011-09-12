@@ -47,6 +47,7 @@ module Cxxproject
 
     def set_config_files(x)
       @config_files = x
+      @config_date = Time.now
       self
     end
 
@@ -85,6 +86,7 @@ module Cxxproject
     def initialize(name)
       @name = name
       @config_files = []
+      @config_date = nil
       @project_dir = nil
       @tcs = nil
       @output_dir = nil
@@ -190,6 +192,31 @@ module Cxxproject
     def catch_output(cmd)
       new_command = "#{cmd} 2>&1"
       return `#{new_command}`
+    end
+
+    def check_config_file
+      if @config_date
+        @config_files.each do |c|
+          err_msg = nil
+          if not File.exists?(c)
+            err_msg = "Error: #{c} has been deleted during build"
+          elsif File.mtime(c) > @config_date
+            err_msg = "Error: #{c} has been modified during build"
+          end
+          if err_msg != nil
+            Printer.printError err_msg 
+          
+            res = ErrorDesc.new
+            res.file_name = c
+            res.line_number = 0
+            res.severity = ErrorParser::SEVERITY_ERROR
+            res.message = err_msg
+            Rake.application.idei.set_errors([res])
+          
+            ExitHelper.exit(1)
+          end
+        end
+      end
     end
 
   end

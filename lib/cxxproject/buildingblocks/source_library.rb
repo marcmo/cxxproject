@@ -70,6 +70,7 @@ module Cxxproject
         end
       
         Dir.chdir(dir) do
+          check_config_file
 
           FileUtils.rm(aname) if File.exists?(aname)
           cmd = [archiver[:COMMAND]] # ar

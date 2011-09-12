@@ -43,6 +43,7 @@ module Cxxproject
     def convert_to_rake()
       res = task get_task_name do
         Dir.chdir(@project_dir) do      
+          check_config_file      
           cmd = get_command_line
           consoleOutput = catch_output(cmd)
           process_result(cmd, consoleOutput)

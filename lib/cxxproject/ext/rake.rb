@@ -294,6 +294,11 @@ module Rake
         raise
       rescue Cxxproject::SystemCommandFailed => scf
         handle_error(scf, true)
+      rescue SystemExit => exSys
+        if RakeFileUtils.verbose
+          puts exSys.backtrace
+        end
+        Rake.application.idei.set_abort(true)
       rescue Exception => ex1
         handle_error(ex1, false)
       end

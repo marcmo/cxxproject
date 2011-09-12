@@ -91,6 +91,7 @@ module Cxxproject
       
       mfileTask = task get_task_name do
         Dir.chdir(@project_dir) do
+          check_config_file
           consoleOutput = catch_output(cmd)
           process_result(cmd, consoleOutput)
         end
@@ -116,8 +117,11 @@ module Cxxproject
           pathes_to_projects
         ])
         mfileCleanTask = task mfile+"Clean" do
-          consoleOutput = catch_output(cmd)
-          process_result(cmd, consoleOutput)
+          Dir.chdir(@project_dir) do
+            check_config_file
+            consoleOutput = catch_output(cmd)
+            process_result(cmd, consoleOutput)
+          end
         end
         Rake.application["clean"].enhance([mfileCleanTask])
       end
