@@ -58,11 +58,11 @@ module Cxxproject
     def calc_lib_searchpath(hash)
       if hash.has_key?(:libpath)
         hash[:libpath]
-      elsif
+      else
         if Utils::OS.linux? || Utils::OS.mac?
           ["/usr/local/lib","/usr/lib"]
         elsif Utils::OS.windows?
-          ["C:/tool/cygwin/lib"]
+          ["C:/tool/cygwin/lib", "C:/Tool/cygwin/usr/local/lib"]
         end
       end
     end
