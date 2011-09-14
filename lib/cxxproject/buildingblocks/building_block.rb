@@ -191,6 +191,8 @@ module Cxxproject
 
     def catch_output(cmd)
       new_command = "#{cmd} 2>&1"
+      # "/" does not work on windows with backticks, switch the separator on windows:
+      new_command.gsub!(File::SEPARATOR, File::ALT_SEPARATOR) if File::ALT_SEPARATOR
       return `#{new_command}`
     end
 
