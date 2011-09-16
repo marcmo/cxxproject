@@ -122,9 +122,10 @@ module Rake
           handle_jobs(jobs, args, invocation_chain)
         end.join
       
-        if @check_unnecessary_includes
+        if Rake.application.check_unnecessary_includes
           if not @failure # otherwise the dependency files might be incorrect or not complete
             @bb.incArray.each do |i|
+              next if i=="."
               if not @bb.deps_in_depFiles.any? { |d| d.index(i) == 0 }
                 msg = "Info: Include to #{i} seems to be unnecessary"
                 Cxxproject::Printer.printInfo msg
