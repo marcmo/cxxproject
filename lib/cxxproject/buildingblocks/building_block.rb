@@ -196,7 +196,7 @@ module Cxxproject
       return `#{new_command}`
     end
 
-    def check_config_file
+    def check_config_file(file = nil)
       if @config_date
         @config_files.each do |c|
           err_msg = nil
@@ -206,8 +206,14 @@ module Cxxproject
             err_msg = "Error: #{c} has been modified during build"
           end
           if err_msg != nil
-            Printer.printError err_msg 
-          
+            begin
+              err_msg = err_msg + ", delete " + file + " to avoid inconsistent builds" if File.exists?(file)
+              Printer.printError err_msg 
+              FileUtils.rm(file) if File.exists?(file)
+            rescue Exception => ex2
+              Cxxproject::Printer.printError "Error: Could not deleting #{file}: #{ex2.message}"
+            end
+
             res = ErrorDesc.new
             res.file_name = c
             res.line_number = 0

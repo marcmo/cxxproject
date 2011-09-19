@@ -70,8 +70,6 @@ module Cxxproject
         end
       
         Dir.chdir(dir) do
-          check_config_file
-
           FileUtils.rm(aname) if File.exists?(aname)
           cmd = [archiver[:COMMAND]] # ar
           cmd += archiver[:ARCHIVE_FLAGS].split(" ")
@@ -101,6 +99,8 @@ module Cxxproject
           end
 
           process_result(cmd, consoleOutput, archiver[:ERROR_PARSER], "Creating #{aname}")
+        
+          check_config_file(get_task_name)  
         end
       end
 

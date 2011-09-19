@@ -155,7 +155,6 @@ module Cxxproject
 
       res = typed_file_task Rake::Task::EXECUTABLE, get_task_name => object_multitask do
         Dir.chdir(@project_dir) do
-          check_config_file
 
           if @build_linkinfo
             oname = File.expand_path(get_object_file(@@linkinfo_filename_c))
@@ -224,6 +223,7 @@ module Cxxproject
             process_result(cmd, consoleOutput, linker[:ERROR_PARSER], "Linking #{get_executable_name}")
             
           end
+          check_config_file(get_task_name)
         end
       end
       res.enhance(@config_files)
