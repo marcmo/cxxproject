@@ -88,7 +88,7 @@ module Cxxproject
         res = ""
         begin
           error_descs = error_parser.scan_lines(compiler_output, project_dir)
-          zipped = compiler_output.lines.zip(error_descs)
+          zipped = compiler_output.split($/).zip(error_descs)
           zipped.each do |l,desc|
             if desc.severity != 255
               coloring = {}
