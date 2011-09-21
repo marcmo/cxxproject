@@ -4,7 +4,7 @@ module Cxxproject
   class GCCCompilerErrorParser < ErrorParser
 
     def initialize()
-      @error_expression = /(.+):([0-9]+): (catastrophic )*([A-Za-z]+): (.+)/
+      @error_expression = /([^:]+):([0-9]+)[:[0-9]+]*: (catastrophic )*([A-Za-z]+): (.+)/
     end
 
 

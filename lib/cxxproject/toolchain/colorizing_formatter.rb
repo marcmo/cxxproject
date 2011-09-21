@@ -120,7 +120,7 @@ module Cxxproject
               end
               res << description_string(coloring, "#{desc.message}") + "\n"
             else
-              res << l
+              res << l << "\n"
             end
           end
         rescue Exception => e
