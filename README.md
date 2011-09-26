@@ -5,6 +5,117 @@ see documentation page: [cxxproject](http://marcmo.github.com/cxxproject)
 
 ## Change History:
 
+v_0.5.30 => v_0.5.31
+
+    * Bugfix: GCC error parser broken if column is included. Bugfix: If line has no error and colorizer is on, the newline was dismissed.
+    * GCC can have fatal errors, fixed error parser
+    * Merged and improved ide messages about building projects
+
+v_0.5.28 => v_0.5.30
+
+    * Unnecessary include check was broken
+    * config file check now AFTER executing task to avoid inconsistencies due to intermediate-changes of config files
+    * Colorizing not compatible with ruby 1.8.6
+
+v_0.5.27 => v_0.5.28
+
+    * Minor fix for lib search path on Windows
+    * backticks on windows do not work with slashes
+
+v_0.5.26 => v_0.5.27
+
+    * config file in torake now absolute
+    * 0.5.27
+
+v_0.5.25 => v_0.5.26
+
+    * Config files are checked right before building, which minimizes the chance for inconsistent dependency graphs when changing config files during build
+
+v_0.5.24 => v_0.5.25
+
+    * Bugfix: removed old and therefore invalid require
+    * Some error parser fixes
+    * Bugfix: libs were not checked correctly in 'in build this project only'
+    * Warning if source pattern does not match to any file
+    * Ignore bad filedescriptor for output
+
+v_0.5.23 => v_0.5.24
+
+    * ide interface was not compatible to ruby 1.8.x when reading non-blocking from socket
+
+v_0.5.22 => v_0.5.23
+
+    * Removed require to deleted file
+
+v_0.5.21 => v_0.5.22
+
+    * marshall string for lake cache is shorter now
+    * Added info output about possible unnecessary includes
+    * build_linkinfo was not set correctly, added getter methods for build_linkinfo and build_version_file
+    * check unnecessary includes now off per default, can be switched on
+    * Reintroduced helper deps
+    * missing makefile path is an error, not a warning
+    * Adjusted module building block for lake
+    * Added possibility to suppress the linking
+    * Cosmetic: string compare in test failed after changing string in lib
+    * cosmetic, error msg was not printed out correctly
+    * bugfix: building only exe did not check libs
+    * added a second color scheme for light (e.g. white) backgrounds
+    * 0.5.22
+
+v_0.5.20 => v_0.5.21
+
+    * fixed uncolored output on linux
+    * Removed transitive_config stuff. moved attribute helper stuff into spec and commented out, because it's not used anymore
+    * typo in warning message of makefile buildingblock
+    * removed tests for transitive_configs
+    * transitive includes is off per default -> for cxx it is switched on
+    * Removed helper dependencies, which are not needed anymore by lake. added test-warnings for bad filedescritor bug, which still occurs on windows - will be removed after fixing
+    * 0.5.21
+
+v_0.5.19 => v_0.5.20
+
+    * cosmetic: removed unused method
+    * Fixed bad filedescriptor bug - sometimes a pipe was not working properly after read_nonblock
+    * added error if symlink has other parent dir than target
+    * added/changed LinkInfo/VersionGenerator feature, artifact name is configurable
+
+v_0.5.18 => v_0.5.19
+
+    * bugfix: errors in diab can be fatal too
+    * flags for make are set individually
+    * minor cleanup
+
+v_0.5.17 => v_0.5.18
+
+    * interface spec is running again
+    * libs without objects working again
+    * 0.5.18
+    * backtrace for finding bad filedescriptor bug, which occurs very rarely
+
+v_0.5.16 => v_0.5.17
+
+    * Same object order as in Eclipse. Archives are built from objects dir to shorten the cmd length
+    * Cosmetic: removed useless line
+    * 0.5.17
+
+v_0.5.15 => v_0.5.16
+
+    * windows probs with double quotes, tcs for single file not applied correctly
+    * 0.5.16
+
+v_0.5.14 => v_0.5.15
+
+    * error parser fixed for makefiles, commandlines. fixed windows path problems, sources always build in alphabetical order
+    * version 0.5.15
+
+v_0.5.13 => v_0.5.14
+
+    * updated release history
+    * fixes #84: stdout will now be on stdout again
+    * improvements for referencing output dir
+    * version update
+
 v_0.5.12 => v_0.5.13
 
     * version available in code
