@@ -20,6 +20,7 @@ module Cxxproject
     include HasDependencies
 
     attr_reader :name
+    attr_reader :config_name
     attr_reader :config_files
 
     attr_reader :project_dir
@@ -85,6 +86,7 @@ module Cxxproject
 
     def initialize(name)
       @name = name
+      @config_name = nil
       @config_files = []
       @config_date = nil
       @project_dir = nil
@@ -98,6 +100,10 @@ module Cxxproject
       else
         ALL_BUILDING_BLOCKS[@name] = self
       end
+    end
+    
+    def set_config_name(x)
+      @config_name = x
     end
 
     def complete_init()

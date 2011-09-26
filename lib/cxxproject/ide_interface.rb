@@ -115,21 +115,27 @@ module Cxxproject
       packet
     end
 
-    def set_project(name)
+    def set_build_info(name_attr, config_name_attr, num = -1)
+      @num = num if (num >= 0)
+      name = String.new(name_attr)
+      config_name = String.new(config_name_attr)
+    
       packet = ""
       force_encoding(packet)
       force_encoding(name)
 
-      l = name.length
+      lname = name.length
+      lconfig = config_name.length
+      lsum = 4 + lname + 4 + lconfig + 4 
 
-      packet << 11 # name type
+      packet << 10 # build info type
 
-      packet << (l % 256)
-      packet << (l / 256)
-      packet << 0
-      packet << 0
-
+      write_long(packet, lsum)
+      write_long(packet, lname)
       packet << name
+      write_long(packet, lconfig)
+      packet << config_name
+      write_long(packet, num >=0 ? num : 0)
 
       begin
         mutex.synchronize { @socket.write(packet) if @socket }
@@ -142,31 +148,6 @@ module Cxxproject
     
     def get_number_of_projects
       @num ||= 0
-    end
-
-    def set_number_of_projects(num)
-      @num = num
-    
-      packet = ""
-      force_encoding(packet)
-
-      packet << 10 # num type
-
-      packet << 2
-      packet << 0
-      packet << 0
-      packet << 0
-
-      packet << (num % 256)
-      packet << (num / 256)
-
-      begin
-        mutex.synchronize { @socket.write(packet) if @socket }
-      rescue Exception => e
-        Printer.printError "Error: #{e.message}"            
-        set_abort(true)
-      end
-      
     end
 
     def get_abort()
