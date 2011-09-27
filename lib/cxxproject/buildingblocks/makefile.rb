@@ -26,8 +26,8 @@ module Cxxproject
       self
     end
 
-    def set_path_to(array)
-      @path_to = array
+    def set_path_to(hash)
+      @path_to = hash
       self
     end
 
@@ -43,7 +43,7 @@ module Cxxproject
       @target = mtarget != "" ? mtarget : "all"
       @makefile = mfile
       @flags = ""
-      @path_to = []
+      @path_to = {}
       @num = Rake.application.makefile_number  
       super(get_task_name)
     end
@@ -54,7 +54,7 @@ module Cxxproject
 
     def calc_pathes_to_projects
       vars = []
-      @path_to.each do |p|
+      @path_to.each do |k,v|
         bb = ALL_BUILDING_BLOCKS[p]
         if bb
           pref = File.rel_from_to_project(@project_dir,bb.project_dir)
@@ -64,11 +64,39 @@ module Cxxproject
             vars << "PATH_TO_#{p}=#{var[0]}"
           end
         else
-          Printer.printError "Error: Project '#{p}' not found for makefile #{@project_dir}/#{@makefile}"
-          ExitHelper.exit(1)
+          vars << "PATH_TO_#{k}=#{v}"
         end
       end
       vars.join(" ")
+    end
+
+    def executeCmd(cmd)
+        Dir.chdir(@project_dir) do      
+          check_config_file      
+          new_command = cmd + " 2>&1"
+          puts cmd + (RakeFileUtils.verbose ? " (executed in '#{Dir.pwd}')" : "")
+          cmd_result = false
+          begin
+            cmd_result = system new_command
+          rescue
+          end
+          if (cmd_result == false)
+            if Rake.application.idei
+              err_res = ErrorDesc.new
+              err_res.file_name = @project_dir + "/" + get_makefile()
+              err_res.line_number = 1
+              err_res.severity = ErrorParser::SEVERITY_ERROR
+              if get_target != ""
+                err_res.message = "Target \"#{get_target}\" failed"
+              else
+                err_res.message = "Failed"
+              end
+              Rake.application.idei.set_errors([err_res])
+            end
+            Printer.printError "Error: command \"#{cmd}\" failed" + (RakeFileUtils.verbose ? "" : " (executed in '#{Dir.pwd}')")
+            raise SystemCommandFailed.new
+          end          
+        end      
     end
 
     def convert_to_rake()
@@ -88,14 +116,11 @@ module Cxxproject
         pathes_to_projects
       ])
       
-      
       mfileTask = task get_task_name do
-        Dir.chdir(@project_dir) do
-          check_config_file
-          consoleOutput = catch_output(cmd)
-          process_result(cmd, consoleOutput)
-        end
+        executeCmd(cmd)
       end
+      
+      mfileTask.immediate_output = true
       mfileTask.transparent_timestamp = true
       mfileTask.type = Rake::Task::MAKE
       mfileTask.enhance(@config_files)
@@ -117,36 +142,12 @@ module Cxxproject
           pathes_to_projects
         ])
         mfileCleanTask = task mfile+"Clean" do
-          Dir.chdir(@project_dir) do
-            check_config_file
-            consoleOutput = catch_output(cmd)
-            process_result(cmd, consoleOutput)
-          end
+          executeCmd(cmd)
         end
+        mfileCleanTask.immediate_output = true
         Rake.application["clean"].enhance([mfileCleanTask])
       end
     end
-
-    def process_console_output(consoleOutput, errorParser)
-      if not consoleOutput.empty?
-        puts consoleOutput
-
-        if $?.success? == false
-          res = ErrorDesc.new
-          res.file_name = @project_dir + "/" + get_makefile()
-          res.line_number = 1
-          res.severity = ErrorParser::SEVERITY_ERROR
-          if get_target != ""
-            res.message = "Target \"#{get_target}\" failed"
-          else
-            res.message = "Failed"
-          end
-          Rake.application.idei.set_errors([res])
-        end
-      end
-    end
-
-
 
   end
 end

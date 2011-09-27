@@ -31,7 +31,7 @@ module Cxxproject
     end    
 
     def initialize(name)
-      @line = name
+      set_command_line(name)
       @num = Rake.application.command_line_number
       super(get_task_name)
     end
@@ -44,33 +44,34 @@ module Cxxproject
       res = task get_task_name do
         Dir.chdir(@project_dir) do      
           check_config_file      
-          cmd = get_command_line
-          consoleOutput = catch_output(cmd)
-          process_result(cmd, consoleOutput)
+          new_command = get_command_line + " 2>&1"
+          puts get_command_line + (RakeFileUtils.verbose ? " (executed in '#{Dir.pwd}')" : "")
+          cmd_result = false
+          begin
+            cmd_result = system new_command
+          rescue
+          end
+          if (cmd_result == false)
+            if Rake.application.idei
+              err_res = ErrorDesc.new
+              err_res.file_name = (@defined_in_file ? @defined_in_file : @project_dir)
+              err_res.line_number = (@defined_in_line ? @defined_in_line : 0)
+              err_res.severity = ErrorParser::SEVERITY_ERROR
+              err_res.message = "Command \"#{get_command_line}\" failed"
+              Rake.application.idei.set_errors([err_res])
+            end
+            Printer.printError "Error: command \"#{get_command_line}\" failed" + (RakeFileUtils.verbose ? "" : " (executed in '#{Dir.pwd}')")
+            raise SystemCommandFailed.new
+          end          
         end
       end
+      res.immediate_output = true
       res.transparent_timestamp = true
       res.type = Rake::Task::COMMANDLINE
       setup_rake_dependencies(res)
       res
     end
-
-    def process_console_output(consoleOutput, errorParser)
-      if not consoleOutput.empty?
-        puts consoleOutput
-
-        if Rake.application.idei and $?.success? == false
-        
-          res = ErrorDesc.new
-          res.file_name = (@defined_in_file ? @defined_in_file : @project_dir)
-          res.line_number = (@defined_in_line ? @defined_in_line : 0)
-          res.severity = ErrorParser::SEVERITY_ERROR
-          res.message = "Command \"#{get_command_line}\" failed"
-        
-          Rake.application.idei.set_errors([res])
-        end
-      end
-    end
+    
 
   end
 end
