@@ -188,6 +188,7 @@ module Rake
     attr_accessor :progress_count
     attr_accessor :output_string
     attr_accessor :output_after_execute
+    attr_accessor :immediate_output
 
     UNKNOWN     = 0x0000 #
     OBJECT      = 0x0001 #
@@ -222,6 +223,7 @@ module Rake
       @ignore = false
       @failure = false
       @output_after_execute = true
+      @immediate_output = false
     end
 
     define_method(:invoke) do |*args|
@@ -285,9 +287,11 @@ module Rake
     end
 
     def new_execute(execute_org, arg)
-      s = name == 'console' ? nil : StringIO.new
-      tmp = Thread.current[:stdout]
-      Thread.current[:stdout] = s unless tmp
+      if not @immediate_output
+        s = name == 'console' ? nil : StringIO.new
+        tmp = Thread.current[:stdout]
+        Thread.current[:stdout] = s unless tmp
+      end
 
       begin
         execute_org.bind(self).call(arg)
@@ -300,20 +304,18 @@ module Rake
       rescue Exception => ex1
         handle_error(ex1, false)
       end
-
-      self.output_string = s.string
-      Thread.current[:stdout] = tmp
-
-      output(self.output_string)
+      
+      if not @immediate_output
+        self.output_string = s.string
+        Thread.current[:stdout] = tmp
+        output(self.output_string)
+      end
     end
 
     def handle_error(ex1, isSysCmd)
       if not Rake.application.idei.get_abort()
         if not isSysCmd
           Cxxproject::Printer.printError "Error for task #{@name}: #{ex1.message}"
-          if RakeFileUtils.verbose
-            puts ex1.backtrace
-          end
         end
       end
       begin
