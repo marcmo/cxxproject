@@ -105,7 +105,7 @@ module Cxxproject
         parts << @name
       end
 
-      parts << sourceRel
+      parts << sourceRel.chomp(File.extname(sourceRel))
       File.join(parts) + ".o"
     end
 

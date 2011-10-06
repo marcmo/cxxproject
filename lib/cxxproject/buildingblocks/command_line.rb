@@ -44,11 +44,11 @@ module Cxxproject
       res = task get_task_name do
         Dir.chdir(@project_dir) do      
           check_config_file      
-          new_command = get_command_line + " 2>&1"
-          puts get_command_line + (RakeFileUtils.verbose ? " (executed in '#{Dir.pwd}')" : "")
+          cmd = get_command_line
+          puts cmd + (RakeFileUtils.verbose ? " (executed in '#{Dir.pwd}')" : "")
           cmd_result = false
           begin
-            cmd_result = system new_command
+            cmd_result = system(cmd + " 2>&1")
           rescue
           end
           if (cmd_result == false)

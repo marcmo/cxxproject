@@ -41,7 +41,7 @@ module Cxxproject
       elsif s == SEVERITY_ERROR
         "ERROR"
       else
-        "Unknown severity!"
+        "UNKNOWN SEVERITY"
       end
     end
 

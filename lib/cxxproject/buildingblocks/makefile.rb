@@ -73,11 +73,10 @@ module Cxxproject
     def executeCmd(cmd)
         Dir.chdir(@project_dir) do      
           check_config_file      
-          new_command = cmd + " 2>&1"
           puts cmd + (RakeFileUtils.verbose ? " (executed in '#{Dir.pwd}')" : "")
           cmd_result = false
           begin
-            cmd_result = system new_command
+            cmd_result = system(cmd + " 2>&1")
           rescue
           end
           if (cmd_result == false)
