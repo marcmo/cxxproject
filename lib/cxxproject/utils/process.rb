@@ -14,7 +14,10 @@ module Cxxproject
            end  
         end
       rescue Exception=>e
-        # sometimes there is a bad file descriptor on Windows instead of eof...
+        # Seems to be a bug in ruby: sometimes there is a bad file descriptor on Windows instead of eof, which causes
+        # an exception on read(). However, this happens not before everything is read, so there is no practical difference
+        # how to "break" the loop.
+        # This problem occurs on Windows command shell and Cygwin.
       end
         
       Process.wait(sp)
