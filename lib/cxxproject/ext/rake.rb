@@ -125,9 +125,10 @@ module Rake
           handle_jobs(jobs, args, invocation_chain)
         end.join
         
-        if @error_strings.length > 0 # can only happen in case of bail-on-first-error
-          puts @error_strings.sort[0][1] # sort is needed to print always the same errors (it is not deterministic which compile thread finishes first)
-        end
+        # can only happen in case of bail_on_first_error.
+        # if not sorted, it may be confusing when builing more than once and the order of the error appearances changes from build to build
+        # (it is not deterministic which file compilation finishes first)
+        @error_strings.sort.each {|es| puts es[1]} 
       
         if Rake.application.check_unnecessary_includes
           if not @failure # otherwise the dependency files might be incorrect or not complete
