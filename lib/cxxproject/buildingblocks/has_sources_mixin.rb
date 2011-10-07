@@ -237,9 +237,11 @@ module Cxxproject
       source = File.expand_path(sourceRel)
 
       depStr = ""
+      dep_file = nil
       if type != :ASM
         dep_file = get_dep_file(objectRel)
-        depStr = the_tcs[:COMPILER][type][:DEP_FLAGS] + dep_file # -MMD -MF debug/src/abc.o.d
+        dep_file = "\""+dep_file+"\"" if dep_file.include?" "
+        depStr = the_tcs[:COMPILER][type][:DEP_FLAGS]
       end
 
       res = typed_file_task Rake::Task::OBJECT, object => source do
@@ -249,7 +251,14 @@ module Cxxproject
         compiler = the_tcs[:COMPILER][type]
         cmd = [compiler[:COMMAND]]
         cmd += compiler[:COMPILE_FLAGS].split(" ")
-        cmd += depStr.split(" ")
+        if dep_file
+          cmd += depStr.split(" ")
+          if the_tcs[:COMPILER][type][:DEP_FLAGS_SPACE]
+            cmd << dep_file
+          else
+            cmd[cmd.length-1] << dep_file
+          end
+        end
         cmd += compiler[:FLAGS].gsub(/\"/,"").split(" ") # double quotes within string do not work on windows...
         cmd += i_array
         cmd += d_array
@@ -258,10 +267,12 @@ module Cxxproject
         cmd << sourceRel
 
         if Cxxproject::Utils.old_ruby?
+          cmd.map! {|c| ((c.include?" ") ? ("\""+c+"\"") : c )}
           cmdLine = cmd.join(" ")
           if cmdLine.length > 8000
             inputName = objectRel+".tmp"
             File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
+            inputName = "\""+inputName+"\"" if inputName.include?" "
             consoleOutput = `#{compiler[:COMMAND] + " @" + inputName}`
           else
             consoleOutput = `#{cmd.join(" ")} 2>&1`
@@ -279,7 +290,7 @@ module Cxxproject
 
         process_result(cmd, consoleOutput, compiler[:ERROR_PARSER], "Compiling #{sourceRel}")
         
-        convert_depfile(dep_file) if type != :ASM
+        convert_depfile(dep_file) if dep_file
         
         check_config_file(object)
       end
@@ -295,23 +306,25 @@ module Cxxproject
     end
 
     def process_console_output(console_output, error_parser)
+      ret = false
       if not console_output.empty?
-        console_output.gsub!(/[\r]/, "")
-        highlighter = @tcs[:CONSOLE_HIGHLIGHTER]
-        if (highlighter and highlighter.enabled?)
-          puts highlighter.format(console_output, @project_dir, error_parser)
-        else
-          puts console_output
-        end
-
         if error_parser
-          Rake.application.idei.set_errors(error_parser.scan_lines(console_output, @project_dir))
+          error_descs = error_parser.scan_lines(console_output, @project_dir)
+          
+          ret = error_descs.any? { |e| e.severity == ErrorParser::SEVERITY_ERROR }
+          
+          console_output.gsub!(/[\r]/, "")
+          highlighter = @tcs[:CONSOLE_HIGHLIGHTER]
+          if (highlighter and highlighter.enabled?)
+            puts highlighter.format(console_output, error_descs, error_parser)
+          else
+            puts console_output
+          end
+
+          Rake.application.idei.set_errors(error_descs)
         end
       end
-    end
-
-    def get_object_filenames
-      remove_empty_strings_and_join(@objects)
+      ret
     end
 
     def prepare_tasks_for_objects

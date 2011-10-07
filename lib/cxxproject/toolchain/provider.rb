@@ -18,6 +18,7 @@ module Cxxproject
             :FLAGS => "",
             :SOURCE_FILE_ENDINGS => [".cxx", ".cpp", ".c++", ".cc", ".C"],
             :DEP_FLAGS => "",
+            :DEP_FLAGS => true,
             :ERROR_PARSER => nil
           },
           :C => {

@@ -186,7 +186,7 @@ module Cxxproject
             cmd += linker[:FLAGS].gsub(/\"/,"").split(" ") # double quotes within string do not work on windows...
             cmd << linker[:EXE_FLAG]
             cmd << get_executable_name # -o debug/x.exe
-            cmd += @objects # debug/src/abc.o debug/src/xy.o
+            cmd += @objects
             cmd << linker[:SCRIPT] if @linker_script # -T
             cmd << @linker_script if @linker_script # xy/xy.dld
             cmd << linker[:MAP_FILE_FLAG] if @mapfile # -Wl,-m6
@@ -196,11 +196,14 @@ module Cxxproject
 
             mapfileStr = @mapfile ? " >#{@mapfile}" : ""
             if Cxxproject::Utils.old_ruby?
+              cmd.map! {|c| ((c.include?" ") ? ("\""+c+"\"") : c )}
+
               # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
               cmdLine = cmd.join(" ") + " 2>" + get_temp_filename
               if cmdLine.length > 8000
                 inputName = get_executable_name+".tmp"
                 File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
+                inputName = "\""+inputName+"\"" if inputName.include?" "
                 consoleOutput = `#{linker[:COMMAND] + " @" + inputName + mapfileStr + " 2>" + get_temp_filename}`
               else
                 consoleOutput = `#{cmd.join(" ") + mapfileStr + " 2>" + get_temp_filename}`

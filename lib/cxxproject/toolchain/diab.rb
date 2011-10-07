@@ -15,7 +15,8 @@ module Cxxproject
       :OBJECT_FILE_FLAG => "-o",
       :INCLUDE_PATH_FLAG => "-I",
       :COMPILE_FLAGS => "-c",
-      :DEP_FLAGS => "-Xmake-dependency=6 -Xmake-dependency-savefile="
+      :DEP_FLAGS => "-Xmake-dependency=6 -Xmake-dependency-savefile=",
+      :DEP_FLAGS_SPACE => false
     })
 
     DiabChain[:COMPILER][:CPP] = Utils.deep_copy(DiabChain[:COMPILER][:C])

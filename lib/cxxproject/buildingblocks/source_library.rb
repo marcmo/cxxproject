@@ -68,7 +68,7 @@ module Cxxproject
           objs.map! { |m| m[prefix.length..-1] }
           aname = aname[prefix.length..-1]
         end
-      
+        
         Dir.chdir(dir) do
           FileUtils.rm(aname) if File.exists?(aname)
           cmd = [archiver[:COMMAND]] # ar
@@ -78,6 +78,8 @@ module Cxxproject
           cmd += objs
 
           if Cxxproject::Utils.old_ruby?
+            cmd.map! {|c| ((c.include?" ") ? ("\""+c+"\"") : c )}
+          
             cmdLine = cmd.join(" ")
             if cmdLine.length > 8000
               inputName = aname+".tmp"

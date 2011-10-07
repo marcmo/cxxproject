@@ -118,9 +118,16 @@ module Rake
         file_tasks = @bb.create_object_file_tasks
         enhance(file_tasks)
         return if file_tasks.length == 0
+        
+        @error_strings = {}
+        
         Jobs.new(file_tasks, application.max_parallel_tasks) do |jobs|
           handle_jobs(jobs, args, invocation_chain)
         end.join
+        
+        if @error_strings.length > 0 # can only happen in case of bail-on-first-error
+          puts @error_strings.sort[0][1] # sort is needed to print always the same errors (it is not deterministic which compile thread finishes first)
+        end
       
         if Rake.application.check_unnecessary_includes
           if not @failure # otherwise the dependency files might be incorrect or not complete
@@ -154,17 +161,21 @@ module Rake
         prereq.output_after_execute = false
         prereq.invoke_with_call_chain(args, invocation_chain)
         set_failed if prereq.failure
-        output(prereq.output_string)
+        output(prereq, prereq.output_string)
       end
     end
 
-    def output(to_output)
+    def output(prereq, to_output)
       return if Rake::Task.output_disabled
       return unless output_after_execute
 
       mutex.synchronize do
         if to_output and to_output.length > 0
-          puts to_output
+          if Rake::Task.bail_on_first_error and prereq and prereq.failure
+            @error_strings[prereq.name] = to_output
+          else
+            puts to_output
+          end
         end
       end
     end
@@ -308,7 +319,7 @@ module Rake
       if not @immediate_output
         self.output_string = s.string
         Thread.current[:stdout] = tmp
-        output(self.output_string)
+        output(nil, self.output_string)
       end
     end
 
@@ -326,7 +337,7 @@ module Rake
       set_failed
     end
 
-    def output(to_output)
+    def output(name, to_output)
       return if Rake::Task.output_disabled
       return unless output_after_execute
 

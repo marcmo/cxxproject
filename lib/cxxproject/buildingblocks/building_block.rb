@@ -150,7 +150,7 @@ module Cxxproject
       end
     end
 
-    def process_result(cmd, console_output, error_parser = nil, alternate = nil)
+    def process_result(cmd, console_output, error_parser, alternate)
 
       hasError = ($?.success? == false)
  
@@ -166,10 +166,19 @@ module Cxxproject
         puts alternate unless Rake::application.options.silent
       end
 
-      process_console_output(console_output, error_parser)
+      errorPrinted = process_console_output(console_output, error_parser)
       
       if hasError
-        Printer.printError "Error: system command failed"
+        if not errorPrinted
+          Printer.printError "Error: system command failed" 
+          res = ErrorDesc.new
+          res.file_name = @project_dir
+          res.line_number = 0
+          res.message = "Unknown error, see log output. Maybe the lake error parser has to be updated..."
+          res.severity = ErrorParser::SEVERITY_ERROR
+          Rake.application.idei.set_errors([res])
+        end
+        
         raise SystemCommandFailed.new
       end
     end
