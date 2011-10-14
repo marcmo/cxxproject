@@ -292,7 +292,7 @@ module Cxxproject
         
         convert_depfile(dep_file) if dep_file
         
-        check_config_file(object)
+        check_config_file()
       end
       enhance_with_additional_files(res)
       add_output_dir_dependency(object, res, false)

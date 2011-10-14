@@ -16,10 +16,6 @@ module Cxxproject
     include HasSources
     include HasIncludes
 
-    @@version_filename_c = "src/version.c"
-    @@version_filename_h = "include/version.h"
-    @@linkinfo_filename_c = "src/linkinfo.c"
-
     def set_linker_script(x)
       @linker_script = x
       self
@@ -30,20 +26,6 @@ module Cxxproject
       self
     end
     
-    def set_build_version_file(x)
-      @build_version_file = x
-    end
-    def set_build_linkinfo(x)
-      @build_linkinfo = x
-    end
-
-    def get_build_version_file
-      @build_version_file
-    end
-    def get_build_linkinfo
-      @build_linkinfo
-    end
-
     def set_suppress_linker(x)
       @suppress_linker = x
     end
@@ -52,8 +34,6 @@ module Cxxproject
       super(name)
       @linker_script = nil
       @mapfile = nil
-      @build_linkinfo = false
-      @build_version_file = false
       @suppress_linker = false
     end
 
@@ -138,14 +118,6 @@ module Cxxproject
       res
     end
 
-    def create_object_file_tasks
-      t = super()
-      ovf = @build_version_file ? File.expand_path(get_object_file(@@version_filename_c)) : "" 
-      oli = @build_linkinfo ? File.expand_path(get_object_file(@@linkinfo_filename_c)) : ""
-      t.delete_if { |f| f.name == ovf or f.name == oli }
-      t
-    end
-
     # create a task that will link an executable from a set of object files
     #
     def convert_to_rake()
@@ -156,29 +128,6 @@ module Cxxproject
       res = typed_file_task Rake::Task::EXECUTABLE, get_task_name => object_multitask do
         Dir.chdir(@project_dir) do
 
-          if @build_linkinfo
-            oname = File.expand_path(get_object_file(@@linkinfo_filename_c))
-            tinfo = Rake.application[oname]
-            tinfo.execute(nil)
-            throw "LinkInfo failed" if tinfo.failure
-          end
-          
-          # generate version
-          if @build_version_file          
-            File.open(@@version_filename_c, 'w') do |f|
-              spExeName = get_executable_name.split("/")
-              f.write("#include \"../include/version.h\"\n");
-              f.write("\n");
-              f.write("#ifndef _VERSION_H_\n"); 
-              f.write("const char* BIN_FILE = \"#{spExeName[spExeName.length-1]} #{Time.now} #{Etc.getlogin}\";\n")
-              f.write("#endif\n"); 
-            end
-            oname = File.expand_path(get_object_file("src/version.c"))
-            vers = Rake.application[oname]
-            vers.execute(nil)
-            throw "VersionGenerator failed" if vers.failure
-          end
-          
           if not @suppress_linker
           
             cmd = [linker[:COMMAND]] # g++
@@ -226,23 +175,12 @@ module Cxxproject
             process_result(cmd, consoleOutput, linker[:ERROR_PARSER], "Linking #{get_executable_name}")
             
           end
-          check_config_file(get_task_name)
+          check_config_file()
         end
       end
       res.enhance(@config_files)
       res.enhance([@project_dir + "/" + @linker_script]) if @linker_script
 
-      if @build_version_file
-        res.enhance([@project_dir + "/" + @@version_filename_c]) 
-        res.enhance([@project_dir + "/" + @@version_filename_h])
-      end
-      if @build_linkinfo
-        res.enhance([@project_dir + "/" + @@linkinfo_filename_c])
-      end 
-      if @build_version_file or @build_linkinfo
-        add_output_dir_dependency(@project_dir + "/" + get_object_file("src/dummy"), res, true)
-      end
-      
       add_output_dir_dependency(get_task_name, res, true)
       add_grouping_tasks(get_task_name)
       setup_rake_dependencies(res)

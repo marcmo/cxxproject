@@ -102,7 +102,7 @@ module Cxxproject
 
           process_result(cmd, consoleOutput, archiver[:ERROR_PARSER], "Creating #{aname}")
         
-          check_config_file(get_task_name)  
+          check_config_file()  
         end
       end
 

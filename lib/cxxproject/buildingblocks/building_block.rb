@@ -211,32 +211,16 @@ module Cxxproject
       return `#{new_command}`
     end
 
-    def check_config_file(file = nil)
+    def check_config_file()
       if @config_date
         @config_files.each do |c|
           err_msg = nil
-          if not File.exists?(c)
-            err_msg = "Error: #{c} has been deleted during build"
-          elsif File.mtime(c) > @config_date
-            err_msg = "Error: #{c} has been modified during build"
-          end
-          if err_msg != nil
+          if File.exists?(c) and File.mtime(c) > @config_date
+            @config_date = File.mtime(c)
             begin
-              err_msg = err_msg + ", delete " + file + " to avoid inconsistent builds" if File.exists?(file)
-              Printer.printError err_msg 
-              FileUtils.rm(file) if File.exists?(file)
-            rescue Exception => ex2
-              Cxxproject::Printer.printError "Error: Could not deleting #{file}: #{ex2.message}"
+              FileUtils.touch(c)
+            rescue Exception
             end
-
-            res = ErrorDesc.new
-            res.file_name = c
-            res.line_number = 0
-            res.severity = ErrorParser::SEVERITY_ERROR
-            res.message = err_msg
-            Rake.application.idei.set_errors([res])
-          
-            ExitHelper.exit(1)
           end
         end
       end
