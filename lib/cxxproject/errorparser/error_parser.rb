@@ -33,18 +33,6 @@ module Cxxproject
       end
     end
 
-    def severity_to_str(s)
-      if s == SEVERITY_INFO
-        "INFO"
-      elsif s == SEVERITY_WARNING
-        "WARNING"
-      elsif s == SEVERITY_ERROR
-        "ERROR"
-      else
-        "UNKNOWN SEVERITY"
-      end
-    end
-
     # scan the output from the console line by line and return a list of ErrorDesc objects.
     # for none-error/warning lines the description object will indicate that as severity 255
     # for single line errors/warnings: description will contain severity, line-number, message and file-name
