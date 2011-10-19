@@ -116,6 +116,12 @@ module Rake
         end
       
         file_tasks = @bb.create_object_file_tasks
+        
+        if file_tasks == nil # = error
+          set_failed
+          return
+        end
+        
         enhance(file_tasks)
         return if file_tasks.length == 0
         
@@ -257,6 +263,7 @@ module Rake
 
         @prerequisites.dup.each do |n| # dup needed when apply tasks changes that array
           break if Rake.application.idei.get_abort
+          break if @failure
 
           prereq = nil
           begin

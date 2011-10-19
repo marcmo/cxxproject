@@ -172,11 +172,21 @@ module Cxxproject
 
       exclude_files = Set.new
       exclude_sources.each do |p|
+        if p.include?".."
+          Printer.printError "Error: Exclude source file pattern '#{p}' must not include '..'"
+          return nil
+        end
+              
         Dir.glob(p).each {|f| exclude_files << f}
       end
       files = Set.new  # do not build the same file twice
 
       sources.each do |f|
+        if f.include?".."
+          Printer.printError "Error: Source file '#{f}' must not include '..'"
+          return nil
+        end
+
         next if exclude_files.include?(f)
         next if files.include?(f)
         files << f
@@ -184,6 +194,11 @@ module Cxxproject
       end
 
       source_patterns.each do |p|
+        if p.include?".."
+          Printer.printError "Error: Source file pattern '#{p}' must not include '..'"
+          return nil
+        end
+      
         globRes = Dir.glob(p)
         if (globRes.length == 0)
           Printer.printWarning "Warning: Source file pattern '#{p}' did not match to any file"
@@ -309,19 +324,25 @@ module Cxxproject
       ret = false
       if not console_output.empty?
         if error_parser
-          error_descs = error_parser.scan_lines(console_output, @project_dir)
+          begin
+            error_descs = error_parser.scan_lines(console_output, @project_dir)
           
-          ret = error_descs.any? { |e| e.severity == ErrorParser::SEVERITY_ERROR }
+            ret = error_descs.any? { |e| e.severity == ErrorParser::SEVERITY_ERROR }
           
-          console_output.gsub!(/[\r]/, "")
-          highlighter = @tcs[:CONSOLE_HIGHLIGHTER]
-          if (highlighter and highlighter.enabled?)
-            puts highlighter.format(console_output, error_descs, error_parser)
-          else
+            console_output.gsub!(/[\r]/, "")
+            highlighter = @tcs[:CONSOLE_HIGHLIGHTER]
+            if (highlighter and highlighter.enabled?)
+              puts highlighter.format(console_output, error_descs, error_parser)
+            else
+              puts console_output
+            end
+
+            Rake.application.idei.set_errors(error_descs)
+          rescue Exception => e
+            Printer.printWarning "Parsing output failed (maybe language not set to English?): " + e.message 
+            puts "Original output:"
             puts console_output
           end
-
-          Rake.application.idei.set_errors(error_descs)
         end
       end
       ret
