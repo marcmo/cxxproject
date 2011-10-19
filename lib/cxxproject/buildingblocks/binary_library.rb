@@ -10,12 +10,16 @@ module Cxxproject
 
     def initialize(name, useNameAsLib = true)
       super(name)
-      @useNameAsLib = useNameAsLib
-      libs_to_search << name if @useNameAsLib
+      if useNameAsLib
+        @useNameAsLib = name
+        add_lib_element(HasLibraries::LIB, name, true)
+      else
+        @useNameAsLib = nil
+      end
     end
 
     def get_task_name()
-      return libs_to_search[0] if @useNameAsLib
+      return @useNameAsLib if @useNameAsLib
       @name
     end
 

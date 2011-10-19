@@ -49,8 +49,11 @@ module Cxxproject
       bblock = Executable.new(name)
       bblock.set_sources(hash[:sources]) if hash.has_key?(:sources)
       bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
-      bblock.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
-      bblock.set_lib_searchpaths(calc_lib_searchpath(hash))
+      calc_lib_searchpath(hash).each { |sp| bblock.add_lib_element(HasLibraries::SEARCH_PATH, sp) }
+      if hash.has_key?(:dependencies)
+        bblock.set_dependencies(hash[:dependencies])
+        hash[:dependencies].each { |d| bblock.add_lib_element(HasLibraries::DEPENDENCY, d) }
+      end
       bblock.set_output_dir(hash[:output_dir]) if hash.has_key?(:output_dir)
       all_blocks << bblock
     end
@@ -83,7 +86,10 @@ module Cxxproject
       bblock.set_sources(hash[:sources])
       bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
       bblock.set_tcs(hash[:toolchain]) if hash.has_key?(:toolchain)
-      bblock.set_dependencies(hash[:dependencies]) if hash.has_key?(:dependencies)
+      if hash.has_key?(:dependencies)
+        bblock.set_dependencies(hash[:dependencies]) 
+        hash[:dependencies].each { |d| bblock.add_lib_element(HasLibraries::DEPENDENCY, d) }
+      end
       bblock.file_dependencies = hash[:file_dependencies] if hash.has_key?(:file_dependencies)
       bblock.set_output_dir(hash[:output_dir]) if hash.has_key?(:output_dir)
       all_blocks << bblock

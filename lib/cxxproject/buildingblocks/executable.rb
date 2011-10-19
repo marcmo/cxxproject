@@ -26,15 +26,10 @@ module Cxxproject
       self
     end
     
-    def set_suppress_linker(x)
-      @suppress_linker = x
-    end
-
     def initialize(name)
       super(name)
       @linker_script = nil
       @mapfile = nil
-      @suppress_linker = false
     end
 
     def set_executable_name(name) # ensure it's relative
@@ -73,7 +68,7 @@ module Cxxproject
     def adaptPath(v, d, prefix)
       tmp = nil
       if File.is_absolute?(v)
-        tmp = File.rel_from_to_project(@project_dir,v,false)
+        tmp = v
       else
         prefix ||= File.rel_from_to_project(@project_dir,d.project_dir)
         tmp = File.add_prefix(prefix, v)
@@ -82,39 +77,46 @@ module Cxxproject
       [tmp, prefix]
     end
 
-    def calc_linker_lib_string_for_dependency(d, s1, s2, s3, s4)
-      res = []
-      prefix = nil
-      linker = @tcs[:LINKER]
-      collect_unique(d.lib_searchpaths, s1).each do |v|
-        tmp, prefix = adaptPath(v, d, prefix)
-        res << "#{linker[:LIB_PATH_FLAG]}#{tmp}"
-      end 
-      collect_unique(d.libs_to_search, s2).each do |v|
-        res << "#{linker[:LIB_FLAG]}#{v}"
-      end
-      collect_unique(d.user_libs, s3).each do |v|
-        res << "#{linker[:USER_LIB_FLAG]}#{v}"
-      end
-      collect_unique(d.libs_with_path, s4).each do |v|
-        tmp, prefix = adaptPath(v, d, prefix)
-        res <<  tmp
-      end 
-      res
+    def linker_lib_string()
+      @lib_path_set = Set.new
+      @dep_set = Set.new
+      calc_linker_lib_string_recursive(self)
     end
 
-    def calc_linker_lib_string
-      # calc linkerLibString - order is important, duplicates are removed
-      s1 = Set.new
-      s2 = Set.new
-      s3 = Set.new
-      s4 = Set.new
+    def calc_linker_lib_string_recursive(d)
       res = []
+    
+      return res if @dep_set.include?d
+      @dep_set << d
+    
+      if HasLibraries === d
+        prefix = nil
+        linker = @tcs[:LINKER]
       
-      all_dependencies.each do |d|
-        next if not HasLibraries === d
-        res += calc_linker_lib_string_for_dependency(d, s1, s2, s3, s4)
+        d.lib_elements.each do |elem|
+          case elem[0]
+            when HasLibraries::LIB
+              res << "#{linker[:LIB_FLAG]}#{elem[1]}"
+            when HasLibraries::USERLIB
+              res << "#{linker[:USER_LIB_FLAG]}#{elem[1]}"
+            when HasLibraries::LIB_WITH_PATH
+              tmp, prefix = adaptPath(elem[1], d, prefix)
+              res <<  tmp
+            when HasLibraries::SEARCH_PATH
+              tmp, prefix = adaptPath(elem[1], d, prefix)
+              if not @lib_path_set.include?tmp
+                @lib_path_set << tmp
+                res << "#{linker[:LIB_PATH_FLAG]}#{tmp}"
+              end
+            when HasLibraries::DEPENDENCY
+              if ALL_BUILDING_BLOCKS.include?elem[1]
+                bb = ALL_BUILDING_BLOCKS[elem[1]]
+                res += calc_linker_lib_string_recursive(bb)
+              end
+          end
+        end
       end
+      
       res
     end
 
@@ -128,53 +130,50 @@ module Cxxproject
       res = typed_file_task Rake::Task::EXECUTABLE, get_task_name => object_multitask do
         Dir.chdir(@project_dir) do
 
-          if not @suppress_linker
-          
-            cmd = [linker[:COMMAND]] # g++
-            cmd += linker[:MUST_FLAGS].split(" ")
-            cmd += linker[:FLAGS].gsub(/\"/,"").split(" ") # double quotes within string do not work on windows...
-            cmd << linker[:EXE_FLAG]
-            cmd << get_executable_name # -o debug/x.exe
-            cmd += @objects
-            cmd << linker[:SCRIPT] if @linker_script # -T
-            cmd << @linker_script if @linker_script # xy/xy.dld
-            cmd << linker[:MAP_FILE_FLAG] if @mapfile # -Wl,-m6
-            cmd += linker[:LIB_PREFIX_FLAGS].split(" ") # "-Wl,--whole-archive "
-            cmd += calc_linker_lib_string
-            cmd += linker[:LIB_POSTFIX_FLAGS].split(" ") # "-Wl,--no-whole-archive "
+          cmd = [linker[:COMMAND]] # g++
+          cmd += linker[:MUST_FLAGS].split(" ")
+          cmd += linker[:FLAGS].gsub(/\"/,"").split(" ") # double quotes within string do not work on windows...
+          cmd << linker[:EXE_FLAG]
+          cmd << get_executable_name # -o debug/x.exe
+          cmd += @objects
+          cmd << linker[:SCRIPT] if @linker_script # -T
+          cmd << @linker_script if @linker_script # xy/xy.dld
+          cmd << linker[:MAP_FILE_FLAG] if @mapfile # -Wl,-m6
+          cmd += linker[:LIB_PREFIX_FLAGS].split(" ") # "-Wl,--whole-archive "
+          cmd += linker_lib_string
+          cmd += linker[:LIB_POSTFIX_FLAGS].split(" ") # "-Wl,--no-whole-archive "
 
-            mapfileStr = @mapfile ? " >#{@mapfile}" : ""
-            if Cxxproject::Utils.old_ruby?
-              cmd.map! {|c| ((c.include?" ") ? ("\""+c+"\"") : c )}
+          mapfileStr = @mapfile ? " >#{@mapfile}" : ""
+          if Cxxproject::Utils.old_ruby?
+            cmd.map! {|c| ((c.include?" ") ? ("\""+c+"\"") : c )}
 
-              # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
-              cmdLine = cmd.join(" ") + " 2>" + get_temp_filename
-              if cmdLine.length > 8000
-                inputName = get_executable_name+".tmp"
-                File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
-                inputName = "\""+inputName+"\"" if inputName.include?" "
-                consoleOutput = `#{linker[:COMMAND] + " @" + inputName + mapfileStr + " 2>" + get_temp_filename}`
-              else
-                consoleOutput = `#{cmd.join(" ") + mapfileStr + " 2>" + get_temp_filename}`
-              end
-              consoleOutput.concat(read_file_or_empty_string(get_temp_filename))          
+            # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
+            cmdLine = cmd.join(" ") + " 2>" + get_temp_filename
+            if cmdLine.length > 8000
+              inputName = get_executable_name+".tmp"
+              File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
+              inputName = "\""+inputName+"\"" if inputName.include?" "
+              consoleOutput = `#{linker[:COMMAND] + " @" + inputName + mapfileStr + " 2>" + get_temp_filename}`
             else
-              rd, wr = IO.pipe
-              cmd << {
-               :out=> @mapfile ? "#{@mapfile}" : wr, # > xy.map
-               :err=>wr
-              }
-              sp = spawn(*cmd)
-              cmd.pop
-
-              # for console print
-              cmd << " >#{@mapfile}" if @mapfile
-              consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
+              consoleOutput = `#{cmd.join(" ") + mapfileStr + " 2>" + get_temp_filename}`
             end
-          
-            process_result(cmd, consoleOutput, linker[:ERROR_PARSER], "Linking #{get_executable_name}")
-            
+            consoleOutput.concat(read_file_or_empty_string(get_temp_filename))          
+          else
+            rd, wr = IO.pipe
+            cmd << {
+             :out=> @mapfile ? "#{@mapfile}" : wr, # > xy.map
+             :err=>wr
+            }
+            sp = spawn(*cmd)
+            cmd.pop
+
+            # for console print
+            cmd << " >#{@mapfile}" if @mapfile
+            consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
           end
+          
+          process_result(cmd, consoleOutput, linker[:ERROR_PARSER], "Linking #{get_executable_name}")
+            
           check_config_file()
         end
       end

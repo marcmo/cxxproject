@@ -156,7 +156,7 @@ module Cxxproject
  
       if hasError or RakeFileUtils.verbose or (alternate.nil? and not Rake::application.options.silent)
         exedIn = ""
-        exedIn = " (executed in '#{Dir.pwd}')" if (hasError or RakeFileUtils.verbose)
+        exedIn = " (executed in '#{@project_dir}')" if (hasError or RakeFileUtils.verbose)
         if cmd.is_a?(Array)
           puts cmd.join(' ') + exedIn
         else

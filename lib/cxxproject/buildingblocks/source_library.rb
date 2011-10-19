@@ -17,10 +17,10 @@ module Cxxproject
 
     def complete_init()
       if @output_dir_abs
-        libs_to_search << @name
-        lib_searchpaths << File.join(@output_dir, 'libs')
+        add_lib_element(HasLibraries::SEARCH_PATH, File.join(@output_dir, 'libs'), true)
+        add_lib_element(HasLibraries::LIB, @name, true)
       else
-        libs_with_path << File.join(@output_dir,"lib#{@name}.a")
+        add_lib_element(HasLibraries::LIB_WITH_PATH, File.join(@output_dir,"lib#{@name}.a"), true) 
       end
       super
     end

@@ -1,36 +1,33 @@
 module Cxxproject
   module HasLibraries
-
-    def user_libs
-      @user_libs ||= []
-    end
-    def set_user_libs(x)
-      @user_libs = x
-      self
-    end
-
-    def libs_to_search
-      @libs_to_search ||= []
-    end
-    def set_libs_to_search(x)
-      @libs_to_search = x
-      self
+    LIB = 1
+    USERLIB = 2
+    LIB_WITH_PATH = 3
+    SEARCH_PATH = 4
+    DEPENDENCY = 5
+   
+    def lib_elements
+      @lib_elements ||= []
     end
 
-    def lib_searchpaths
-      @lib_searchpaths ||= []
-    end
-    def set_lib_searchpaths(x)
-      @lib_searchpaths = x
-      self
+    # value: can be string or building block
+    def add_lib_element(type, value, front = false)
+      elem = [type, value.instance_of?(String) ? value : value.name]
+      if front
+        lib_elements.unshift(elem)
+      else
+        lib_elements << elem
+      end
     end
 
-    def libs_with_path
-      @libs_with_path ||= []
-    end
-    def set_libs_with_path(x)
-      @libs_with_path = x
-      self
+    # 1. element: type
+    # 2. element: name, must not be a building block
+    def add_lib_elements(array_of_tuples, front = false)
+      if front
+        @lib_elements = array_of_tuples+lib_elements
+      else
+        lib_elements.concat(array_of_tuples)
+      end
     end
 
   end
