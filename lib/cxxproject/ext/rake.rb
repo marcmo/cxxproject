@@ -90,9 +90,11 @@ module Rake
     def set_building_block(bb)
       @bb = bb
     end
-
+    
     def invoke_prerequisites(args, invocation_chain)
       super(args, invocation_chain)
+
+      return if @failure # pre step has failed
 
       Dir.chdir(@bb.project_dir) do
         if Dir.pwd != @bb.project_dir and File.dirname(Dir.pwd) != File.dirname(@bb.project_dir)
@@ -263,7 +265,7 @@ module Rake
 
         @prerequisites.dup.each do |n| # dup needed when apply tasks changes that array
           break if Rake.application.idei.get_abort
-          break if @failure
+          #break if @failure
 
           prereq = nil
           begin

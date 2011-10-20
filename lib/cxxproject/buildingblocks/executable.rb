@@ -182,7 +182,7 @@ module Cxxproject
 
       add_output_dir_dependency(get_task_name, res, true)
       add_grouping_tasks(get_task_name)
-      setup_rake_dependencies(res)
+      setup_rake_dependencies(res, object_multitask)
       
       # check that all source libs are checked even if they are not a real rake dependency (can happen if "build this project only")
       begin

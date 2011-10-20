@@ -25,6 +25,7 @@ module Cxxproject
 
     attr_reader :project_dir
     attr_accessor :output_dir
+    attr_accessor :pre_step
     attr_reader :output_dir_abs
 
     def set_name(x)
@@ -94,6 +95,7 @@ module Cxxproject
       @output_dir = nil
       @output_dir_abs = false
       @complete_output_dir = nil
+      @pre_step = nil
 
       if ALL_BUILDING_BLOCKS.include?(@name) and not self.instance_of?(BinaryLibrary)
         raise "building block already exists: #{name}"
@@ -119,12 +121,17 @@ module Cxxproject
     ##
     # convert all dependencies of a building block to rake task prerequisites (e.g. exe needs lib)
     #
-    def setup_rake_dependencies(task)
+    def setup_rake_dependencies(task, multitask = nil)
       dependencies.reverse_each do |d|
         begin
           bb = ALL_BUILDING_BLOCKS[d]
           raise "Error: tried to add the dependencies of \"#{d}\" to \"#{@name}\" but such a building block could not be found!" unless bb
-          task.prerequisites.unshift(bb.get_task_name)
+          
+          if multitask and bb.pre_step
+            multitask.prerequisites.unshift(bb.get_task_name)
+          else
+            task.prerequisites.unshift(bb.get_task_name)
+          end
         rescue ExitHelperException
           raise
         rescue Exception => e

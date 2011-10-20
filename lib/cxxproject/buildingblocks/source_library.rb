@@ -105,13 +105,12 @@ module Cxxproject
           check_config_file()  
         end
       end
-
       enhance_with_additional_files(res)
       add_output_dir_dependency(get_task_name, res, true)
 
       add_grouping_tasks(get_task_name)
 
-      setup_rake_dependencies(res)
+      setup_rake_dependencies(res, object_multitask)
       return res
     end
 
