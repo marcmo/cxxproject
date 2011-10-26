@@ -12,7 +12,7 @@ module Cxxproject
       :COMMAND => "dcc",
       :FLAGS => "",
       :DEFINE_FLAG => "-D",
-      :OBJECT_FILE_FLAG => "-o",
+      :OBJECT_FILE_FLAG => "-o ",
       :INCLUDE_PATH_FLAG => "-I",
       :COMPILE_FLAGS => "-c",
       :DEP_FLAGS => "-Xmake-dependency=6 -Xmake-dependency-savefile=",
@@ -45,6 +45,6 @@ module Cxxproject
     DiabChain[:COMPILER][:ASM][:ERROR_PARSER] = diabCompilerErrorParser
     DiabChain[:ARCHIVER][:ERROR_PARSER] =       diabCompilerErrorParser
     DiabChain[:LINKER][:ERROR_PARSER] =         DiabLinkerErrorParser.new
-    
+
   end
 end

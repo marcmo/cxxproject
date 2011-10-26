@@ -6,13 +6,13 @@ require 'cxxproject/errorparser/gcc_linker_error_parser'
 
 module Cxxproject
   module Toolchain
-      
+
     GCCChain = Provider.add("GCC")
 
     GCCChain[:COMPILER][:CPP].update({
       :COMMAND => "g++",
       :DEFINE_FLAG => "-D",
-      :OBJECT_FILE_FLAG => "-o",
+      :OBJECT_FILE_FLAG => "-o ",
       :INCLUDE_PATH_FLAG => "-I",
       :COMPILE_FLAGS => "-c ",
       :DEP_FLAGS => "-MMD -MF",
@@ -42,6 +42,6 @@ module Cxxproject
     GCCChain[:COMPILER][:ASM][:ERROR_PARSER] = gccCompilerErrorParser
     GCCChain[:ARCHIVER][:ERROR_PARSER] =       gccCompilerErrorParser
     GCCChain[:LINKER][:ERROR_PARSER] =         GCCLinkerErrorParser.new
-    
+
   end
 end

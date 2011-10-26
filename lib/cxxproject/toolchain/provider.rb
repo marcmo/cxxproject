@@ -117,4 +117,4 @@ end
 require 'cxxproject/toolchain/diab'
 require 'cxxproject/toolchain/gcc'
 require 'cxxproject/toolchain/clang'
-
+require 'cxxproject/toolchain/ti'
