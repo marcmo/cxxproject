@@ -9,11 +9,7 @@ module Cxxproject
 
     TiChain = Provider.add("TI")
 
-    ti_home = ENV['TI_HOME']
-    if not ti_home
-      puts "Please set TI_HOME"
-      ti_home = "Please set TI_HOME" unless ti_home
-    end
+    ti_home = ENV['TI_HOME'] 
 
     TiChain[:COMPILER][:CPP].update({
       :COMMAND => "#{ti_home}/ccsv5/tools/compiler/tms470/bin/cl470",

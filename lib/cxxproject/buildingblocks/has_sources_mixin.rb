@@ -277,7 +277,7 @@ module Cxxproject
         cmd += compiler[:FLAGS].gsub(/\"/,"").split(" ") # double quotes within string do not work on windows...
         cmd += i_array
         cmd += d_array
-        cmd << compiler[:OBJECT_FILE_FLAG] + objectRel
+        cmd += (compiler[:OBJECT_FILE_FLAG] + objectRel).split(" ")
         cmd << sourceRel
 
         if Cxxproject::Utils.old_ruby?
