@@ -26,7 +26,7 @@ module Cxxproject
         end
         res << d
       end
-      res    
+      [res, consoleOutput]
     end
 
   end

@@ -20,6 +20,7 @@ module Rake
     attr_writer :max_parallel_tasks
     attr_writer :check_unnecessary_includes
     attr_writer :deriveIncludes
+    attr_writer :consoleOutput_fullnames
     def max_parallel_tasks
       @max_parallel_tasks ||= 8
     end
@@ -52,6 +53,10 @@ module Rake
     
     def deriveIncludes
       @deriveIncludes ||= false
+    end
+
+    def consoleOutput_fullnames
+      @consoleOutput_fullnames ||= false
     end
     
   end

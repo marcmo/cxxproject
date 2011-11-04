@@ -9,7 +9,7 @@ module Cxxproject
 
     def scan_lines(consoleOutput, proj_dir)
       res = []
-      consoleOutput.each_line do |l|
+      consoleOutputFullnames = consoleOutput.each_line.map do |l|
         d = ErrorDesc.new
         scan_res = l.gsub(/\r\n?/, "").scan(@error_expression)
         if scan_res.length > 0
@@ -17,10 +17,12 @@ module Cxxproject
           d.line_number = scan_res[0][1].to_i
           d.message = scan_res[0][4]
           d.severity = get_severity(scan_res[0][3])
+          l.gsub!(scan_res[0][0],d.file_name)
         end
         res << d
-      end
-      res
+        l
+      end.join
+      [res, consoleOutputFullnames]
     end
 
   end

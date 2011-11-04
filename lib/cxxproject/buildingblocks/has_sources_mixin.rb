@@ -324,7 +324,9 @@ module Cxxproject
       if not console_output.empty?
         if error_parser
           begin
-            error_descs = error_parser.scan_lines(console_output, @project_dir)
+            error_descs, console_output_full = error_parser.scan_lines(console_output, @project_dir)
+            
+            console_output = console_output_full if Rake::application.consoleOutput_fullnames
           
             ret = error_descs.any? { |e| e.severity == ErrorParser::SEVERITY_ERROR }
           

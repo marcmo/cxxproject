@@ -21,7 +21,7 @@ module Cxxproject
         d.severity = SEVERITY_ERROR
         res << d
       end
-      res  
+      [res, consoleOutput]
     end
 
 

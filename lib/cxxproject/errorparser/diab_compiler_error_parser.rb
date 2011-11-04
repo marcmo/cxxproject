@@ -11,14 +11,14 @@ module Cxxproject
     def scan_lines(consoleOutput, proj_dir)
       res = []
       error_severity = 255
-      consoleOutput.each_line do |l|
+      consoleOutputFullnames = consoleOutput.each_line.map do |l|
         d = ErrorDesc.new
-        l.rstrip!
-        scan_res = l.scan(@error_expression_start)
+        lstripped = l.rstrip
+        scan_res = lstripped.scan(@error_expression_start)
         if scan_res.length == 0
           d.severity = error_severity
-          d.message = l
-          if l.scan(@error_expression_end).length > 0
+          d.message = lstripped 
+          if lstripped.scan(@error_expression_end).length > 0
             error_severity = 255 
           end
         else
@@ -27,10 +27,12 @@ module Cxxproject
           d.message = scan_res[0][4]
           d.severity = get_severity(scan_res[0][3])
           error_severity = d.severity
+          l.gsub!(scan_res[0][0],d.file_name)
         end
         res << d
-      end
-      res
+        l
+      end.join
+      [res, consoleOutputFullnames]
     end
 
   end
