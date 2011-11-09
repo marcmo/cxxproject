@@ -1,8 +1,8 @@
 require 'cxxproject/utils/utils'
 require 'cxxproject/toolchain/provider'
 require 'cxxproject/errorparser/error_parser'
-require 'cxxproject/errorparser/gcc_compiler_error_parser'
-require 'cxxproject/errorparser/gcc_linker_error_parser'
+require 'cxxproject/errorparser/ti_compiler_error_parser'
+require 'cxxproject/errorparser/ti_linker_error_parser'
 
 module Cxxproject
   module Toolchain
@@ -25,7 +25,7 @@ module Cxxproject
     TiChain[:COMPILER][:C] = Utils.deep_copy(TiChain[:COMPILER][:CPP])
     TiChain[:COMPILER][:C][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:C][:SOURCE_FILE_ENDINGS]
 
-    TiChain[:COMPILER][:ASM] = Utils.deep_copy(GCCChain[:COMPILER][:C])
+    TiChain[:COMPILER][:ASM] = Utils.deep_copy(TiChain[:COMPILER][:C])
     TiChain[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS]
 
     TiChain[:ARCHIVER][:COMMAND] = "#{ti_home}/ccsv5/tools/compiler/tms470/bin/ar470"
@@ -39,12 +39,12 @@ module Cxxproject
     TiChain[:LINKER][:LIB_FLAG] = "-l"
     TiChain[:LINKER][:LIB_PATH_FLAG] = "-i"
 
-    tiCompilerErrorParser =                   GCCCompilerErrorParser.new
+    tiCompilerErrorParser =                   TICompilerErrorParser.new
     TiChain[:COMPILER][:C][:ERROR_PARSER] =   tiCompilerErrorParser
     TiChain[:COMPILER][:CPP][:ERROR_PARSER] = tiCompilerErrorParser
     TiChain[:COMPILER][:ASM][:ERROR_PARSER] = tiCompilerErrorParser
     TiChain[:ARCHIVER][:ERROR_PARSER] =       tiCompilerErrorParser
-    TiChain[:LINKER][:ERROR_PARSER] =         GCCLinkerErrorParser.new
+    TiChain[:LINKER][:ERROR_PARSER] =         TILinkerErrorParser.new
 
   end
 end

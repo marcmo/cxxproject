@@ -81,7 +81,7 @@ module Rake
       the_next
     end
     def join
-      @threads.each{|t|t.join}
+      @threads.each{|t| while not t.join(2) do end}
     end
     def mutex
       @mutex ||= Mutex.new
