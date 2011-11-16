@@ -11,7 +11,8 @@ module Cxxproject
     def scan_lines(consoleOutput, proj_dir)
       res = []
       error_severity = 255
-      consoleOutputFullnames = consoleOutput.each_line.map do |l|
+      consoleOutputFullnames = ""
+      consoleOutput.each_line do |l|
         d = ErrorDesc.new
         lstripped = l.rstrip
         scan_res = lstripped.scan(@error_expression_start)
@@ -30,8 +31,8 @@ module Cxxproject
           l.gsub!(scan_res[0][0],d.file_name)
         end
         res << d
-        l
-      end.join
+        consoleOutputFullnames << l
+      end
       [res, consoleOutputFullnames]
     end
 

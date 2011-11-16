@@ -9,7 +9,8 @@ module Cxxproject
 
     def scan_lines(consoleOutput, proj_dir)
       res = []
-      consoleOutputFullnames = consoleOutput.each_line.map do |l|
+      consoleOutputFullnames = ""
+      consoleOutput.each_line do |l|
         d = ErrorDesc.new
         scan_res = l.gsub(/\r\n?/, "").scan(@error_expression)
         if scan_res.length > 0
@@ -20,8 +21,8 @@ module Cxxproject
           l.gsub!(scan_res[0][0],d.file_name)
         end
         res << d
-        l
-      end.join
+        consoleOutputFullnames << l
+      end
       [res, consoleOutputFullnames]
     end
 
