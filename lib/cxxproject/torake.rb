@@ -26,8 +26,10 @@ module Cxxproject
       @rel_projects = @projects.map { |p| File.join(@base, p) }
 
       # TODO: this should be cleaned up somehow...
-      toolchain[:LINKER][:LIB_PREFIX_FLAGS] = "-Wl,--whole-archive"
-      toolchain[:LINKER][:LIB_POSTFIX_FLAGS] = "-Wl,--no-whole-archive"
+      if Utils::OS.linux?
+        toolchain[:LINKER][:LIB_PREFIX_FLAGS] = "-Wl,--whole-archive"
+        toolchain[:LINKER][:LIB_POSTFIX_FLAGS] = "-Wl,--no-whole-archive"
+      end
       
       Rake::application.deriveIncludes = true
 

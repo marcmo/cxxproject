@@ -5,6 +5,56 @@ see documentation page: [cxxproject](http://marcmo.github.com/cxxproject)
 
 ## Change History:
 
+v_0.5.41 => v_0.5.42
+
+    * error incompatible to ruby 1.8.6
+
+v_0.5.40 => v_0.5.41
+
+    * Added workaround for deadlock bug in ruby 1.8.7p352. Improved TI error parser
+
+v_0.5.39 => v_0.5.40
+
+
+v_0.5.38 => v_0.5.39
+
+    * Fixed cleanup method for specs
+    * Added option to show full filename output for compiler
+
+v_0.5.37 => v_0.5.38
+
+    * added ti compiler toolchain
+    * Fixed -o compiler flag handling
+
+v_0.5.36 => v_0.5.37
+
+    * Bugfix: build always bailed out on error. Changed: dependency added to multitask intead of lib/exe if specified
+
+v_0.5.34 => v_0.5.36
+
+    * Cosmetic: removed unused method
+    * Disallow sources with '..' . If prereq failed, files shall not be compiled. Nicer handling of unknown severity, e.g. when compiler has language different to English
+    * Order of libs, userlibs, searchpath was not correct. Removed linker suppression for executables
+
+v_0.5.33 => v_0.5.34
+
+    * Fixed warning for regex in ruby 1.8.6
+    * Refactored error output: colorizing simplified (ONE color for each severity), error msg if return value of command not 0 and error parser has nothing found, unnecessary command failed message removed in cases where error message are already printed.
+    * Files with errors are shown at the end if bail_on_first_error (most part of this change was done in the last commit)
+    * Added explanation for bad filedescriptor problem
+    * Removed attribute helper spec - this feature is not part of cxxproject anymore
+    * Removed linkinfo and versiongenerator. Touch config file if changed during build.
+
+v_0.5.32 => v_0.5.33
+
+    * output of objects without org file ext. some minor cleanup
+
+v_0.5.31 => v_0.5.32
+
+    * 0.5.31
+    * updated README
+    * Makefile and CommandLine output immediately visible instead of waiting until the step has been completed. Bugfix: attribute pathTo of Makefile did not work for Build This Project Only
+
 v_0.5.30 => v_0.5.31
 
     * Bugfix: GCC error parser broken if column is included. Bugfix: If line has no error and colorizer is on, the newline was dismissed.
