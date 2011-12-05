@@ -1,5 +1,6 @@
 require 'cxxproject/errorparser/error_parser'
 require 'cxxproject/utils/printer'
+require 'thread'
 
 module Cxxproject
 
@@ -18,6 +19,7 @@ module Cxxproject
     def initialize()
       @socket = nil
       @abort = false
+      @thread = nil
     end
 
     def mutex
@@ -27,6 +29,15 @@ module Cxxproject
     def connect(port)
       begin
         @socket = TCPSocket.new('localhost', port)
+
+        @thread = Thread.new do
+          begin
+            @socket.recv(1)
+            set_abort(true)
+          rescue Exception => e
+          end
+        end
+        
       rescue Exception => e
         Printer.printError "Error: #{e.message}"
         ExitHelper.exit(1)
@@ -44,6 +55,12 @@ module Cxxproject
         end
         @socket = nil
       end
+      
+      begin
+        @thread.join if @thread
+      rescue
+      end      
+      @thread = nil
     end
 
     def write_long(packet, l)
@@ -151,26 +168,12 @@ module Cxxproject
     end
 
     def get_abort()
-      return @abort if @abort
-      if @socket
-        mutex.synchronize {
-          begin
-            @socket.recv_nonblock(1)
-            set_abort(true) # currently this is the only possible input
-          rescue Errno::EWOULDBLOCK
-            # this is not an error but the default "return"-value of recv_nonblock
-          rescue Exception => e
-            Printer.printError "Error: #{e.message}"            
-            set_abort(true)
-          end          
-        }
-      end
-
       @abort
     end
 
     def set_abort(value)
       @abort = value
+      ProcessHelper.killProcess if @abort
     end
 
   end

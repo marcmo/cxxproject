@@ -1,6 +1,7 @@
 module Cxxproject
 
   class ProcessHelper
+    @@pid = nil
 
     def self.readOutput(sp, rd, wr)
       wr.close
@@ -30,6 +31,23 @@ module Cxxproject
       consoleOutput
     end
 
+    def self.spawnProcess(cmdLine)
+      return system cmdLine if Cxxproject::Utils.old_ruby?
+      
+      @@pid = spawn(cmdLine)
+      pid, status = Process.wait2(@@pid)
+      @@pid = nil
+      status.success? 
+    end
+
+    def self.killProcess
+      begin
+        Process.kill("KILL",@@pid)
+      rescue
+      end
+      @@pid = nil
+    end
+    
   end
 
 end

@@ -1,6 +1,7 @@
 require 'cxxproject/buildingblocks/building_block'
 require 'cxxproject/buildingblocks/has_libraries_mixin'
 require 'cxxproject/utils/printer'
+require 'cxxproject/utils/process'
 
 module Cxxproject
   class Makefile < BuildingBlock
@@ -38,7 +39,7 @@ module Cxxproject
     def get_target
       @target
     end
-
+    
     def initialize(mfile, mtarget)
       @target = mtarget != "" ? mtarget : "all"
       @makefile = mfile
@@ -76,7 +77,7 @@ module Cxxproject
           puts cmd + (RakeFileUtils.verbose ? " (executed in '#{@project_dir}')" : "")
           cmd_result = false
           begin
-            cmd_result = system(cmd + " 2>&1")
+            cmd_result = ProcessHelper.spawnProcess(cmd + " 2>&1")
           rescue
           end
           if (cmd_result == false)

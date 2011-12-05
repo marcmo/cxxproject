@@ -1,4 +1,6 @@
 require 'cxxproject/buildingblocks/building_block'
+require 'cxxproject/utils/process'
+
 module Cxxproject
 
   class CommandLine < BuildingBlock
@@ -48,7 +50,7 @@ module Cxxproject
           puts cmd + (RakeFileUtils.verbose ? " (executed in '#{@project_dir}')" : "")
           cmd_result = false
           begin
-            cmd_result = system(cmd + " 2>&1")
+            cmd_result = ProcessHelper.spawnProcess(cmd + " 2>&1")
           rescue
           end
           if (cmd_result == false)
