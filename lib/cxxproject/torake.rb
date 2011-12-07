@@ -176,8 +176,7 @@ module Cxxproject
       begin
         loadContext.eval_project(File.read(File.basename(project_file)))
       rescue Exception => e
-        warn "problems with #{File.join(b, project_file)} in dir: #{Dir.pwd}"
-        warn {e.inspect}
+        puts "problems with #{File.join(b, project_file)} in dir: #{Dir.pwd}"
         raise e
       end
       loadContext.myblock.call()
