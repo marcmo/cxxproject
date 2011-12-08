@@ -5,6 +5,17 @@ see documentation page: [cxxproject](http://marcmo.github.com/cxxproject)
 
 ## Change History:
 
+v_0.5.43 => v_0.5.44
+
+    * Added possibility to kill CommandLine and Makefile
+    * 0.5.44
+
+v_0.5.42 => v_0.5.43
+
+    * changed gemset version for rvm
+    * don't use --whole-archive option on mac os'
+      updated the change history
+
 v_0.5.41 => v_0.5.42
 
     * error incompatible to ruby 1.8.6

@@ -2,6 +2,7 @@ $:.unshift(File.dirname(__FILE__)+"/")
 
 require "rake"
 require "lib/cxxproject/version"
+require 'yaml'
 
 include FileUtils
 

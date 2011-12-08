@@ -4,11 +4,6 @@ require './rake_helper/spec.rb'
 desc "Default Task"
 task :default => [:install]
 
-require 'rubygems/package_task'
-require 'yaml'
-spec = Gem::Specification.load('cxx.gemspec')
-Gem::PackageTask.new(spec){|pkg|}
-
 begin
   require 'roodi'
   require 'roodi_task'
@@ -36,22 +31,30 @@ rescue LoadError # don't bail out when people do not have roodi installed!
   end
 end
 
-desc "install gem globally"
-task :install => [:gem] do
-  sh "gem install pkg/#{spec.name}-#{spec.version}.gem"
-end
-
-
 begin
-  require 'rdoc'
-  require 'rdoc/task'
-  RDoc::Task.new do |rd|
-    rd.rdoc_files.include(spec.files)
+  require 'rubygems/package_task'
+  spec = Gem::Specification.load('cxx.gemspec')
+  Gem::PackageTask.new(spec){|pkg|}
+
+  desc "install gem globally"
+  task :install => [:gem] do
+    sh "gem install pkg/#{spec.name}-#{spec.version}.gem"
+  end
+
+
+  begin
+    require 'rdoc'
+    require 'rdoc/task'
+    RDoc::Task.new do |rd|
+      rd.rdoc_files.include(spec.files)
+    end
+  rescue LoadError => e
+    task :rdoc do
+      puts 'please gem install rdoc'
+    end
   end
 rescue LoadError => e
-  task :rdoc do
-    puts 'please gem install rdoc'
-  end
+    puts "please missing gems #{e}" 
 end
 
 
@@ -108,7 +111,7 @@ begin
   end
 
 rescue LoadError => e
-  puts 'please gem install grit'
+  puts 'to build the version history please gem install grit'
 end
 
 
