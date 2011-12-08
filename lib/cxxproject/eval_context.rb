@@ -22,7 +22,9 @@ module Cxxproject
       @all_blocks = []
     end
 
-    def eval_project(project_text)
+    def eval_project(project_text, project_file, pwd)
+      @current_project_file = project_file
+      @current_working_dir = pwd
       instance_eval(project_text)
     end
 
@@ -33,7 +35,11 @@ module Cxxproject
     end
 
     def check_hash(hash,allowed)
-      hash.keys.map {|k| raise "#{k} is not a valid specifier!" unless allowed.include?(k) }
+      hash.keys.map do |k|
+        error_string = ["error while evaluating \"#{@current_working_dir}/#{@current_project_file}\"",
+                        "\"#{k}\" is not a valid specifier!"].join($/)
+        raise error_string unless allowed.include?(k)
+      end
     end
 
     # specify an executable

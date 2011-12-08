@@ -174,12 +174,19 @@ module Cxxproject
     def eval_file(b, project_file)
       loadContext = EvalContext.new
       begin
-        loadContext.eval_project(File.read(File.basename(project_file)))
+        loadContext.eval_project(File.read(File.basename(project_file)), project_file, Dir.pwd)
       rescue Exception => e
         puts "problems with #{File.join(b, project_file)} in dir: #{Dir.pwd}"
         raise e
       end
-      loadContext.myblock.call()
+      begin
+        loadContext.myblock.call()
+      rescue Exception => e
+        error_string = "error while evaluating \"#{Dir.pwd}/#{project_file}\""
+        puts error_string
+        raise e
+      end
+
       loadContext.all_blocks.each do |block|
         block.
           set_project_dir(Dir.pwd).
