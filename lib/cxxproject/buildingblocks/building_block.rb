@@ -149,6 +149,7 @@ module Cxxproject
       taskOfFile.enhance([d])
       
       if addDirToCleanTask
+        CLOBBER.include(complete_output_dir)
         if (@output_dir_abs)
           CLEAN.include(file)
         else
