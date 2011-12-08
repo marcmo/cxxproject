@@ -22,6 +22,15 @@ describe Cxxproject::BuildingBlock do
     deps.should == ['4', '2', '3', '1']
   end
 
+  it 'should build the right dependency-chain for custom blocks' do
+    lib1 = Cxxproject::SourceLibrary.new('1')
+    lib2 = Cxxproject::CustomBuildingBlock.new('2').set_dependencies(['1'])
+    lib3 = Cxxproject::SourceLibrary.new('3').set_dependencies(['1'])
+    lib4 = Cxxproject::CustomBuildingBlock.new('4').set_dependencies(['2', '3'])
+    deps = lib4.all_dependencies.map { |d| d.name }
+    deps.should == ['4', '2', '3', '1']
+  end
+
   it 'should have the right output-directory' do
     lib1 = Cxxproject::SourceLibrary.new('lib1').set_sources(['test.cc'])
     lib1.set_project_dir(File.join(Dir.pwd, 'lib1'))

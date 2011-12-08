@@ -117,9 +117,12 @@ module Cxxproject
 
     def custom(name, hash)
       raise "not a hash" unless hash.is_a?(Hash)
-      check_hash hash,[:execute]
+      check_hash hash,[:execute, :dependencies]
       bblock = CustomBuildingBlock.new(name)
       bblock.set_actions(hash[:execute]) if hash.has_key?(:execute)
+      if hash.has_key?(:dependencies)
+        bblock.set_dependencies(hash[:dependencies])
+      end
       all_blocks << bblock
     end
 
