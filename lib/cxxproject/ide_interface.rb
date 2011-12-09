@@ -48,6 +48,7 @@ module Cxxproject
       if @socket
         sleep 0.1 # hack to let ruby send all data via streams before closing ... strange .. perhaps this should be synchronized!
         begin
+          @socket.shutdown
           @socket.close
         rescue Exception => e
           Printer.printError "Error: #{e.message}"
@@ -138,8 +139,7 @@ module Cxxproject
       config_name = String.new(config_name_attr)
     
       packet = ""
-      force_encoding(packet)
-      force_encoding(name)
+      [packet, name, config_name].each {|s|force_encoding(s)}
 
       lname = name.length
       lconfig = config_name.length
