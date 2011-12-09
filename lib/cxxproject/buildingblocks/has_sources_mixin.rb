@@ -126,7 +126,7 @@ module Cxxproject
     end
 
     def parse_includes(deps)
-      #deps look like test.o: test.cpp test.h -> remove .o and .cpp from list
+      #deps look like "test.o: test.cpp test.h" -> remove .o and .cpp from list
       return deps.gsub(/\\\n/,'').split()[2..-1]
     end
 
@@ -212,7 +212,6 @@ module Cxxproject
           sources_to_build[f] = t
         end
       end
-      
       
       ordered = sources_to_build.keys.sort()
       
