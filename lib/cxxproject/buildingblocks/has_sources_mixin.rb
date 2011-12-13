@@ -214,7 +214,6 @@ module Cxxproject
       end
       
       ordered = sources_to_build.keys.sort()
-      
       dirs = []
       filemap = {}      
       ordered.reverse.each do |o|

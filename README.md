@@ -5,6 +5,24 @@ see documentation page: [cxxproject](http://marcmo.github.com/cxxproject)
 
 ## Change History:
 
+v_0.5.45 => v_0.5.46
+
+    * fixed linux socket problem, fixed encoding of ide messages
+    * version 0.5.46
+
+v_0.5.44 => v_0.5.45
+
+    * better error message in case of syntax errors in project.rb files
+    * extended support for custom building block: can now have dependencies
+      
+      also included some example usage
+    * better error messages for users when we have a syntax error in project.rb files
+    * include output directory for CLOBBER task
+    * more robust rakefile in case not all required gems are installed
+      
+      version bump
+    * version bump
+
 v_0.5.43 => v_0.5.44
 
     * Added possibility to kill CommandLine and Makefile
