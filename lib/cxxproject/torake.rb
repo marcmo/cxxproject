@@ -12,6 +12,7 @@ require 'cxxproject/buildingblocks/custom_building_block'
 require 'cxxproject/buildingblocks/command_line'
 require 'cxxproject/toolchain/colorizing_formatter'
 require 'cxxproject/eval_context'
+require 'cxxproject/ext/valgrind'
 
 module Cxxproject
   class CxxProject2Rake
@@ -30,7 +31,7 @@ module Cxxproject
         toolchain[:LINKER][:LIB_PREFIX_FLAGS] = "-Wl,--whole-archive"
         toolchain[:LINKER][:LIB_POSTFIX_FLAGS] = "-Wl,--no-whole-archive"
       end
-      
+
       Rake::application.deriveIncludes = true
 
       initialize_logging
@@ -93,7 +94,12 @@ module Cxxproject
     end
 
     def create_generic_tasks
-      [:lib, :exe, :run, nil].each { |i| create_filter_task_with_namespace(i) }
+      tasks = [:lib, :exe, :run]
+      if Cxxproject::Valgrind::available?
+        tasks << :valgrind
+      end
+      tasks << nil
+      tasks.each { |i| create_filter_task_with_namespace(i) }
     end
 
     def create_filter_task_with_namespace(basename)

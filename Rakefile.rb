@@ -52,7 +52,7 @@ begin
       puts 'please gem install roodi'
   end
 rescue LoadError => e
-    puts "please missing gems #{e}" 
+    puts "please missing gems #{e}"
 end
 
 def two_digits(x)
@@ -67,7 +67,7 @@ begin
   require 'grit'
   include Grit
 
-  def git_history      
+  def git_history
     repo = Repo.new('.')
     tag_names = repo.tags.collect {|t| t.name }
     relevant_tags = repo.tags.reject {|t| !t.name.start_with?("v_")}
@@ -83,7 +83,7 @@ begin
       change_text << "#{a.name} => #{b.name}"
       change_text << ""
       cs = repo.commits_between(a.commit, b.commit)
-      cm = cs.each do |c| 
+      cm = cs.each do |c|
         change_lines = c.message.lines.to_a
         first = change_lines.first
         change_text << "    * " + first + "#{change_lines[1..-1].collect {|l| "      #{l}"}.join("")}"
@@ -91,7 +91,7 @@ begin
     end
     change_text
   end
-      
+
   desc 'generate version history'
   task :generate_history do
     puts git_history

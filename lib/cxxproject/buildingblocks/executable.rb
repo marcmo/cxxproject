@@ -25,7 +25,7 @@ module Cxxproject
       @mapfile = x
       self
     end
-    
+
     def initialize(name)
       super(name)
       @linker_script = nil
@@ -85,14 +85,14 @@ module Cxxproject
 
     def calc_linker_lib_string_recursive(d)
       res = []
-    
+
       return res if @dep_set.include?d
       @dep_set << d
-    
+
       if HasLibraries === d
         prefix = nil
         linker = @tcs[:LINKER]
-      
+
         d.lib_elements.each do |elem|
           case elem[0]
             when HasLibraries::LIB
@@ -116,7 +116,7 @@ module Cxxproject
           end
         end
       end
-      
+
       res
     end
 
@@ -145,7 +145,7 @@ module Cxxproject
 
           mapfileStr = @mapfile ? " >#{@mapfile}" : ""
           if Cxxproject::Utils.old_ruby?
-            cmd.map! {|c| ((c.include?" ") ? ("\""+c+"\"") : c )}
+            cmd.map! {|c| ((c.include?(" ")) ? ("\""+c+"\"") : c )}
 
             # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
             cmdLine = cmd.join(" ") + " 2>" + get_temp_filename
@@ -157,7 +157,7 @@ module Cxxproject
             else
               consoleOutput = `#{cmd.join(" ") + mapfileStr + " 2>" + get_temp_filename}`
             end
-            consoleOutput.concat(read_file_or_empty_string(get_temp_filename))          
+            consoleOutput.concat(read_file_or_empty_string(get_temp_filename))
           else
             rd, wr = IO.pipe
             cmd << {
@@ -171,9 +171,9 @@ module Cxxproject
             cmd << " >#{@mapfile}" if @mapfile
             consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
           end
-          
+
           process_result(cmd, consoleOutput, linker[:ERROR_PARSER], "Linking #{get_executable_name}")
-            
+
           check_config_file()
         end
       end
@@ -183,7 +183,7 @@ module Cxxproject
       add_output_dir_dependency(get_task_name, res, true)
       add_grouping_tasks(get_task_name)
       setup_rake_dependencies(res, object_multitask)
-      
+
       # check that all source libs are checked even if they are not a real rake dependency (can happen if "build this project only")
       begin
         libChecker = task get_task_name+"LibChecker" do
@@ -209,7 +209,6 @@ module Cxxproject
       libChecker.transparent_timestamp = true
       res.enhance([libChecker])
 
-      
       return res
     end
 
@@ -225,15 +224,21 @@ module Cxxproject
       namespace 'run' do
         desc "run executable #{executable}"
         res = task name => executable do |t|
-          run_command(t, executable)
+          sh executable
         end
         res.type = Rake::Task::RUN
         res
       end
-    end
-
-    def run_command(task, command)
-      sh "#{command}"
+      if Valgrind::available?
+        namespace 'valgrind' do
+          desc "run executable #{executable} with valgrind"
+          res = task name => executable do |t|
+            sh "valgrind #{executable}"
+          end
+          res.type = Rake::Task::RUN
+          res
+        end
+      end
     end
 
     def get_temp_filename
