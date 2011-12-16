@@ -12,7 +12,7 @@ require 'cxxproject/buildingblocks/custom_building_block'
 require 'cxxproject/buildingblocks/command_line'
 require 'cxxproject/toolchain/colorizing_formatter'
 require 'cxxproject/eval_context'
-require 'cxxproject/ext/valgrind'
+require 'cxxproject/utils/valgrind'
 
 module Cxxproject
   class CxxProject2Rake
