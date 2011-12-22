@@ -4,6 +4,8 @@ require 'cxxproject/buildingblocks/has_sources_mixin'
 require 'cxxproject/buildingblocks/has_includes_mixin'
 require 'cxxproject/utils/process'
 require 'cxxproject/utils/utils'
+require 'cxxproject/ext/stdout'
+require 'cxxproject/utils/valgrind'
 
 require 'tmpdir'
 require 'set'
