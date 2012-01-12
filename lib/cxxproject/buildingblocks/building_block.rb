@@ -186,7 +186,8 @@ module Cxxproject
           res.severity = ErrorParser::SEVERITY_ERROR
           Rake.application.idei.set_errors([res])
         end
-        
+      end
+      if hasError or errorPrinted      
         raise SystemCommandFailed.new
       end
     end
