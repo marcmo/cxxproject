@@ -32,7 +32,7 @@ module Cxxproject
     end
 
     def self.spawnProcess(cmdLine)
-      return system cmdLine if Cxxproject::Utils.old_ruby?
+      return system(cmdLine) if Cxxproject::Utils.old_ruby?
       
       @@pid = spawn(cmdLine)
       pid, status = Process.wait2(@@pid)
