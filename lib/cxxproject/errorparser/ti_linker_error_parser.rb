@@ -15,15 +15,16 @@ module Cxxproject
       consoleOutput.each_line do |l|
         l.rstrip!
         d = ErrorDesc.new
-        d.file_name = proj_dir
-        d.line_number = 0
-        d.message = l
-        d.severity = SEVERITY_ERROR
+        if l != "<Linking>" then
+          d.file_name = proj_dir
+          d.line_number = 0
+          d.message = l
+          d.severity = SEVERITY_ERROR
+        end
         res << d
       end
       [res, consoleOutput]
     end
-
 
   end
 end
