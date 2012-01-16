@@ -103,7 +103,7 @@ module Cxxproject
         ALL_BUILDING_BLOCKS[@name] = self
       end
     end
-    
+
     def set_config_name(x)
       @config_name = x
     end
@@ -126,7 +126,7 @@ module Cxxproject
         begin
           bb = ALL_BUILDING_BLOCKS[d]
           raise "Error: tried to add the dependencies of \"#{d}\" to \"#{@name}\" but such a building block could not be found!" unless bb
-          
+
           if multitask and bb.pre_step
             multitask.prerequisites.unshift(bb.get_task_name)
           else
@@ -139,7 +139,7 @@ module Cxxproject
           ExitHelper.exit(1)
         end
       end
-      
+
       task
     end
 
@@ -147,7 +147,7 @@ module Cxxproject
       d = File.dirname(file)
       directory d
       taskOfFile.enhance([d])
-      
+
       if addDirToCleanTask
         CLOBBER.include(complete_output_dir)
         if (@output_dir_abs)
@@ -161,7 +161,7 @@ module Cxxproject
     def process_result(cmd, console_output, error_parser, alternate)
 
       hasError = ($?.success? == false)
- 
+
       if hasError or RakeFileUtils.verbose or (alternate.nil? and not Rake::application.options.silent)
         exedIn = ""
         exedIn = " (executed in '#{@project_dir}')" if (hasError or RakeFileUtils.verbose)
@@ -175,10 +175,10 @@ module Cxxproject
       end
 
       errorPrinted = process_console_output(console_output, error_parser)
-      
+
       if hasError
         if not errorPrinted
-          Printer.printError "Error: system command failed" 
+          Printer.printError "Error: system command failed"
           res = ErrorDesc.new
           res.file_name = @project_dir
           res.line_number = 0
@@ -187,7 +187,7 @@ module Cxxproject
           Rake.application.idei.set_errors([res])
         end
       end
-      if hasError or errorPrinted      
+      if hasError or errorPrinted
         raise SystemCommandFailed.new
       end
     end
@@ -236,5 +236,5 @@ module Cxxproject
     end
 
   end
-  
+
 end

@@ -8,12 +8,12 @@ module Cxxproject
     def helper_dependencies
       @helper_dependencies ||= []
     end
-    
+
    def set_dependencies(deps)
       @dependencies = deps.map { |dep| dep.instance_of?(String) ? dep : dep.name }
       self
     end
-    
+
     def set_helper_dependencies(deps)
       @helper_dependencies = deps.map { |dep| dep.instance_of?(String) ? dep : dep.name }
       self

@@ -1,5 +1,3 @@
 cxx_configuration do
-  files = FileList['**/*.cpp']
-  source_lib "io", :sources => files, :includes => ".."
+  source_lib "io", :sources => FileList['**/*.cpp'], :includes => ".."
 end
-

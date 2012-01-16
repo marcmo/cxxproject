@@ -22,7 +22,7 @@ module Cxxproject
     def get_defined_in_file
       @defined_in_file
     end
-    
+
     def set_defined_in_line(x)
       @defined_in_line = x
       self
@@ -30,7 +30,7 @@ module Cxxproject
 
     def get_defined_in_line
       @defined_in_line
-    end    
+    end
 
     def initialize(name)
       set_command_line(name)
@@ -44,8 +44,8 @@ module Cxxproject
 
     def convert_to_rake()
       res = task get_task_name do
-        Dir.chdir(@project_dir) do      
-          check_config_file      
+        Dir.chdir(@project_dir) do
+          check_config_file
           cmd = get_command_line
           puts cmd + (RakeFileUtils.verbose ? " (executed in '#{@project_dir}')" : "")
           cmd_result = false
@@ -64,7 +64,7 @@ module Cxxproject
             end
             Printer.printError "Error: command \"#{get_command_line}\" failed" + (RakeFileUtils.verbose ? "" : " (executed in '#{@project_dir}')")
             raise SystemCommandFailed.new
-          end          
+          end
         end
       end
       res.immediate_output = true
@@ -73,7 +73,7 @@ module Cxxproject
       setup_rake_dependencies(res)
       res
     end
-    
+
 
   end
 end

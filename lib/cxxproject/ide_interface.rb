@@ -37,7 +37,7 @@ module Cxxproject
           rescue Exception => e
           end
         end
-        
+
       rescue Exception => e
         Printer.printError "Error: #{e.message}"
         ExitHelper.exit(1)
@@ -56,11 +56,11 @@ module Cxxproject
         end
         @socket = nil
       end
-      
+
       begin
         @thread.join if @thread
       rescue
-      end      
+      end
       @thread = nil
     end
 
@@ -91,29 +91,29 @@ module Cxxproject
 
     def set_errors(error_array)
       if @socket
-        
+
         merged_messages = []
         last_msg = nil
         error_array.each do |msg|
           if msg.file_name.nil?
-            last_msg.message += "\r\n#{msg.message}" if last_msg 
+            last_msg.message += "\r\n#{msg.message}" if last_msg
           else
             last_msg = msg.dup
             merged_messages << last_msg
           end
         end
-        
+
         merged_messages.each do |msg|
-          msg.message.rstrip!  
+          msg.message.rstrip!
           packet = create_error_packet(msg)
           begin
             mutex.synchronize { @socket.write(packet) }
           rescue Exception => e
-            Printer.printError "Error: #{e.message}"            
+            Printer.printError "Error: #{e.message}"
             set_abort(true)
           end
         end
-        
+
       end
     end
 
@@ -137,13 +137,13 @@ module Cxxproject
       @num = num if (num >= 0)
       name = String.new(name_attr)
       config_name = String.new(config_name_attr)
-    
+
       packet = ""
       [packet, name, config_name].each {|s|force_encoding(s)}
 
       lname = name.length
       lconfig = config_name.length
-      lsum = 4 + lname + 4 + lconfig + 4 
+      lsum = 4 + lname + 4 + lconfig + 4
 
       packet << 10 # build info type
 
@@ -157,12 +157,12 @@ module Cxxproject
       begin
         mutex.synchronize { @socket.write(packet) if @socket }
       rescue Exception => e
-        Printer.printError "Error: #{e.message}"            
+        Printer.printError "Error: #{e.message}"
         set_abort(true)
       end
-      
+
     end
-    
+
     def get_number_of_projects
       @num ||= 0
     end
@@ -178,4 +178,3 @@ module Cxxproject
 
   end
 end
-

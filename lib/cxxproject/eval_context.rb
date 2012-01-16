@@ -42,6 +42,14 @@ module Cxxproject
       end
     end
 
+    def get_as_array(hash, s)
+      res = hash[s]
+      if res.is_a?(Array)
+        return res
+      end
+      return [res]
+    end
+
     # specify an executable
     # hash supports:
     # * :sources
@@ -54,7 +62,7 @@ module Cxxproject
       check_hash hash,[:sources,:includes,:dependencies,:libpath,:output_dir]
       bblock = Executable.new(name)
       bblock.set_sources(hash[:sources]) if hash.has_key?(:sources)
-      bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
+      bblock.set_includes(get_as_array(hash, :includes)) if hash.has_key?(:includes)
       calc_lib_searchpath(hash).each { |sp| bblock.add_lib_element(HasLibraries::SEARCH_PATH, sp) }
       if hash.has_key?(:dependencies)
         bblock.set_dependencies(hash[:dependencies])
@@ -90,10 +98,10 @@ module Cxxproject
       raise ":sources need to be defined" unless hash.has_key?(:sources)
       bblock = SourceLibrary.new(name)
       bblock.set_sources(hash[:sources])
-      bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
+      bblock.set_includes(get_as_array(hash, :includes)) if hash.has_key?(:includes)
       bblock.set_tcs(hash[:toolchain]) if hash.has_key?(:toolchain)
       if hash.has_key?(:dependencies)
-        bblock.set_dependencies(hash[:dependencies]) 
+        bblock.set_dependencies(hash[:dependencies])
         hash[:dependencies].each { |d| bblock.add_lib_element(HasLibraries::DEPENDENCY, d) }
       end
       bblock.file_dependencies = hash[:file_dependencies] if hash.has_key?(:file_dependencies)

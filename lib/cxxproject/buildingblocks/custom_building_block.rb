@@ -35,7 +35,5 @@ module Cxxproject
       res
     end
 
-
-
   end
 end

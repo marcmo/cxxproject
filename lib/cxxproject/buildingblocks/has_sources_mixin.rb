@@ -20,7 +20,7 @@ module Cxxproject
       @sources = x
       self
     end
-    
+
     def deps_in_depFiles
       @deps_in_depFiles ||= Set.new
     end
@@ -82,7 +82,7 @@ module Cxxproject
         end
         @incArray.uniq!
       end
-      
+
       [:CPP, :C, :ASM].each do |type|
         @include_string[type] = get_include_string(@tcs, type)
         @define_string[type] = get_define_string(@tcs, type)
@@ -176,7 +176,7 @@ module Cxxproject
           Printer.printError "Error: Exclude source file pattern '#{p}' must not include '..'"
           return nil
         end
-              
+
         Dir.glob(p).each {|f| exclude_files << f}
       end
       files = Set.new  # do not build the same file twice
@@ -198,7 +198,7 @@ module Cxxproject
           Printer.printError "Error: Source file pattern '#{p}' must not include '..'"
           return nil
         end
-      
+
         globRes = Dir.glob(p)
         if (globRes.length == 0)
           Printer.printWarning "Warning: Source file pattern '#{p}' did not match to any file"
@@ -208,14 +208,14 @@ module Cxxproject
           next if files.include?(f)
           files << f
           t = tcs4source(f)
-          t = tcs4source(p) if t == nil 
+          t = tcs4source(p) if t == nil
           sources_to_build[f] = t
         end
       end
-      
+
       ordered = sources_to_build.keys.sort()
       dirs = []
-      filemap = {}      
+      filemap = {}
       ordered.reverse.each do |o|
         d = File.dirname(o)
         if filemap.include?(d)
@@ -224,8 +224,8 @@ module Cxxproject
           filemap[d] = [o]
 	      dirs << d
         end
-      end 
-      
+      end
+
       obj_tasks = []
       dirs.each do |d|
         filemap[d].reverse.each do |f|
@@ -240,7 +240,7 @@ module Cxxproject
       if File.is_absolute?(sourceRel)
         sourceRel = File.rel_from_to_project(@project_dir, sourceRel, false)
       end
-    
+
       type = get_source_type(sourceRel)
       return nil if type.nil?
 
@@ -301,9 +301,9 @@ module Cxxproject
         end
 
         process_result(cmd, consoleOutput, compiler[:ERROR_PARSER], "Compiling #{sourceRel}")
-        
+
         convert_depfile(dep_file) if dep_file
-        
+
         check_config_file()
       end
       enhance_with_additional_files(res)
@@ -323,11 +323,11 @@ module Cxxproject
         if error_parser
           begin
             error_descs, console_output_full = error_parser.scan_lines(console_output, @project_dir)
-            
+
             console_output = console_output_full if Rake::application.consoleOutput_fullnames
-          
+
             ret = error_descs.any? { |e| e.severity == ErrorParser::SEVERITY_ERROR }
-          
+
             console_output.gsub!(/[\r]/, "")
             highlighter = @tcs[:CONSOLE_HIGHLIGHTER]
             if (highlighter and highlighter.enabled?)
@@ -338,7 +338,7 @@ module Cxxproject
 
             Rake.application.idei.set_errors(error_descs)
           rescue Exception => e
-            Printer.printWarning "Parsing output failed (maybe language not set to English?): " + e.message 
+            Printer.printWarning "Parsing output failed (maybe language not set to English?): " + e.message
             puts "Original output:"
             puts console_output
           end
@@ -350,8 +350,8 @@ module Cxxproject
     def prepare_tasks_for_objects
       if (@output_dir_abs)
         CLEAN.include(@output_dir + "/objects/" + @name)
-      end    
-    
+      end
+
       @objects = []
       t = multitask get_sources_task_name
       t.type = Rake::Task::SOURCEMULTI

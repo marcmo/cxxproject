@@ -11,16 +11,16 @@ module Cxxproject
       @target = x
       self
     end
-    
+
     def set_flags(x)
       @flags = x
       self
-    end  
-      
+    end
+
     def get_flags(x)
       @flags
-    end    
-      
+    end
+
 
     def set_makefile(x)
       @makefile = x
@@ -39,18 +39,18 @@ module Cxxproject
     def get_target
       @target
     end
-    
+
     def initialize(mfile, mtarget)
       @target = mtarget != "" ? mtarget : "all"
       @makefile = mfile
       @flags = ""
       @path_to = {}
-      @num = Rake.application.makefile_number  
+      @num = Rake.application.makefile_number
       super(get_task_name)
     end
 
     def get_task_name()
-      "makefile (#{@num}): " + get_makefile + (get_target ? ("_"+get_target) : "")    
+      "makefile (#{@num}): " + get_makefile + (get_target ? ("_"+get_target) : "")
     end
 
     def calc_pathes_to_projects
@@ -72,8 +72,8 @@ module Cxxproject
     end
 
     def executeCmd(cmd)
-        Dir.chdir(@project_dir) do      
-          check_config_file      
+        Dir.chdir(@project_dir) do
+          check_config_file
           puts cmd + (RakeFileUtils.verbose ? " (executed in '#{@project_dir}')" : "")
           cmd_result = false
           begin
@@ -95,13 +95,13 @@ module Cxxproject
             end
             Printer.printError "Error: command \"#{cmd}\" failed" + (RakeFileUtils.verbose ? "" : " (executed in '#{@project_dir}')")
             raise SystemCommandFailed.new
-          end          
-        end      
+          end
+        end
     end
 
     def convert_to_rake()
       pathes_to_projects = calc_pathes_to_projects
-    
+
       mfile = get_makefile()
       make = @tcs[:MAKE]
       cmd = remove_empty_strings_and_join([
@@ -115,11 +115,11 @@ module Cxxproject
         File.basename(mfile), # x/y/makefile
         pathes_to_projects
       ])
-      
+
       mfileTask = task get_task_name do
         executeCmd(cmd)
       end
-      
+
       mfileTask.immediate_output = true
       mfileTask.transparent_timestamp = true
       mfileTask.type = Rake::Task::MAKE

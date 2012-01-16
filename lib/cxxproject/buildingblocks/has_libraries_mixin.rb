@@ -5,7 +5,7 @@ module Cxxproject
     LIB_WITH_PATH = 3
     SEARCH_PATH = 4
     DEPENDENCY = 5
-   
+
     def lib_elements
       @lib_elements ||= []
     end

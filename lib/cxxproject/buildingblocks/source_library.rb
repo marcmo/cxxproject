@@ -20,7 +20,7 @@ module Cxxproject
         add_lib_element(HasLibraries::SEARCH_PATH, File.join(@output_dir, 'libs'), true)
         add_lib_element(HasLibraries::LIB, @name, true)
       else
-        add_lib_element(HasLibraries::LIB_WITH_PATH, File.join(@output_dir,"lib#{@name}.a"), true) 
+        add_lib_element(HasLibraries::LIB_WITH_PATH, File.join(@output_dir,"lib#{@name}.a"), true)
       end
       super
     end
@@ -61,14 +61,14 @@ module Cxxproject
         dir = @project_dir
         objs = @objects
         aname = get_archive_name
-        
+
         if @output_dir_abs
           dir = @output_dir
           prefix = File.rel_from_to_project(@project_dir, @output_dir)
           objs.map! { |m| m[prefix.length..-1] }
           aname = aname[prefix.length..-1]
         end
-        
+
         Dir.chdir(dir) do
           FileUtils.rm(aname) if File.exists?(aname)
           cmd = [archiver[:COMMAND]] # ar
@@ -79,7 +79,7 @@ module Cxxproject
 
           if Cxxproject::Utils.old_ruby?
             cmd.map! {|c| ((c.include?" ") ? ("\""+c+"\"") : c )}
-          
+
             cmdLine = cmd.join(" ")
             if cmdLine.length > 8000
               inputName = aname+".tmp"
@@ -96,13 +96,13 @@ module Cxxproject
             }
             sp = spawn(*cmd)
             cmd.pop
-            
+
             consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
           end
 
           process_result(cmd, consoleOutput, archiver[:ERROR_PARSER], "Creating #{aname}")
-        
-          check_config_file()  
+
+          check_config_file()
         end
       end
       enhance_with_additional_files(res)

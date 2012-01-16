@@ -20,11 +20,13 @@ module Cxxproject
     attr_accessor :base, :all_tasks
 
     def initialize(projects, build_dir, toolchain, base='.')
-      @projects = projects
       @base = base
+      cd(@base, :verbose => false) do
+        @projects = projects.to_a
+      end
       @build_dir = build_dir
       @toolchain = toolchain
-      @rel_projects = @projects.map { |p| File.join(@base, p) }
+      @rel_projects = @projects#.map { |p| File.join(@base, p) }
 
       # TODO: this should be cleaned up somehow...
       if Utils::OS.linux?
