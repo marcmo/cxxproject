@@ -18,7 +18,13 @@ module Cxxproject
         d.file_name = proj_dir
         d.line_number = 0
         d.message = l
-        d.severity = SEVERITY_ERROR
+        if l.length == 0
+          d.severity = SEVERITY_OK
+        elsif l.include?" Warning:" 
+          d.severity = SEVERITY_WARNING
+        else
+          d.severity = SEVERITY_ERROR
+        end
         res << d
       end
       [res, consoleOutput]
