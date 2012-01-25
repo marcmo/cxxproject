@@ -31,10 +31,18 @@ module Cxxproject
         @socket = TCPSocket.new('localhost', port)
 
         @thread = Thread.new do
+          while true do
           begin
-            @socket.recv(1)
+            @socket.recv_nonblock(1)
             set_abort(true)
+            break
+          rescue Errno::EWOULDBLOCK
+            sleep 0.1
+          rescue Errno::EAGAIN
+            sleep 0.1
           rescue Exception => e
+            break
+          end
           end
         end
 
@@ -48,7 +56,7 @@ module Cxxproject
       if @socket
         sleep 0.1 # hack to let ruby send all data via streams before closing ... strange .. perhaps this should be synchronized!
         begin
-          @socket.close_read
+          @socket.close
         rescue Exception => e
           Printer.printError "Error: #{e.message}"
           ExitHelper.exit(1)
@@ -58,7 +66,6 @@ module Cxxproject
 
       begin
         @thread.join if @thread
-        @socket.close
       rescue
       end
       @thread = nil
