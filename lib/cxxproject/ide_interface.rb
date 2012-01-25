@@ -48,8 +48,7 @@ module Cxxproject
       if @socket
         sleep 0.1 # hack to let ruby send all data via streams before closing ... strange .. perhaps this should be synchronized!
         begin
-          @socket.shutdown
-          @socket.close
+          @socket.close_read
         rescue Exception => e
           Printer.printError "Error: #{e.message}"
           ExitHelper.exit(1)
@@ -59,6 +58,7 @@ module Cxxproject
 
       begin
         @thread.join if @thread
+        @socket.close
       rescue
       end
       @thread = nil
