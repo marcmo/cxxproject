@@ -21,8 +21,13 @@ module Rake
     attr_writer :check_unnecessary_includes
     attr_writer :deriveIncludes
     attr_writer :consoleOutput_fullnames
+    attr_writer :addEmptyLine
     def max_parallel_tasks
       @max_parallel_tasks ||= 8
+    end
+    
+    def addEmptyLine
+      @addEmptyLine ||= false
     end
     
     def check_unnecessary_includes
