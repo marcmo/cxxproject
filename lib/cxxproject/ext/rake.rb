@@ -299,6 +299,9 @@ module Rake
               puts e.backtrace
             end            
             set_failed
+            if e.message.include?"Circular dependency detected"
+              Rake.application.idei.set_abort(true)
+            end
           end
 
         end
