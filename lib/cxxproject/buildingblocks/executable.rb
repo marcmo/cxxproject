@@ -150,18 +150,23 @@ module Cxxproject
             cmd.map! {|c| ((c.include?(" ")) ? ("\""+c+"\"") : c )}
 
             # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
-            cmdLine = cmd.join(" ") + " 2>" + get_temp_filename
+            cmdLinePrint = cmd.join(" ")
+            cmdLine = cmdLinePrint + " 2>" + get_temp_filename
             if cmdLine.length > 8000
               inputName = get_executable_name+".tmp"
               File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
               inputName = "\""+inputName+"\"" if inputName.include?" "
-              consoleOutput = `#{linker[:COMMAND] + " @" + inputName + mapfileStr + " 2>" + get_temp_filename}`
+              strCmd = "#{linker[:COMMAND] + " @" + inputName + mapfileStr + " 2>" + get_temp_filename}"
             else
-              consoleOutput = `#{cmd.join(" ") + mapfileStr + " 2>" + get_temp_filename}`
+              strCmd = "#{cmd.join(" ") + mapfileStr + " 2>" + get_temp_filename}"
             end
+            printCmd(cmdLinePrint, "Linking #{get_executable_name}", false)
+            consoleOutput = `#{strCmd}`
             consoleOutput.concat(read_file_or_empty_string(get_temp_filename))
           else
             rd, wr = IO.pipe
+            cmdLinePrint = cmd
+            printCmd(cmdLinePrint, "Linking #{get_executable_name}", false)
             cmd << {
              :out=> @mapfile ? "#{@mapfile}" : wr, # > xy.map
              :err=>wr
@@ -174,11 +179,12 @@ module Cxxproject
             consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
           end
 
-          process_result(cmd, consoleOutput, linker[:ERROR_PARSER], "Linking #{get_executable_name}")
+          process_result(cmdLinePrint, consoleOutput, linker[:ERROR_PARSER], nil)
 
           check_config_file()
         end
       end
+      res.immediate_output = true
       res.enhance(@config_files)
       res.enhance([@project_dir + "/" + @linker_script]) if @linker_script
 
