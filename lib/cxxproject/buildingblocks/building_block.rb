@@ -96,8 +96,8 @@ module Cxxproject
       @output_dir_abs = false
       @complete_output_dir = nil
       @pre_step = nil
-      @printedCmdVerbose = false
       @printedCmdAlternate = false
+      @lastCommand = nil
 
       if ALL_BUILDING_BLOCKS.include?(@name) and not self.instance_of?(BinaryLibrary)
         raise "building block already exists: #{name}"
@@ -160,10 +160,10 @@ module Cxxproject
       end
     end
 
-
     def printCmd(cmd, alternate, showPath)
+      @lastCommand = cmd
       if showPath or RakeFileUtils.verbose or (alternate.nil? and not Rake::application.options.silent)
-        @printedCmdVerbose = true
+        @printedCmdAlternate = false
         exedIn = ""
         exedIn = " (executed in '#{@project_dir}')" if (showPath or RakeFileUtils.verbose)
         puts "" if Rake::application.addEmptyLine
@@ -176,12 +176,15 @@ module Cxxproject
         @printedCmdAlternate = true
         puts alternate unless Rake::application.options.silent
       end
+      @lastCommand = cmd
     end
 
 
     def process_result(cmd, console_output, error_parser, alternate)
       hasError = ($?.success? == false)
-      printCmd(cmd, alternate, hasError) unless @printedCmdVerbose or (@printedCmdAlternate and not hasError)
+      if (cmd != @lastCommand) or (@printedCmdAlternate and hasError)
+        printCmd(cmd, alternate, hasError)
+      end
       errorPrinted = process_console_output(console_output, error_parser)
 
       if hasError
