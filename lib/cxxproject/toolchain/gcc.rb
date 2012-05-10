@@ -16,7 +16,8 @@ module Cxxproject
       :INCLUDE_PATH_FLAG => "-I",
       :COMPILE_FLAGS => "-c ",
       :DEP_FLAGS => "-MMD -MF",
-      :DEP_FLAGS_SPACE => true
+      :DEP_FLAGS_SPACE => true,
+      :PREPRO_FLAGS => "-E -P"
     })
 
     GCCChain[:COMPILER][:C] = Utils.deep_copy(GCCChain[:COMPILER][:CPP])

@@ -20,6 +20,7 @@ module Rake
     attr_writer :max_parallel_tasks
     attr_writer :check_unnecessary_includes
     attr_writer :deriveIncludes
+    attr_writer :preproFlags
     attr_writer :consoleOutput_fullnames
     attr_writer :addEmptyLine
     def max_parallel_tasks
@@ -58,6 +59,10 @@ module Rake
     
     def deriveIncludes
       @deriveIncludes ||= false
+    end
+
+    def preproFlags
+      @preproFlags ||= false
     end
 
     def consoleOutput_fullnames
@@ -316,6 +321,14 @@ module Rake
     end
 
     define_method(:execute) do |arg|
+      
+      if Rake::application.preproFlags
+        if  self.type == SOURCEMULTI
+          @failure = true
+          break
+        end
+      end
+       
       break if @failure # check if a prereq has failed
       break if Rake.application.idei.get_abort
       new_execute(execute_org, arg)

@@ -16,7 +16,8 @@ module Cxxproject
       :INCLUDE_PATH_FLAG => "-I",
       :COMPILE_FLAGS => "-c",
       :DEP_FLAGS => "-Xmake-dependency=6 -Xmake-dependency-savefile=",
-      :DEP_FLAGS_SPACE => false
+      :DEP_FLAGS_SPACE => false,
+      :PREPRO_FLAGS => "-P"
     })
 
     DiabChain[:COMPILER][:CPP] = Utils.deep_copy(DiabChain[:COMPILER][:C])
@@ -26,6 +27,7 @@ module Cxxproject
     DiabChain[:COMPILER][:ASM][:COMMAND] = "das"
     DiabChain[:COMPILER][:ASM][:COMPILE_FLAGS] = ""
     DiabChain[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS]
+    DiabChain[:COMPILER][:ASM][:PREPRO_FLAGS] = ""
 
     DiabChain[:ARCHIVER][:COMMAND] = "dar"
     DiabChain[:ARCHIVER][:ARCHIVE_FLAGS] = "-rc"

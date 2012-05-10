@@ -106,11 +106,11 @@ module Cxxproject
       end
 
       parts << sourceRel.chomp(File.extname(sourceRel))
-      File.join(parts) + ".o"
+      File.join(parts) + (Rake::application.preproFlags ? ".i" : ".o")
     end
 
     def get_dep_file(object)
-      object + ".d"
+      object[0..-3] + ".o.d"
     end
 
     def get_source_type(source)
@@ -258,53 +258,60 @@ module Cxxproject
       end
 
       res = typed_file_task Rake::Task::OBJECT, object => source do
-        i_array = the_tcs == @tcs ? @include_string[type] : get_include_string(the_tcs, type)
-        d_array = the_tcs == @tcs ? @define_string[type] : get_define_string(the_tcs, type)
-
         compiler = the_tcs[:COMPILER][type]
-        cmd = [compiler[:COMMAND]]
-        cmd += compiler[:COMPILE_FLAGS].split(" ")
-        if dep_file
-          cmd += depStr.split(" ")
-          if the_tcs[:COMPILER][type][:DEP_FLAGS_SPACE]
-            cmd << dep_file
-          else
-            cmd[cmd.length-1] << dep_file
-          end
-        end
-        cmd += compiler[:FLAGS].gsub(/\"/,"").split(" ") # double quotes within string do not work on windows...
-        cmd += i_array
-        cmd += d_array
-        cmd += (compiler[:OBJECT_FILE_FLAG] + objectRel).split(" ")
-        cmd << sourceRel
-
-        if Cxxproject::Utils.old_ruby?
-          cmd.map! {|c| ((c.include?" ") ? ("\""+c+"\"") : c )}
-          cmdLine = cmd.join(" ")
-          if cmdLine.length > 8000
-            inputName = objectRel+".tmp"
-            File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
-            inputName = "\""+inputName+"\"" if inputName.include?" "
-            consoleOutput = `#{compiler[:COMMAND] + " @" + inputName}`
-          else
-            consoleOutput = `#{cmd.join(" ")} 2>&1`
-          end
+      
+        if Rake::application.preproFlags and compiler[:PREPRO_FLAGS] == ""
+          Printer.printInfo("Info: No preprocessor option available for " + sourceRel)
         else
-          rd, wr = IO.pipe
-          cmd << {
-           :err=>wr,
-           :out=>wr
-          }
-          sp = spawn(*cmd)
-          cmd.pop
-          consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
+      
+          i_array = the_tcs == @tcs ? @include_string[type] : get_include_string(the_tcs, type)
+          d_array = the_tcs == @tcs ? @define_string[type] : get_define_string(the_tcs, type)
+
+          cmd = [compiler[:COMMAND]]
+          cmd += compiler[:COMPILE_FLAGS].split(" ")
+          if dep_file
+            cmd += depStr.split(" ")
+            if the_tcs[:COMPILER][type][:DEP_FLAGS_SPACE]
+              cmd << dep_file
+            else
+              cmd[cmd.length-1] << dep_file
+            end
+          end
+          cmd += compiler[:FLAGS].gsub(/\"/,"").split(" ") # double quotes within string do not work on windows...
+          cmd += i_array
+          cmd += d_array
+          cmd += (compiler[:OBJECT_FILE_FLAG] + objectRel).split(" ")
+          cmd += compiler[:PREPRO_FLAGS].split(" ") if Rake::application.preproFlags
+          cmd << sourceRel
+
+          if Cxxproject::Utils.old_ruby?
+            cmd.map! {|c| ((c.include?" ") ? ("\""+c+"\"") : c )}
+            cmdLine = cmd.join(" ")
+            if cmdLine.length > 8000
+              inputName = objectRel+".tmp"
+              File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
+              inputName = "\""+inputName+"\"" if inputName.include?" "
+              consoleOutput = `#{compiler[:COMMAND] + " @" + inputName}`
+            else
+              consoleOutput = `#{cmd.join(" ")} 2>&1`
+            end
+          else
+            rd, wr = IO.pipe
+            cmd << {
+             :err=>wr,
+             :out=>wr
+            }
+            sp = spawn(*cmd)
+            cmd.pop
+            consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
+          end
+
+          process_result(cmd, consoleOutput, compiler[:ERROR_PARSER], "Compiling #{sourceRel}")
+
+          convert_depfile(dep_file) if dep_file
+
+          check_config_file()
         end
-
-        process_result(cmd, consoleOutput, compiler[:ERROR_PARSER], "Compiling #{sourceRel}")
-
-        convert_depfile(dep_file) if dep_file
-
-        check_config_file()
       end
       enhance_with_additional_files(res)
       add_output_dir_dependency(object, res, false)

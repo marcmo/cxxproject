@@ -19,7 +19,8 @@ module Cxxproject
             :SOURCE_FILE_ENDINGS => [".cxx", ".cpp", ".c++", ".cc", ".C"],
             :DEP_FLAGS => "",
             :DEP_FLAGS => true,
-            :ERROR_PARSER => nil
+            :ERROR_PARSER => nil,
+            :PREPRO_FLAGS => ""
           },
           :C => {
             :COMMAND => "",
@@ -31,7 +32,8 @@ module Cxxproject
             :FLAGS => "",
             :SOURCE_FILE_ENDINGS => [".c"],
             :DEP_FLAGS => "",
-            :ERROR_PARSER => nil
+            :ERROR_PARSER => nil,
+            :PREPRO_FLAGS => ""
           },
           :ASM => {
             :COMMAND => "",
@@ -43,7 +45,8 @@ module Cxxproject
             :FLAGS => "",
             :SOURCE_FILE_ENDINGS => [".asm", ".s", ".S"],
             :DEP_FLAGS => "",
-            :ERROR_PARSER => nil
+            :ERROR_PARSER => nil,
+            :PREPRO_FLAGS => ""
           }
         },
 
