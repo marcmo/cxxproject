@@ -12,12 +12,27 @@ require 'cxxproject/buildingblocks/custom_building_block'
 require 'cxxproject/buildingblocks/command_line'
 require 'cxxproject/toolchain/colorizing_formatter'
 require 'cxxproject/eval_context'
-require 'cxxproject/utils/valgrind'
+
+require 'rubygems'
 
 module Cxxproject
   class CxxProject2Rake
 
     attr_accessor :base, :all_tasks
+
+    def load_cxx_plugins
+      prefix = 'cxxproject_'
+      gems_to_load = Gem::Specification.find_all do |gem|
+        gem.name.index(prefix)
+      end
+      gems_to_load.each do |gem|
+        require gem.name
+        @log.error("super")
+        class_name = gem.name.gsub(prefix, '').capitalize
+        @log.error("making new thing #{class_name}")
+        Object::const_get(class_name).new(self, ALL_BUILDING_BLOCKS, @log)
+      end
+    end
 
     def initialize(projects, build_dir, toolchain, base='.')
       @base = base
@@ -38,6 +53,8 @@ module Cxxproject
 
       initialize_logging
       @all_tasks = instantiate_tasks
+
+      load_cxx_plugins
 
       create_generic_tasks
       create_console_colorization
@@ -97,9 +114,6 @@ module Cxxproject
 
     def create_generic_tasks
       tasks = [:lib, :exe, :run]
-      if Cxxproject::Valgrind::available?
-        tasks << :valgrind
-      end
       tasks << nil
       tasks.each { |i| create_filter_task_with_namespace(i) }
     end
