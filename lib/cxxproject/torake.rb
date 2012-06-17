@@ -16,21 +16,47 @@ require 'cxxproject/eval_context'
 require 'rubygems'
 
 module Cxxproject
+
+  # context in which plugins are evaluated
+  # the context contains
+  # - @cxxproject2rake
+  # - @building_blocks
+  # - @log
+  class PluginContext
+    def initialize(cxxproject2rake, building_blocks, log)
+      @cxxproject2rake = cxxproject2rake
+      @building_blocks = building_blocks
+      @log = log
+    end
+    def load_plugin(path)
+      content = File.read(path)
+      instance_eval(content)
+    end
+
+    # method for plugins to get the
+    # cxxproject2rake
+    # building_blocks
+    # log
+    def cxx_plugin(&blk)
+      blk.call(@cxxproject2rake, @building_blocks, @log)
+    end
+  end
+
   class CxxProject2Rake
-
     attr_accessor :base, :all_tasks
-
+    # a cxx_plugin is a gem that follows the naming convention
+    # cxxplugin_name and that calls cxx_plugin sometimes
     def load_cxx_plugins
       prefix = 'cxxproject_'
       gems_to_load = Gem::Specification.find_all do |gem|
         gem.name.index(prefix)
       end
       gems_to_load.each do |gem|
-        require gem.name
-        @log.error("super")
-        class_name = gem.name.gsub(prefix, '').capitalize
-        @log.error("making new thing #{class_name}")
-        Object::const_get(class_name).new(self, ALL_BUILDING_BLOCKS, @log)
+        file_name = "#{gem.full_gem_path}/lib/#{gem.name}.rb"
+        puts file_name
+        text = File.read(file_name)
+        context = PluginContext.new(self, ALL_BUILDING_BLOCKS, @log)
+        context.load_plugin(file_name)
       end
     end
 
