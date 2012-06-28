@@ -16,9 +16,50 @@ require 'cxxproject/eval_context'
 require 'rubygems'
 
 module Cxxproject
-  class CxxProject2Rake
 
+  # context in which plugins are evaluated
+  # a cxx_plugin is a gem that:
+  # - follows the naming convention cxxplugin_name
+  # - that has a plugin.rb file in lib and
+  # - that calls cxx_plugin
+  #
+  # the context contains
+  # - @cxxproject2rake
+  # - @building_blocks
+  # - @log
+  class PluginContext
+    def initialize(cxxproject2rake, building_blocks, log)
+      @cxxproject2rake = cxxproject2rake
+      @building_blocks = building_blocks
+      @log = log
+    end
+    def load_plugin(gem)
+      path = File.join(gem.full_gem_path, 'lib', 'plugin.rb')
+      content = File.read(path)
+      instance_eval(content)
+    end
+
+    # method for plugins to get the
+    # cxxproject2rake
+    # building_blocks
+    # log
+    def cxx_plugin(&blk)
+      blk.call(@cxxproject2rake, @building_blocks, @log)
+    end
+  end
+
+  class CxxProject2Rake
     attr_accessor :base, :all_tasks
+    def load_cxx_plugins
+      prefix = 'cxxproject_'
+      gems_to_load = Gem::Specification.find_all do |gem|
+        gem.name.index(prefix)
+      end
+      gems_to_load.each do |gem|
+        context = PluginContext.new(self, ALL_BUILDING_BLOCKS, @log)
+        context.load_plugin(gem)
+      end
+    end
 
     def initialize(projects, build_dir, toolchain, base='.')
       @base = base
@@ -39,6 +80,8 @@ module Cxxproject
 
       initialize_logging
       @all_tasks = instantiate_tasks
+
+      load_cxx_plugins
 
       create_generic_tasks
       create_console_colorization
