@@ -12,7 +12,8 @@ require 'cxxproject/buildingblocks/custom_building_block'
 require 'cxxproject/buildingblocks/command_line'
 require 'cxxproject/toolchain/colorizing_formatter'
 require 'cxxproject/eval_context'
-require 'cxxproject/utils/valgrind'
+
+require 'rubygems'
 
 module Cxxproject
   class CxxProject2Rake
@@ -97,9 +98,6 @@ module Cxxproject
 
     def create_generic_tasks
       tasks = [:lib, :exe, :run]
-      if Cxxproject::Valgrind::available?
-        tasks << :valgrind
-      end
       tasks << nil
       tasks.each { |i| create_filter_task_with_namespace(i) }
     end

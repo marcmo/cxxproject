@@ -5,7 +5,6 @@ require 'cxxproject/buildingblocks/has_includes_mixin'
 require 'cxxproject/utils/process'
 require 'cxxproject/utils/utils'
 require 'cxxproject/ext/stdout'
-require 'cxxproject/utils/valgrind'
 
 require 'tmpdir'
 require 'set'
@@ -155,7 +154,7 @@ module Cxxproject
             if cmdLine.length > 8000
               inputName = get_executable_name+".tmp"
               File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
-              inputName = "\""+inputName+"\"" if inputName.include?" "
+              inputName = "\""+inputName+"\"" if inputName.include?(' ')
               strCmd = "#{linker[:COMMAND] + " @" + inputName + mapfileStr + " 2>" + get_temp_filename}"
             else
               strCmd = "#{cmd.join(" ") + mapfileStr + " 2>" + get_temp_filename}"
@@ -236,16 +235,6 @@ module Cxxproject
         end
         res.type = Rake::Task::RUN
         res
-      end
-      if Valgrind::available?
-        namespace 'valgrind' do
-          desc "run executable #{executable} with valgrind"
-          res = task name => executable do |t|
-            sh "valgrind #{executable}"
-          end
-          res.type = Rake::Task::RUN
-          res
-        end
       end
     end
 
