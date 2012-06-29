@@ -1,3 +1,4 @@
+require 'cxxproject/context'
 
 module Cxxproject
   class BinaryLibs
@@ -13,41 +14,20 @@ module Cxxproject
   end
 
   class EvalContext
+    include Context
 
-    attr_accessor :myblock, :all_blocks
+    attr_accessor :all_blocks
 
     # must be called to add building blocks
     def cxx_configuration(&block)
-      @myblock = block
       @all_blocks = []
+      block.call
     end
 
     def eval_project(project_text, project_file, pwd)
       @current_project_file = project_file
       @current_working_dir = pwd
       instance_eval(project_text)
-    end
-
-    def configuration(*args, &block)
-      name = args[0]
-      raise "no name given" unless name.is_a?(String) && !name.strip.empty?
-      instance_eval(&block)
-    end
-
-    def check_hash(hash,allowed)
-      hash.keys.map do |k|
-        error_string = ["error while evaluating \"#{@current_working_dir}/#{@current_project_file}\"",
-                        "\"#{k}\" is not a valid specifier!"].join($/)
-        raise error_string unless allowed.include?(k)
-      end
-    end
-
-    def get_as_array(hash, s)
-      res = hash[s]
-      if res.is_a?(Array)
-        return res
-      end
-      return [res]
     end
 
     # specify an executable
@@ -59,7 +39,7 @@ module Cxxproject
     # * :output_dir
     def exe(name, hash)
       raise "not a hash" unless hash.is_a?(Hash)
-      check_hash hash,[:sources,:includes,:dependencies,:libpath,:output_dir]
+      check_hash(hash,[:sources,:includes,:dependencies,:libpath,:output_dir])
       bblock = Executable.new(name)
       bblock.set_sources(hash[:sources]) if hash.has_key?(:sources)
       bblock.set_includes(get_as_array(hash, :includes)) if hash.has_key?(:includes)
@@ -94,7 +74,7 @@ module Cxxproject
     # * :output_dir
     def source_lib(name, hash)
       raise "not a hash" unless hash.is_a?(Hash)
-      check_hash hash,[:sources, :includes, :dependencies, :toolchain, :file_dependencies, :output_dir]
+      check_hash(hash,[:sources, :includes, :dependencies, :toolchain, :file_dependencies, :output_dir])
       raise ":sources need to be defined" unless hash.has_key?(:sources)
       bblock = SourceLibrary.new(name)
       bblock.set_sources(hash[:sources])
@@ -122,7 +102,7 @@ module Cxxproject
 
     def compile(name, hash)
       raise "not a hash" unless hash.is_a?(Hash)
-      check_hash hash,[:sources,:includes]
+      check_hash(hash,[:sources,:includes])
       bblock = SingleSource.new(name)
       bblock.set_sources(hash[:sources]) if hash.has_key?(:sources)
       bblock.set_includes(hash[:includes]) if hash.has_key?(:includes)
@@ -131,7 +111,7 @@ module Cxxproject
 
     def custom(name, hash)
       raise "not a hash" unless hash.is_a?(Hash)
-      check_hash hash,[:execute, :dependencies]
+      check_hash(hash,[:execute, :dependencies])
       bblock = CustomBuildingBlock.new(name)
       bblock.set_actions(hash[:execute]) if hash.has_key?(:execute)
       if hash.has_key?(:dependencies)

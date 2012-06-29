@@ -93,6 +93,27 @@ module Cxxproject
         chain
       end
 
+      # merge hashB into hashA
+      # recurse on sub-hash-structures
+      # elements present in hashA only will be taken from hashA
+      # elements present in hashB only will be taken from hashB
+      # elements present in both will be taken from hashB
+      #
+      def self.merge(hashA,hashB,overwrite=true)
+        missingKeys = hashB.keys - hashA.keys
+        missingKeys.each do |k|
+          hashA[k] = hashB[k]
+        end
+        hashA.each do |k,v|
+          if v.is_a? Hash
+            merge(v,hashB[k],overwrite) if hashB[k]
+          else
+            hashA[k] = hashB[k] if hashB[k] and overwrite
+          end
+        end
+        hashA
+      end
+
       def self.default
         @@default
       end
@@ -125,7 +146,3 @@ module Cxxproject
   end
 end
 
-require 'cxxproject/toolchain/diab'
-require 'cxxproject/toolchain/gcc'
-require 'cxxproject/toolchain/clang'
-require 'cxxproject/toolchain/ti'
