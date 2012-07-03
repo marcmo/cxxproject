@@ -26,11 +26,11 @@ module Rake
     def max_parallel_tasks
       @max_parallel_tasks ||= 8
     end
-    
+
     def addEmptyLine
       @addEmptyLine ||= false
     end
-    
+
     def check_unnecessary_includes
       @check_unnecessary_includes ||= false
     end
@@ -49,14 +49,14 @@ module Rake
       @command_line_number += 1
       res
     end
-    
+
     def makefile_number
       @makefile_number ||= 1
       res = @makefile_number
       @makefile_number += 1
       res
     end
-    
+
     def deriveIncludes
       @deriveIncludes ||= false
     end
@@ -68,7 +68,7 @@ module Rake
     def consoleOutput_fullnames
       @consoleOutput_fullnames ||= false
     end
-    
+
   end
 
   class Jobs
@@ -105,7 +105,7 @@ module Rake
     def set_building_block(bb)
       @bb = bb
     end
-    
+
     def invoke_prerequisites(args, invocation_chain)
       super(args, invocation_chain)
 
@@ -131,28 +131,28 @@ module Rake
             return
           end
         end
-      
+
         file_tasks = @bb.create_object_file_tasks
-        
+
         if file_tasks == nil # = error
           set_failed
           return
         end
-        
+
         enhance(file_tasks)
         return if file_tasks.length == 0
-        
+
         @error_strings = {}
-        
+
         Jobs.new(file_tasks, application.max_parallel_tasks) do |jobs|
           handle_jobs(jobs, args, invocation_chain)
         end.join
-        
+
         # can only happen in case of bail_on_first_error.
         # if not sorted, it may be confusing when builing more than once and the order of the error appearances changes from build to build
         # (it is not deterministic which file compilation finishes first)
-        @error_strings.sort.each {|es| puts es[1]} 
-      
+        @error_strings.sort.each {|es| puts es[1]}
+
         if Rake.application.check_unnecessary_includes
           if not @failure # otherwise the dependency files might be incorrect or not complete
             @bb.incArray.each do |i|
@@ -165,15 +165,15 @@ module Rake
                 res.line_number = 0
                 res.severity = Cxxproject::ErrorParser::SEVERITY_INFO
                 res.message = msg
-                Rake.application.idei.set_errors([res])              
+                Rake.application.idei.set_errors([res])
               end
             end
           end
         end
-      
+
       end
-      
-      
+
+
     end
 
     def handle_jobs(jobs, args, invocation_chain)
@@ -302,9 +302,9 @@ module Rake
             Cxxproject::Printer.printError "Error #{name}: #{e.message}"
             if RakeFileUtils.verbose
               puts e.backtrace
-            end            
+            end
             set_failed
-            if e.message.include?"Circular dependency detected"
+            if e.message.include?('Circular dependency detected')
               Rake.application.idei.set_abort(true)
             end
           end
@@ -321,14 +321,14 @@ module Rake
     end
 
     define_method(:execute) do |arg|
-      
+
       if Rake::application.preproFlags
         if  self.type == SOURCEMULTI
           @failure = true
           break
         end
       end
-       
+
       break if @failure # check if a prereq has failed
       break if Rake.application.idei.get_abort
       new_execute(execute_org, arg)
@@ -352,7 +352,7 @@ module Rake
       rescue Exception => ex1
         handle_error(ex1, false)
       end
-      
+
       if not @immediate_output
         self.output_string = s.string
         Thread.current[:stdout] = tmp
