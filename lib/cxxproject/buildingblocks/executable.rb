@@ -71,10 +71,9 @@ module Cxxproject
       if File.is_absolute?(v)
         tmp = v
       else
-        prefix ||= File.rel_from_to_project(@project_dir,d.project_dir)
+        prefix ||= File.rel_from_to_project(@project_dir, d.project_dir)
         tmp = File.add_prefix(prefix, v)
       end
-      tmp = "\"" + tmp + "\"" if tmp.include?(" ")
       [tmp, prefix]
     end
 
@@ -86,8 +85,7 @@ module Cxxproject
 
     def calc_linker_lib_string_recursive(d)
       res = []
-
-      return res if @dep_set.include?d
+      return res if @dep_set.include?(d)
       @dep_set << d
 
       if HasLibraries === d
@@ -105,12 +103,12 @@ module Cxxproject
               res <<  tmp
             when HasLibraries::SEARCH_PATH
               tmp, prefix = adaptPath(elem[1], d, prefix)
-              if not @lib_path_set.include?tmp
+              if not @lib_path_set.include?(tmp)
                 @lib_path_set << tmp
                 res << "#{linker[:LIB_PATH_FLAG]}#{tmp}"
               end
             when HasLibraries::DEPENDENCY
-              if ALL_BUILDING_BLOCKS.include?elem[1]
+              if ALL_BUILDING_BLOCKS.include?(elem[1])
                 bb = ALL_BUILDING_BLOCKS[elem[1]]
                 res += calc_linker_lib_string_recursive(bb)
               end

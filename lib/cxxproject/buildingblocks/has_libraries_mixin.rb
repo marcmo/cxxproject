@@ -1,10 +1,10 @@
 module Cxxproject
   module HasLibraries
-    LIB = 1
-    USERLIB = 2
-    LIB_WITH_PATH = 3
-    SEARCH_PATH = 4
-    DEPENDENCY = 5
+    LIB = :lib
+    USERLIB = :userlib
+    LIB_WITH_PATH = :lib_with_path
+    SEARCH_PATH = :search_path
+    DEPENDENCY = :dependency
 
     def lib_elements
       @lib_elements ||= []

@@ -17,8 +17,8 @@ module Cxxproject
 
     def complete_init()
       if @output_dir_abs
-        add_lib_element(HasLibraries::SEARCH_PATH, File.join(@output_dir, 'libs'), true)
         add_lib_element(HasLibraries::LIB, @name, true)
+        add_lib_element(HasLibraries::SEARCH_PATH, File.join(@output_dir, 'libs'), true)
       else
         add_lib_element(HasLibraries::LIB_WITH_PATH, File.join(@output_dir,"lib#{@name}.a"), true)
       end
@@ -78,7 +78,7 @@ module Cxxproject
           cmd += objs
 
           if Cxxproject::Utils.old_ruby?
-            cmd.map! {|c| ((c.include?" ") ? ("\""+c+"\"") : c )}
+            cmd.map! {|c| c.include?(' ') ? "\"#{c}\"" : c }
 
             cmdLine = cmd.join(" ")
             if cmdLine.length > 8000
@@ -89,10 +89,11 @@ module Cxxproject
               consoleOutput = `#{cmd.join(" ")} 2>&1`
             end
           else
+            cmd.map! {|c| c.include?(' ') ? "\"#{c}\"" : c }
             rd, wr = IO.pipe
             cmd << {
-             :err=>wr,
-             :out=>wr
+             :err => wr,
+             :out => wr
             }
             sp = spawn(*cmd)
             cmd.pop
