@@ -231,7 +231,7 @@ module Cxxproject
       namespace 'run' do
         desc "run executable #{executable}"
         res = task name => executable do |t|
-          sh executable
+          sh "\"#{executable}\""
         end
         res.type = Rake::Task::RUN
         res
