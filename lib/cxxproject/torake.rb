@@ -62,7 +62,6 @@ module Cxxproject
     end
 
     def load_plugin(gem, pluginContext)
-      p "loading plugin #{gem}"
       begin 
         path = File.join(gem.full_gem_path, 'lib', 'plugin.rb')
         content = File.read(path)
@@ -223,7 +222,6 @@ module Cxxproject
     def define_project_info_task
       desc "shows your defined projects"
       task :project_info do
-        p "ProjectBase: #{@base}"
         ALL_BUILDING_BLOCKS.each_value do |bb|
           pp bb
         end

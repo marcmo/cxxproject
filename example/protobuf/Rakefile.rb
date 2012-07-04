@@ -62,7 +62,7 @@ directory GEN_FOLDER
   end
 end
 
-CxxProject2Rake.new(FileList['**/*project.rb'] , "build", GCCChain, ".")
+CxxProject2Rake.new(FileList['**/*project.rb'] , "build", "gcc", ".")
 
 
 CLEAN.include('tmp')

@@ -26,7 +26,6 @@ module Cxxproject
     # building_blocks
     # log
     def cxx_plugin(&blk)
-      p 'in cxx_plugin'
       blk.call(@cxxproject2rake, @building_blocks, @log)
     end
 
@@ -40,7 +39,6 @@ module Cxxproject
       check_linker(tc[:LINKER]) if tc[:LINKER]
       check_archiver(tc[:ARCHIVER]) if tc[:ARCHIVER]
       PluginContext::expand(tc)
-      p "...................#{tc}"
       Provider.add(name)
       Provider.merge(Provider[name], tc)
     end
@@ -108,7 +106,7 @@ module Cxxproject
       raise "not a hash" unless hash.is_a?(Hash)
       check_hash(hash,Provider.default[:COMPILER].keys)
       
-      check_hash(hash[:CPP],Provider.default[:COMPILER][:CPP].keys) if hash[:CPP]
+      check_hash(hash[:CPP],Provider.default[:COMPILER][:CPP].keys << :BASED_ON) if hash[:CPP]
       check_hash(hash[:C],Provider.default[:COMPILER][:C].keys << :BASED_ON) if hash[:C]
       check_hash(hash[:ASM],Provider.default[:COMPILER][:ASM].keys << :BASED_ON) if hash[:ASM]
     end
@@ -126,7 +124,6 @@ module Cxxproject
     # will use the content of the plugin.rb file and evaluate it
     # this will in turn result in a call to cxx_plugin
     def eval_plugin(plugin_text)
-      p "eval_plugin"
       instance_eval(plugin_text)
     end
 

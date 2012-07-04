@@ -3,8 +3,7 @@ require 'rake/clean'
 desc 'reinstall plugins'
 task :reinstall do
   toolchainpath="../../../plugins/"
-  plugins = ["clang"]
-  # plugins = ["gcc","clang"]
+  plugins = ["gcc","clang","diab"]
   plugins.each do |p|
     plugin = "cxxproject_#{p}toolchain"
     sh "gem uninstall #{plugin}" 

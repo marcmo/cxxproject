@@ -43,7 +43,7 @@ task 'Rakefile.rb' => [:gen] do
   File.open(File.join('gen', 'Rakefile.rb'), 'w') do |io|
     io.puts("$:.unshift File.join(File.dirname(__FILE__),'..','..','..','lib')")
     io.puts("require 'cxxproject'")
-    io.puts("CxxProject2Rake.new(Dir.glob('**/*project.rb'), 'build', GCCChain, '.')")
+    io.puts("CxxProject2Rake.new(Dir.glob('**/*project.rb'), 'build', "gcc", '.')")
   end
 end
 

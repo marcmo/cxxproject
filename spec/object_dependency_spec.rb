@@ -17,7 +17,7 @@ describe Rake::Task do
     file 'test.cc' => 'compiler'
     File.delete('test.cc') if File.exists?('test.cc')
     sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc']).set_project_dir(".")
-    cxx = CxxProject2Rake.new([], 'build', GCCChain)
+    cxx = CxxProject2Rake.new([], 'build', "clang")
 
     task = Rake::application['lib:testlib']
     task.invoke
@@ -35,7 +35,7 @@ describe Rake::Task do
     end
 
     sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc']).set_project_dir(".")
-    CxxProject2Rake.new([], 'build', GCCChain)
+    CxxProject2Rake.new([], 'build', "clang")
 
     task = Rake::application['lib:testlib']
     task.invoke
@@ -48,7 +48,7 @@ describe Rake::Task do
     end
 
     sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc']).set_project_dir(".")
-    CxxProject2Rake.new([], 'build', GCCChain)
+    CxxProject2Rake.new([], 'build', "clang")
 
     task = Rake::application['build/libs/libtestlib.a']
     task.invoke
@@ -69,7 +69,7 @@ describe Rake::Task do
     end
 
     sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc']).set_project_dir(".")
-    CxxProject2Rake.new([], 'build', GCCChain)
+    CxxProject2Rake.new([], 'build', "clang")
 
     task = Rake::application['build/libs/libtestlib.a']
     task.invoke

@@ -66,7 +66,7 @@ end
 def fresh_cxx
   Cxxproject::Utils.cleanup_rake
   outputdir = 'output'
-  CxxProject2Rake.new(Dir.glob('**/project.rb'), outputdir, GCCChain)
+  CxxProject2Rake.new(Dir.glob('**/project.rb'), outputdir, "clang")
 end
 
 def cleanup

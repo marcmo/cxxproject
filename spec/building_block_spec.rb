@@ -38,9 +38,10 @@ describe Cxxproject::BuildingBlock do
     lib2 = Cxxproject::SourceLibrary.new('lib2').set_sources(['test.cc']).set_output_dir('build2')
     lib2.set_project_dir(File.join(Dir.pwd, 'lib2'))
 
-    cxx = CxxProject2Rake.new([], 'build', GCCChain)
-    cxx.prepare_block(lib1)
-    cxx.prepare_block(lib2)
+    cxx = CxxProject2Rake.new([], 'build', "clang")
+    
+    cxx.prepare_block(lib1, Provider["clang"], "build")
+    cxx.prepare_block(lib2, Provider["clang"], "build")
 
     lib1.complete_output_dir.should eq(File.join(Dir.pwd, 'build'))
     lib2.complete_output_dir.should eq(File.join(Dir.pwd, 'lib2', 'build2'))
@@ -49,7 +50,7 @@ describe Cxxproject::BuildingBlock do
   it 'should raise exception if building block cannot be resolved' do
     expect do
       lib1 = Cxxproject::SourceLibrary.new('1').set_dependencies(['unresolved'])
-      cxx = CxxProject2Rake.new([], 'build', GCCChain)
+      cxx = CxxProject2Rake.new([], 'build', "clang")
     end.to raise_exception(RuntimeError, 'Error: while reading config file for 1: dependent building block "unresolved" was specified but not found!')
   end
 
