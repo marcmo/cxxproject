@@ -5,10 +5,70 @@ see documentation page: [cxxproject](http://marcmo.github.com/cxxproject)
 
 ## Change History:
 
+v_0.5.56 => v_0.5.58
+
+    * GCC3 include not found error now recognized correctly
+    * Preprocessor option added
+
+v_0.5.55 => v_0.5.56
+
+    * bugfix: diab error parser regex
+
+v_0.5.54 => v_0.5.55
+
+    * Accidentially suppressed compiler output in last version
+
+v_0.5.53 => v_0.5.54
+
+    * Show linking message during linking
+
+v_0.5.52 => v_0.5.53
+
+    * Abort build if circular deps are detected
+
+v_0.5.51 => v_0.5.52
+
+    * updated to ruby 1.9.3
+    * includes in cxx-dsl also works with one string, some whitespace cleanup
+    * prepared for next version
+    * More intelligent gcc linker error parser
+    * Fixed possible hang on Linux when sockets are used
+    * Fixed possible hang on Linux when sockets are used, second try
+    * Possibility to add empty lines for toolchain commands
+
+v_0.5.50 => v_0.5.51
+
+    * Improved Diab compiler error parser (not all error messages have etoa:<num> included)
+    * Removed warning for ruby 1.8.6
+    * Giving access to prereqs of a task
+    * Fixed TI linker error parser
+    * Treat step as error if parser finds an error even if step has return with 0
+    * 0.5.51
+
+v_0.5.49 => v_0.5.50
+
+    * Fixed valgrind require/stderr bugs
+
+v_0.5.47 => v_0.5.49
+
+    * fixes #96: add support for valgrind
+    * moved valgrind support from ext to utils, because its not a monkey patch
+    * Improved diab linker error parser
+    * 0.5.49
+
+v_0.5.46 => v_0.5.47
+
+    * more examples for usage of custom blocks
+      
+      bumped version
+      updated README
+
 v_0.5.45 => v_0.5.46
 
     * fixed linux socket problem, fixed encoding of ide messages
     * version 0.5.46
+    * corrected load error in rakefile
+    * better comments
 
 v_0.5.44 => v_0.5.45
 
@@ -267,10 +327,120 @@ v_0.5.3 => v_0.5.4
       install dependent gems per default,
       enable "on" as keyword for toggling the colorized output
 
-v_0.5.2 => v_0.5.3
+v_0.5.3.32 => v_0.5.3
+
+
+v_0.5.2 => v_0.5.3.32
 
     * exit helper for unit tests
     * 0.5.3
+    * Removed dot graph stuff
+    * fixed non-ascii char console prob in windows
+    * polish
+    * corrected console highlighting (closes #81)
+    * version bump to 0.5.4
+      
+      install dependent gems per default,
+      enable "on" as keyword for toggling the colorized output
+    * startet to add new errorparser (#82)
+    * command line colorization and ide interface use same formatter now
+      
+      closes #82, #83
+      regex for parsing the error string is now part of the toolchain,
+      colorizing_formatter now uses errorparser to parse command line output
+      version bump
+    * added version history
+    * error parsing for diab, nicer output, error parser for linker
+    * compile linkinfo only if necessary
+    * bugfix: error if linkinfo not set
+    * improved color and output
+    * possibility to add path vars for makefile
+    * version 0.5.7
+    * better matches for gcc warnings/error parser
+    * some formatter tweaking...
+      
+      added rake task to automatically generate and update release history
+    * Fixed some bugs like handling of 0, specs are running again
+    * fixed clang compiler formatter (runtime error because formatter api changed)
+    * console output was not captured correctly for old ruby versions
+      
+      happened for ruby versions < 1.9.2...fixed with this commit
+    * fixed namespace error for Printer
+    * 0.5.10
+    * Fixed gemspec, should be compatible to more rubygems versions
+    * yaml required before loading gemspec
+    * Removed default flags from toolchains
+    * 0.5.11
+    * minor code cleanup
+    * fixed linker lib string, some stuff may have been missed
+    * 0.5.12
+    * version available in code
+    * stderr and stdout were mixed up
+    * added double ticks if lib pathes have spaces
+    * fixed cleaning and some other minor stuff
+    * 0.5.13
+    * updated release history
+    * fixes #84: stdout will now be on stdout again
+    * improvements for referencing output dir
+    * version update
+    * error parser fixed for makefiles, commandlines. fixed windows path problems, sources always build in alphabetical order
+    * version 0.5.15
+    * windows probs with double quotes, tcs for single file not applied correctly
+    * 0.5.16
+    * Same object order as in Eclipse. Archives are built from objects dir to shorten the cmd length
+    * Cosmetic: removed useless line
+    * 0.5.17
+    * interface spec is running again
+    * libs without objects working again
+    * 0.5.18
+    * backtrace for finding bad filedescriptor bug, which occurs very rarely
+    * bugfix: errors in diab can be fatal too
+    * flags for make are set individually
+    * minor cleanup
+    * cosmetic: removed unused method
+    * Fixed bad filedescriptor bug - sometimes a pipe was not working properly after read_nonblock
+    * added error if symlink has other parent dir than target
+    * added/changed LinkInfo/VersionGenerator feature, artifact name is configurable
+    * fixed uncolored output on linux
+    * Removed transitive_config stuff. moved attribute helper stuff into spec and commented out, because it's not used anymore
+    * typo in warning message of makefile buildingblock
+    * removed tests for transitive_configs
+    * transitive includes is off per default -> for cxx it is switched on
+    * Removed helper dependencies, which are not needed anymore by lake. added test-warnings for bad filedescritor bug, which still occurs on windows - will be removed after fixing
+    * 0.5.21
+    * marshall string for lake cache is shorter now
+    * Added info output about possible unnecessary includes
+    * build_linkinfo was not set correctly, added getter methods for build_linkinfo and build_version_file
+    * check unnecessary includes now off per default, can be switched on
+    * Reintroduced helper deps
+    * missing makefile path is an error, not a warning
+    * Adjusted module building block for lake
+    * Added possibility to suppress the linking
+    * Cosmetic: string compare in test failed after changing string in lib
+    * cosmetic, error msg was not printed out correctly
+    * bugfix: building only exe did not check libs
+    * added a second color scheme for light (e.g. white) backgrounds
+    * 0.5.22
+    * Removed require to deleted file
+    * ide interface was not compatible to ruby 1.8.x when reading non-blocking from socket
+    * Bugfix: removed old and therefore invalid require
+    * Some error parser fixes
+    * Bugfix: libs were not checked correctly in 'in build this project only'
+    * Warning if source pattern does not match to any file
+    * Ignore bad filedescriptor for output
+    * Config files are checked right before building, which minimizes the chance for inconsistent dependency graphs when changing config files during build
+    * config file in torake now absolute
+    * 0.5.27
+    * Minor fix for lib search path on Windows
+    * backticks on windows do not work with slashes
+    * Unnecessary include check was broken
+    * config file check now AFTER executing task to avoid inconsistencies due to intermediate-changes of config files
+    * Colorizing not compatible with ruby 1.8.6
+    * Bugfix: GCC error parser broken if column is included. Bugfix: If line has no error and colorizer is on, the newline was dismissed.
+    * GCC can have fatal errors, fixed error parser
+    * Merged and improved ide messages about building projects
+    * 0.5.31
+    * Makefile and CommandLine output immediately visible instead of waiting until the step has been completed. Bugfix: attribute pathTo of Makefile did not work for Build This Project Only
 
 v_0.5.1 => v_0.5.2
 
