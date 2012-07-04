@@ -17,7 +17,12 @@ require 'cxxproject/utils/rbcurse'
 require 'cxxproject/utils/progress'
 require 'cxxproject/utils/rbcurse'
 require 'cxxproject/utils/stats'
+require 'cxxproject/version'
 
 include Cxxproject::Toolchain
 CxxProject2Rake = Cxxproject::CxxProject2Rake
 BinaryLibs = Cxxproject::BinaryLibs
+
+def version_info
+  Cxxproject::Version.cxxproject
+end

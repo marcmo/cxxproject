@@ -1,8 +1,8 @@
 require 'cxxproject/utils/utils'
 require 'cxxproject/toolchain/provider'
 require 'cxxproject/errorparser/error_parser'
-require 'cxxproject/errorparser/gcc_compiler_error_parser'
-require 'cxxproject/errorparser/gcc_linker_error_parser'
+require 'errorparser/gcc_compiler_error_parser'
+require 'errorparser/gcc_linker_error_parser'
 
 module Cxxproject
   module Toolchain

@@ -12,76 +12,35 @@ require 'cxxproject/buildingblocks/custom_building_block'
 require 'cxxproject/buildingblocks/command_line'
 require 'cxxproject/toolchain/colorizing_formatter'
 require 'cxxproject/eval_context'
+require 'cxxproject/plugin_context'
 
 require 'rubygems'
 
 module Cxxproject
 
-  # context in which plugins are evaluated
-  # a cxx_plugin is a gem that:
-  # - follows the naming convention cxxplugin_name
-  # - that has a plugin.rb file in lib and
-  # - that calls cxx_plugin
-  #
-  # the context contains
-  # - @cxxproject2rake
-  # - @building_blocks
-  # - @log
-  class PluginContext
-    def initialize(cxxproject2rake, building_blocks, log)
-      @cxxproject2rake = cxxproject2rake
-      @building_blocks = building_blocks
-      @log = log
-    end
-    def load_plugin(gem)
-      path = File.join(gem.full_gem_path, 'lib', 'plugin.rb')
-      content = File.read(path)
-      instance_eval(content)
-    end
-
-    # method for plugins to get the
-    # cxxproject2rake
-    # building_blocks
-    # log
-    def cxx_plugin(&blk)
-      blk.call(@cxxproject2rake, @building_blocks, @log)
-    end
-  end
-
   class CxxProject2Rake
     attr_accessor :base, :all_tasks
-    def load_cxx_plugins
-      prefix = 'cxxproject_'
-      gems_to_load = Gem::Specification.find_all do |gem|
-        gem.name.index(prefix)
-      end
-      gems_to_load.each do |gem|
-        context = PluginContext.new(self, ALL_BUILDING_BLOCKS, @log)
-        context.load_plugin(gem)
-      end
-    end
 
-    def initialize(projects, build_dir, toolchain, base='.')
+    def initialize(projects, build_dir, toolchain_name, base='.')
+      load_cxx_plugins
+      toolchain = Provider[toolchain_name]
+      raise "no provider with name \"#{toolchain_name}\" found" unless toolchain
       @base = base
       cd(@base, :verbose => false) do
         @projects = projects.to_a
       end
-      @build_dir = build_dir
-      @toolchain = toolchain
-      @rel_projects = @projects#.map { |p| File.join(@base, p) }
 
       # TODO: this should be cleaned up somehow...
-      if Utils::OS.linux?
-        toolchain[:LINKER][:LIB_PREFIX_FLAGS] = "-Wl,--whole-archive"
-        toolchain[:LINKER][:LIB_POSTFIX_FLAGS] = "-Wl,--no-whole-archive"
-      end
+      # if Utils::OS.linux?
+      #   toolchain[:LINKER][:LIB_PREFIX_FLAGS] = "-Wl,--whole-archive"
+      #   toolchain[:LINKER][:LIB_POSTFIX_FLAGS] = "-Wl,--no-whole-archive"
+      # end
 
       Rake::application.deriveIncludes = true
 
-      initialize_logging
-      @all_tasks = instantiate_tasks
+      initialize_logging(build_dir)
+      @all_tasks = instantiate_tasks(toolchain, build_dir)
 
-      load_cxx_plugins
 
       create_generic_tasks
       create_console_colorization
@@ -91,11 +50,34 @@ module Cxxproject
       create_console_task
     end
 
+    def load_cxx_plugins
+      prefix = 'cxxproject_'
+      gems_to_load = Gem::Specification.find_all do |gem|
+        gem.name.index(prefix)
+      end
+      context = PluginContext.new(self, ALL_BUILDING_BLOCKS, @log)
+      gems_to_load.each do |gem|
+        load_plugin(gem, context)
+      end
+    end
+
+    def load_plugin(gem, pluginContext)
+      p "loading plugin #{gem}"
+      begin 
+        path = File.join(gem.full_gem_path, 'lib', 'plugin.rb')
+        content = File.read(path)
+        pluginContext.eval_plugin(content)
+      rescue Exception => e
+        puts "problems with gem #{gem} in dir: #{path}: #{e}"
+        raise e
+      end
+    end
+
     def create_console_task
       require 'cxxproject/utils/console'
     end
 
-    def initialize_logging
+    def initialize_logging(build_dir)
       @log = Logger.new(STDOUT)
       @log.formatter = proc { |severity, datetime, progname, msg|
         "#{severity}: #{msg}\n"
@@ -106,7 +88,7 @@ module Cxxproject
       @log.level = Logger::ERROR
       @log.level = Logger::INFO if RakeFileUtils.verbose == true
       @log.level = Logger::DEBUG if Rake::application.options.trace
-      @log.debug "initializing for build_dir: \"#{@build_dir}\", base: \"#{@base}\""
+      @log.debug "initializing for build_dir: \"#{build_dir}\", base: \"#{@base}\""
     end
     def describe_clean_task
       Rake::Task[:clean].add_description('clean')
@@ -176,7 +158,7 @@ module Cxxproject
       end
     end
 
-    def instantiate_tasks
+    def instantiate_tasks(toolchain, build_dir)
       check_for_project_configs
 
       if @log.debug?
@@ -185,7 +167,7 @@ module Cxxproject
       end
       register_projects()
       ALL_BUILDING_BLOCKS.values.each do |block|
-        prepare_block(block)
+        prepare_block(block, toolchain, build_dir)
       end
       ALL_BUILDING_BLOCKS.values.inject([]) do |memo,block|
         @log.debug "creating tasks for block: #{block.name}/taskname: #{block.get_task_name} (#{block})"
@@ -201,9 +183,9 @@ module Cxxproject
       end
     end
 
-    def prepare_block(block)
-      block.set_tcs(@toolchain) unless block.has_tcs?
-      block.set_output_dir(Dir.pwd + "/" + @build_dir)
+    def prepare_block(block, toolchain, build_dir)
+      block.set_tcs(toolchain) unless block.has_tcs?
+      block.set_output_dir(Dir.pwd + "/" + build_dir)
       block.complete_init()
     end
 
@@ -226,13 +208,6 @@ module Cxxproject
         loadContext.eval_project(File.read(File.basename(project_file)), project_file, Dir.pwd)
       rescue Exception => e
         puts "problems with #{File.join(b, project_file)} in dir: #{Dir.pwd}"
-        raise e
-      end
-      begin
-        loadContext.myblock.call()
-      rescue Exception => e
-        error_string = "error while evaluating \"#{Dir.pwd}/#{project_file}\""
-        puts error_string
         raise e
       end
 
