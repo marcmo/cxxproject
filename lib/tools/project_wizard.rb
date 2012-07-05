@@ -22,8 +22,11 @@ def prepare_project(dir_name)
     else
       say "Stopped project-setup!"
     end
+    
+  rescue Interrupt
+    say "\nStopped project-setup!"
   rescue LoadError
-    puts "Please run 'gem install highline'"
+    say "Please run 'gem install highline'"
   end
 end
 
