@@ -21,8 +21,9 @@ module Cxxproject
   class CxxProject2Rake
     attr_accessor :base, :all_tasks
 
-    def initialize(projects, build_dir, toolchain_name, base='.')
+    def initialize(projects, build_dir, toolchain_name, base='.', &option_block)
       load_cxx_plugins
+      option_block.call if option_block
       toolchain = Provider[toolchain_name]
       raise "no provider with name \"#{toolchain_name}\" found" unless toolchain
       @base = base

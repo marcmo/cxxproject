@@ -120,7 +120,6 @@ module Cxxproject
       end
 
       def self.modify_cpp_compiler(based_on, h)
-        # chain = Marshal.load(Marshal.dump(@@settings[based_on]))
         chain = @@settings[based_on]
         raise "unknown toolchain: #{based_on}" unless chain
         chain[:COMPILER][:CPP].update(h)
