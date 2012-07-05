@@ -6,10 +6,10 @@ def prepare_project(dir_name)
   begin
     require 'highline/import'
     
-    say "This will create a new cxx-project config in directory: '#{dir_name}'"
-    if agree("Are you sure you want to continue? [y/n] ") then
+    say "This will create a new cxx-project in directory: '#{dir_name}'"
+    if confirm("Are you sure you want to continue") then
       building_block = choose_building_block
-      generate_makefile = agree("Do you also whant to generate a rakefile? [y/n] ")
+      generate_makefile = confirm("Do you also whant to generate a rakefile", building_block.eql?("exe"))
       
       toolchain = nil
       if generate_makefile then
@@ -33,7 +33,7 @@ end
 def choose_building_block
   res = nil
   choose do |menu|
-    say "What building-block do you want to create?"
+    say "What building-block do you whant to create?"
     menu.choice(:exe) { res = "exe" }
     menu.choice(:lib) { res = "source_lib" }
     menu.prompt = "Select a building-block: "
@@ -48,7 +48,7 @@ def choose_toolchain
   toolchain_gems = Gem::Specification.find_all do |gem|
     gem.name.start_with?(prefix)
   end
-  if toolchain_gems.length > 0
+  if toolchain_gems.length > 0 then
     choose do |menu|
       say "What toolchain do you whant to use?"
       toolchain_gems.each do |gem|
@@ -60,7 +60,7 @@ def choose_toolchain
   else
     say "No toolchains available!"
     candidates = `gem list --remote "cxxproject_.*toolchain"`
-    say "You need to install toolchain-plugins in order to use cxxproject,- candidates are:\n#{candidates}"
+    say "You need to install at least one toolchain-plugin,- candidates are:\n#{candidates}"
   end
   res
 end
@@ -75,12 +75,12 @@ def create_project(dir_name, building_block, toolchain, generate_rakefile)
   end
   
   rakefile_file = "#{dir_name}/Rakefile.rb"
-  if generate_rakefile && (!File.exists?(rakefile_file) || agree("Override existing '#{rakefile_file}'? [y/n] ")) then
+  if generate_rakefile && (!File.exists?(rakefile_file) || confirm("Override existing '#{rakefile_file}'")) then
     write_template(rakefile_file, rakefile_template, binding)
   end
   
   project_file = "#{dir_name}/project.rb"
-  if !File.exists?(project_file) || agree("Override existing '#{project_file}'? [y/n] ") then
+  if !File.exists?(project_file) || confirm("Override existing '#{project_file}'") then
     write_template(project_file, project_template, binding)
   end
 end
@@ -90,8 +90,23 @@ def create_binding(name, building_block, toolchain)
 end
 
 def write_template(file_name, template, binding)
-  say "...write: #{file_name}"
+  say "...write: '#{file_name}'"
   File.open(file_name, 'w') do |f|
     f.write ERB.new(template).result(binding)
   end
+end
+
+def confirm(question, default = true)
+  res = nil
+  while res == nil
+    confirm = ask("#{question}? ") { |q| q.default = default ? "Y/n" : "y/N" }
+    if confirm.eql?("Y/n") || confirm.downcase.eql?("yes") || confirm.downcase.eql?("y") then
+      res = true
+    elsif confirm.eql?("y/N") || confirm.downcase.eql?("no") || confirm.downcase.eql?("n") then
+      res = false
+    else
+      say "Please enter \"yes\" or \"no\"."
+    end
+  end
+  return res
 end
