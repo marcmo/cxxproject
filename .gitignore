@@ -1,5 +1,6 @@
 pkg
 .project
+.buildpath
 tags
 id_cache
 out
