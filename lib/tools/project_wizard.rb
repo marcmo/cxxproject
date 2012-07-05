@@ -19,6 +19,8 @@ def choose_toolchain
     end
   else
     say "no toolchains found...you need to install toolchain-gems in order to use cxxproject"
+    candidates = `gem list --remote "cxxproject_.*toolchain"`
+    say "candidates are:\n#{candidates}"
   end
   res
 end
