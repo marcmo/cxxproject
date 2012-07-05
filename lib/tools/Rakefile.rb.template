@@ -5,6 +5,6 @@ unittest_flags = {
   :DEFINES => ['UNIT_TEST','CPPUNIT_MAIN=main'],
   :FLAGS => "-O0 -g3 -Wall"
 }
-toolchain = Provider.modify_cpp_compiler("<%= toolchain_name %>", unittest_flags)
+toolchain = Provider.modify_cpp_compiler("<%= toolchain %>", unittest_flags)
 dependent_projects =  ['./project.rb']
 CxxProject2Rake.new(dependent_projects, BuildDir, toolchain, './')
