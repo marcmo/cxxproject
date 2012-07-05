@@ -44,23 +44,24 @@ end
 def choose_toolchain
   res = nil
   toolchains = []
-  prefix = "cxxproject_"
-  toolchain_gems = Gem::Specification.find_all do |gem|
-    gem.name.start_with?(prefix)
+  toolchain_pattern = /cxxproject_(.*)toolchain/
+  Gem::Specification.find_all do |gem|
+    if gem.name =~ toolchain_pattern then
+      toolchains << $1
+    end
   end
-  if toolchain_gems.length > 0 then
+  if toolchains.length > 0 then
     choose do |menu|
       say "What toolchain do you whant to use?"
-      toolchain_gems.each do |gem|
-        name = gem.name[prefix.length..-1][/(.*?)toolchain/, 1] 
-        menu.choice(name.to_sym) { res = name }
+      toolchains.each do |toolchain|
+        menu.choice(toolchain.to_sym) { res = toolchain }
       end
       menu.prompt = "Select a toolchain: "
     end
   else
-    say "No toolchains available!"
+    say "No toolchains installed!"
     candidates = `gem list --remote "cxxproject_.*toolchain"`
-    say "You need to install at least one toolchain-plugin,- candidates are:\n#{candidates}"
+    say "You need at least one toolchain-plugin,- candidates are:\n#{candidates}"
   end
   res
 end
