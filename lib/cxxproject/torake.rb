@@ -19,15 +19,15 @@ require 'rubygems'
 module Cxxproject
 
   class CxxProject2Rake
-    attr_accessor :base, :all_tasks
+    attr_accessor :base_dir, :all_tasks
 
-    def initialize(projects, build_dir, toolchain_name, base='.', &option_block)
+    def initialize(projects, build_dir, toolchain_name, base_dir='.', &option_block)
       load_cxx_plugins
       option_block.call if option_block
       toolchain = Provider[toolchain_name]
       raise "no provider with name \"#{toolchain_name}\" found" unless toolchain
-      @base = base
-      cd(@base, :verbose => false) do
+      @base_dir = base_dir
+      cd(@base_dir, :verbose => false) do
         @projects = projects.to_a
       end
 
@@ -41,7 +41,6 @@ module Cxxproject
 
       initialize_logging(build_dir)
       @all_tasks = instantiate_tasks(toolchain, build_dir)
-
 
       create_generic_tasks
       create_console_colorization
@@ -88,11 +87,13 @@ module Cxxproject
       @log.level = Logger::ERROR
       @log.level = Logger::INFO if RakeFileUtils.verbose == true
       @log.level = Logger::DEBUG if Rake::application.options.trace
-      @log.debug "initializing for build_dir: \"#{build_dir}\", base: \"#{@base}\""
+      @log.debug "initializing for build_dir: \"#{build_dir}\", base_dir: \"#{@base_dir}\""
     end
+
     def describe_clean_task
       Rake::Task[:clean].add_description('clean')
     end
+
     def create_bail_on_first_task
       desc 'set bail on first error'
       task :bail_on_first_error do
@@ -176,7 +177,7 @@ module Cxxproject
     end
 
     def check_for_project_configs
-      cd(@base, :verbose => false) do
+      cd(@base_dir, :verbose => false) do
         @projects.each do |p|
           abort "project config #{p} cannot be found!" unless File.exists?(p)
         end
@@ -190,7 +191,7 @@ module Cxxproject
     end
 
     def register_projects()
-      cd(@base,:verbose => false) do |b|
+      cd(@base_dir,:verbose => false) do |b|
         @projects.each_with_index do |project_file, i|
           @log.debug "register project #{project_file}"
           dirname = File.dirname(project_file)
@@ -202,6 +203,7 @@ module Cxxproject
         end
       end
     end
+
     def eval_file(b, project_file)
       loadContext = EvalContext.new
       begin
@@ -220,6 +222,7 @@ module Cxxproject
         end
       end
     end
+
     def define_project_info_task
       desc "shows your defined projects"
       task :project_info do
