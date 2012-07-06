@@ -32,10 +32,10 @@ module Cxxproject
       end
 
       # TODO: this should be cleaned up somehow...
-      # if Utils::OS.linux?
-      #   toolchain[:LINKER][:LIB_PREFIX_FLAGS] = "-Wl,--whole-archive"
-      #   toolchain[:LINKER][:LIB_POSTFIX_FLAGS] = "-Wl,--no-whole-archive"
-      # end
+      if Utils::OS.linux?
+        toolchain[:LINKER][:LIB_PREFIX_FLAGS] = "-Wl,--whole-archive"
+        toolchain[:LINKER][:LIB_POSTFIX_FLAGS] = "-Wl,--no-whole-archive"
+      end
 
       Rake::application.deriveIncludes = true
 
@@ -63,7 +63,7 @@ module Cxxproject
     end
 
     def load_plugin(gem, pluginContext)
-      begin 
+      begin
         path = File.join(gem.full_gem_path, 'lib', 'plugin.rb')
         content = File.read(path)
         pluginContext.eval_plugin(content)
