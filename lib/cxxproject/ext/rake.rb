@@ -263,7 +263,6 @@ module Rake
     end
 
     define_method(:invoke) do |*args|
-      Cxxproject::ExitHelper.set_exit_code(0)
       invoke_org.bind(self).call(*args)
       if @failure or Rake.application.idei.get_abort
         Cxxproject::ExitHelper.set_exit_code(1)

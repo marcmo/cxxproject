@@ -3,7 +3,7 @@ module Cxxproject
   end
 
   class ExitHelper
-    @@exit_code = 0
+    @@exit_code = nil
     @@exit_test = false
 
     def self.set_exit_code(val)
@@ -36,5 +36,5 @@ module Cxxproject
 end
 
 at_exit do
-  exit(Cxxproject::ExitHelper.exit_code)
+  exit(Cxxproject::ExitHelper.exit_code) unless Cxxproject::ExitHelper.exit_code.nil?
 end
