@@ -34,14 +34,6 @@ def rebuild
   execute_all_tasks(tasks)
 end
 
-#def is_older? fileA, fileB
-#  File.mtime(fileA) < File.mtime(fileB)
-#end
-#
-#def is_newer? fileA, fileB
-#  File.mtime(fileA) > File.mtime(fileB)
-#end
-
 def check_rebuilding (end_product, prereq_file, should_rebuild = true)
   sleep(1)
   FileUtils.touch prereq_file
@@ -66,23 +58,12 @@ end
 def fresh_cxx
   Cxxproject::Utils.cleanup_rake
   outputdir = 'output'
-  CxxProject2Rake.new(Dir.glob('**/project.rb'), outputdir, "clang")
+  CxxProject2Rake.new(Dir.glob('**/project.rb'), outputdir, 'gcc')
 end
 
 def cleanup
   rm_r 'output' if File.directory?('output')
 end
-
-#def count_needed_tasks(tasks)
-#  needed = 0
-#  tasks.each do |tn|
-#    t = tn[:task]
-#    if t.needed?
-#      needed = needed + 1
-#    end
-#  end
-#  needed
-#end
 
 ONLY_ONE_HEADER = "#{RSPECDIR}/testdata/onlyOneHeader"
 describe CxxProject2Rake do

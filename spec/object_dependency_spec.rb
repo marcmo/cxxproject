@@ -4,7 +4,7 @@ require 'cxxproject/ext/rake_listener.rb'
 require 'cxxproject/utils/cleanup'
 
 describe Rake::Task do
-
+  compiler = 'gcc'
   before(:each) do
     Rake::application.options.silent = true
     Cxxproject::Utils.cleanup_rake
@@ -17,7 +17,7 @@ describe Rake::Task do
     file 'test.cc' => 'compiler'
     File.delete('test.cc') if File.exists?('test.cc')
     sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc']).set_project_dir(".")
-    cxx = CxxProject2Rake.new([], 'build', "clang")
+    cxx = CxxProject2Rake.new([], 'build', compiler)
 
     task = Rake::application['lib:testlib']
     task.invoke
@@ -35,11 +35,11 @@ describe Rake::Task do
     end
 
     sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc']).set_project_dir(".")
-    CxxProject2Rake.new([], 'build', "clang")
+    CxxProject2Rake.new([], 'build', compiler)
 
     task = Rake::application['lib:testlib']
     task.invoke
-    task.failure.should eq(false)
+    task.failure.should == false
 
     Cxxproject::Utils.cleanup_rake
 
@@ -48,36 +48,13 @@ describe Rake::Task do
     end
 
     sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc']).set_project_dir(".")
-    CxxProject2Rake.new([], 'build', "clang")
+    CxxProject2Rake.new([], 'build', compiler)
 
     task = Rake::application['build/libs/libtestlib.a']
     task.invoke
-    task.failure.should eq(false)
+    task.failure.should == false
 
     FileUtils.rm_rf('test.cc')
-  end
-
-  it 'should not fail if generated headerfile is missing' do
-    file 'test.h' do
-      sh 'touch test.h'
-    end
-
-    file 'test.cc' => 'test.h' do |t|
-      File.open(t.name, 'w') do |io|
-        io.puts('#include "test.h"')
-      end
-    end
-
-    sl = Cxxproject::SourceLibrary.new('testlib').set_sources(['test.cc']).set_project_dir(".")
-    CxxProject2Rake.new([], 'build', "clang")
-
-    task = Rake::application['build/libs/libtestlib.a']
-    task.invoke
-    task.failure.should eq(false)
-
-    FileUtils.rm_rf('build')
-    FileUtils.rm_rf('test.cc')
-    FileUtils.rm_rf('test.h')
   end
 
 end

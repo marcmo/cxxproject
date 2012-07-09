@@ -18,7 +18,7 @@ describe CxxProject2Rake do
     cd base do # have to be relative to base
       project_configs = Dir.glob('**/project.rb')
     end
-    CxxProject2Rake.new(project_configs, outputdir, "clang", base)
+    CxxProject2Rake.new(project_configs, outputdir, 'gcc', base)
   end
 
 
@@ -35,16 +35,16 @@ describe CxxProject2Rake do
     libTwo = "#{outputdir}/libs/lib2.a"
     exe = "#{outputdir}/basic.exe"
     exe2 = "#{outputdir}/debug.exe"
-
+    files = [libOne,libTwo,exe,exe2]
     rm_r outputdir if File.directory?(outputdir)
     tasks = fresh_cxx(outputdir, base).all_tasks
     CLOBBER.each { |fn| rm_r fn rescue nil }
 
-    [libOne,libTwo,exe,exe2].all? {|f| File.exists?(f).should be_false }
+    files.all? {|f| File.exists?(f).should be_false }
 
     execute_all_tasks(tasks)
 
-    [libOne,libTwo,exe,exe2].all? {|f| File.exists?(f).should be_true }
+    files.all? {|f| File.exists?(f).should be_true }
 
     # cleanup
     rm_r outputdir if File.directory?(outputdir)
