@@ -13,3 +13,4 @@ testdata
 coverage
 html
 *.gem
+build
