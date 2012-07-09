@@ -15,6 +15,17 @@ begin
     sh "gem install pkg/#{spec.name}-#{spec.version}.gem"
   end
 
+  desc "deploy gem to rubygems"
+  task :deploy => :gem do
+    require 'highline/import'
+    new_gem = "pkg/#{spec.name}-#{spec.version}.gem"
+    say "This will deploy #{new_gem} to rubygems server"
+    if agree("Are you sure you want to continue? [y/n]") then
+      sh "gem push #{new_gem}"
+    end
+  end
+
+
 
   begin
     require 'rdoc'
@@ -110,7 +121,6 @@ begin
 rescue LoadError => e
   puts 'to build the version history please gem install grit'
 end
-
 
 require './rake_helper/perftools'
 

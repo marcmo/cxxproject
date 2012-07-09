@@ -190,6 +190,7 @@ module Cxxproject
       if hasError
         if not errorPrinted
           Printer.printError "Error: system command failed"
+          Printer.printError console_output
           res = ErrorDesc.new
           res.file_name = @project_dir
           res.line_number = 0
