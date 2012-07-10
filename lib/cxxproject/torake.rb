@@ -22,7 +22,7 @@ module Cxxproject
     attr_accessor :base_dir, :all_tasks
 
     def initialize(projects, build_dir, toolchain_name, base_dir='.', &option_block)
-      load_cxx_plugins
+      load_toolchain_plugins
       option_block.call if option_block
       toolchain = Provider[toolchain_name]
       raise "no provider with name \"#{toolchain_name}\" found" unless toolchain
@@ -48,15 +48,36 @@ module Cxxproject
       create_bail_on_first_task
       describe_clean_task
       create_console_task
+
+      load_nontoolchain_plugins
     end
 
-    def load_cxx_plugins
-      prefix = 'cxxproject_'
-      gems_to_load = Gem::Specification.find_all do |gem|
-        gem.name.index(prefix)
+    def find_gems
+      latest = Gem::Specification.latest_specs
+      latest.select do |gem|
+        yield(gem)
       end
+    end
+
+    def load_toolchain_plugins
+      toolchains = find_gems do |gem|
+        Regexp.new('cxxproject_(.+)toolchain').match(gem.name)
+      end
+      load_gems(toolchains)
+    end
+
+    def load_nontoolchain_plugins
+      cxx = Regexp.new('cxxproject_(.+)')
+      no_toolchain = Regexp.new('.*toolchain.*')
+      gems_to_load = find_gems do |gem|
+        cxx.match(gem.name) && !(no_toolchain.match(gem.name))
+      end
+      load_gems(gems_to_load)
+    end
+
+    def load_gems(gems)
       context = PluginContext.new(self, ALL_BUILDING_BLOCKS, @log)
-      gems_to_load.each do |gem|
+      gems.each do |gem|
         load_plugin(gem, context)
       end
     end

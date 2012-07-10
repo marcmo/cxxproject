@@ -18,5 +18,5 @@ cxx_configuration do
     :sources => FileList['**/*.cpp'],
     :dependencies => deps,
     :includes => ['.'],
-    :toolchain => Provider.modify_cpp_compiler("clang", unittest_flags)
+    :toolchain => Provider.modify_cpp_compiler('gcc', unittest_flags)
 end
