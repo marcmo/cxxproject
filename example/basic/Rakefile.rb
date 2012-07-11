@@ -1,7 +1,6 @@
-$:.unshift File.join(File.dirname(__FILE__),"..","..","lib")
+require 'rubydsl/rubydsl'
 
-require 'cxxproject'
-CxxProject2Rake.new(['basic/project.rb','lib1/project.rb','lib2/project.rb'] , "build", 'gcc', ".")
+projects_to_rake(['basic/project.rb','lib1/project.rb','lib2/project.rb'] , "build", 'gcc', ".")
 # CxxProject2Rake.new(['basic/project.rb','lib1/project.rb','lib2/project.rb'] , "build", "clang", ".") do
 #   p "calling block..."
 #   unittest_flags = {

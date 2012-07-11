@@ -27,9 +27,6 @@ Gem::Specification.new do |s|
   s.author = 'oliver mueller'
   s.email = 'oliver.mueller@gmail.com'
   s.homepage = 'https://github.com/marcmo/cxxproject'
-  s.add_dependency('highline', '>= 1.6.0')
   s.add_dependency('colored')
-  s.add_dependency('progressbar')
   s.add_dependency('frazzle')
-  s.executables = ['cxx']
 end

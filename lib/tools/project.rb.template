@@ -1,6 +1,0 @@
-cxx_configuration do
-  <%= building_block %> "<%= name %>",
-    :sources => FileList['**/*.cpp'],
-    :includes => ['include'],
-    :dependencies => []
-end
