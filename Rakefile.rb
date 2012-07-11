@@ -25,8 +25,6 @@ begin
     end
   end
 
-
-
   begin
     require 'rdoc'
     require 'rdoc/task'
