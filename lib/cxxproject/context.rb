@@ -1,7 +1,6 @@
-
 module Cxxproject
   module Context
-    
+
     def check_hash(hash,allowed)
       hash.keys.map do |k|
         error_string = ["error while evaluating \"#{@current_working_dir}/#{@current_project_file}\"",

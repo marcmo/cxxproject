@@ -22,7 +22,6 @@ module Cxxproject
     attr_accessor :base_dir, :all_tasks
 
     def initialize(projects, build_dir, toolchain_name, base_dir='.', &option_block)
-      load_toolchain_plugins
       option_block.call if option_block
       toolchain = Provider[toolchain_name]
       raise "no provider with name \"#{toolchain_name}\" found" unless toolchain
@@ -52,44 +51,10 @@ module Cxxproject
       load_nontoolchain_plugins
     end
 
-    def find_gems
-      latest = Gem::Specification.latest_specs
-      latest.select do |gem|
-        yield(gem)
-      end
-    end
-
-    def load_toolchain_plugins
-      toolchains = find_gems do |gem|
-        Regexp.new('cxxproject_(.+)toolchain').match(gem.name)
-      end
-      load_gems(toolchains)
-    end
-
     def load_nontoolchain_plugins
-      cxx = Regexp.new('cxxproject_(.+)')
-      no_toolchain = Regexp.new('.*toolchain.*')
-      gems_to_load = find_gems do |gem|
-        cxx.match(gem.name) && !(no_toolchain.match(gem.name))
-      end
-      load_gems(gems_to_load)
-    end
-
-    def load_gems(gems)
-      context = PluginContext.new(self, ALL_BUILDING_BLOCKS, @log)
-      gems.each do |gem|
-        load_plugin(gem, context)
-      end
-    end
-
-    def load_plugin(gem, pluginContext)
-      begin
-        path = File.join(gem.full_gem_path, 'lib', 'plugin.rb')
-        content = File.read(path)
-        pluginContext.eval_plugin(content)
-      rescue Exception => e
-        puts "problems with gem #{gem} in dir: #{path}: #{e}"
-        raise e
+      registry = Frazzle::Registry.new('cxxproject', '_', '-')
+      registry.get_all_plugins.select { |name|name.index('toolchain') == nil }.each do |plugin|
+        registry.load_plugin(plugin, PluginContext.new(self, ALL_BUILDING_BLOCKS, @self))
       end
     end
 

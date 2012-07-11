@@ -34,13 +34,13 @@ module Cxxproject
     # * :command
     def toolchain(name, tc)
       raise "not a tc" unless tc.is_a?(Hash)
-      check_hash(tc,Provider.default.keys)
+      check_hash(tc, Cxxproject::Toolchain::Provider.default.keys)
       check_compiler(tc[:COMPILER]) if tc[:COMPILER]
       check_linker(tc[:LINKER]) if tc[:LINKER]
       check_archiver(tc[:ARCHIVER]) if tc[:ARCHIVER]
       PluginContext::expand(tc)
-      Provider.add(name)
-      Provider.merge(Provider[name], tc)
+      Cxxproject::Toolchain::Provider.add(name)
+      Cxxproject::Toolchain::Provider.merge(Cxxproject::Toolchain::Provider[name], tc)
     end
 
     def self.expand(toolchain)
@@ -50,7 +50,7 @@ module Cxxproject
         to_expand = find_toolchain_subhash(toolchain)
         from = find_toolchain_element(toolchain,to_expand[:BASED_ON])
         to_expand.delete(:BASED_ON)
-        Cxxproject::Toolchain::Provider.merge(to_expand,from,false)
+        Cxxproject::Toolchain::Provider.merge(to_expand, from, false)
       end
       return toolchain
     end
@@ -60,7 +60,7 @@ module Cxxproject
       tc.each do |k,v|
         if k == :BASED_ON
           res = true
-        elsif v.is_a?(Hash) 
+        elsif v.is_a?(Hash)
           res = needs_expansion(v)
         end
         if res
@@ -76,7 +76,7 @@ module Cxxproject
         tc.each do |k,v|
           if(k == :BASED_ON)
             res << tc
-          elsif v.is_a?(Hash) 
+          elsif v.is_a?(Hash)
             loop.call(res,v)
           end
         end
@@ -84,7 +84,7 @@ module Cxxproject
       loop.call(res,tc)
       return res[0] if res.length > 0
     end
-   
+
 
     def self.find_toolchain_element(tc,name)
       res = []
@@ -104,21 +104,20 @@ module Cxxproject
 
     def check_compiler(hash)
       raise "not a hash" unless hash.is_a?(Hash)
-      check_hash(hash,Provider.default[:COMPILER].keys)
-      
-      check_hash(hash[:CPP],Provider.default[:COMPILER][:CPP].keys << :BASED_ON) if hash[:CPP]
-      check_hash(hash[:C],Provider.default[:COMPILER][:C].keys << :BASED_ON) if hash[:C]
-      check_hash(hash[:ASM],Provider.default[:COMPILER][:ASM].keys << :BASED_ON) if hash[:ASM]
+      check_hash(hash, Cxxproject::Toolchain::Provider.default[:COMPILER].keys)
+      check_hash(hash[:CPP], Cxxproject::Toolchain::Provider.default[:COMPILER][:CPP].keys << :BASED_ON) if hash[:CPP]
+      check_hash(hash[:C], Cxxproject::Toolchain::Provider.default[:COMPILER][:C].keys << :BASED_ON) if hash[:C]
+      check_hash(hash[:ASM], Cxxproject::Toolchain::Provider.default[:COMPILER][:ASM].keys << :BASED_ON) if hash[:ASM]
     end
 
     def check_linker(hash)
       raise "not a hash" unless hash.is_a?(Hash)
-      check_hash(hash,Provider.default[:LINKER].keys)
+      check_hash(hash, Cxxproject::Toolchain::Provider.default[:LINKER].keys)
     end
 
     def check_archiver(hash)
       raise "not a hash" unless hash.is_a?(Hash)
-      check_hash(hash,Provider.default[:ARCHIVER].keys)
+      check_hash(hash, Cxxproject::Toolchain::Provider.default[:ARCHIVER].keys)
     end
 
     # will use the content of the plugin.rb file and evaluate it
