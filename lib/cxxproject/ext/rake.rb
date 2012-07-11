@@ -211,8 +211,14 @@ module Rake
   end
 
   class Task
+    @@bail_on_first_error = true
+    def self.bail_on_first_error
+      return @@bail_on_first_error
+    end
+    def self.bail_on_first_error=(v)
+      @@bail_on_first_error = v
+    end
     class << self
-      attr_accessor :bail_on_first_error
       attr_accessor :output_disabled
     end
 

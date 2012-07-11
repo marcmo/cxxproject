@@ -45,7 +45,7 @@ module Cxxproject
       create_generic_tasks
       create_console_colorization
       create_multitask
-      create_bail_on_first_task
+      create_dont_bail_on_first_task
       describe_clean_task
       create_console_task
 
@@ -115,10 +115,10 @@ module Cxxproject
       Rake::Task[:clean].add_description('clean')
     end
 
-    def create_bail_on_first_task
-      desc 'set bail on first error'
-      task :bail_on_first_error do
-        Rake::Task.bail_on_first_error = true
+    def create_dont_bail_on_first_task
+      desc 'dont bail on first error'
+      task :dont_bail_on_first_error do
+        Rake::Task.bail_on_first_error = false
       end
     end
 
