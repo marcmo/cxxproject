@@ -9,7 +9,6 @@ require 'cxxproject/ext/hash'
 
 require 'cxxproject/utils/optional'
 require 'cxxproject/utils/utils'
-require 'cxxproject/utils/stats'
 
 require 'cxxproject/toolchain/provider'
 
