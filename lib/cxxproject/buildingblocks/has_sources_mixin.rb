@@ -172,7 +172,7 @@ module Cxxproject
 
       exclude_files = Set.new
       exclude_sources.each do |p|
-        if p.include?".."
+        if p.include?("..")
           Printer.printError "Error: Exclude source file pattern '#{p}' must not include '..'"
           return nil
         end
@@ -182,7 +182,7 @@ module Cxxproject
       files = Set.new  # do not build the same file twice
 
       sources.each do |f|
-        if f.include?".."
+        if f.include?("..")
           Printer.printError "Error: Source file '#{f}' must not include '..'"
           return nil
         end
@@ -194,7 +194,7 @@ module Cxxproject
       end
 
       source_patterns.each do |p|
-        if p.include?".."
+        if p.include?("..")
           Printer.printError "Error: Source file pattern '#{p}' must not include '..'"
           return nil
         end
@@ -253,17 +253,17 @@ module Cxxproject
       dep_file = nil
       if type != :ASM
         dep_file = get_dep_file(objectRel)
-        dep_file = "\""+dep_file+"\"" if dep_file.include?" "
+        dep_file = "\""+dep_file+"\"" if dep_file.include?(" ")
         depStr = the_tcs[:COMPILER][type][:DEP_FLAGS]
       end
 
       res = typed_file_task Rake::Task::OBJECT, object => source do
         compiler = the_tcs[:COMPILER][type]
-      
+
         if Rake::application.preproFlags and compiler[:PREPRO_FLAGS] == ""
           Printer.printInfo("Info: No preprocessor option available for " + sourceRel)
         else
-      
+
           i_array = the_tcs == @tcs ? @include_string[type] : get_include_string(the_tcs, type)
           d_array = the_tcs == @tcs ? @define_string[type] : get_define_string(the_tcs, type)
 
@@ -285,12 +285,12 @@ module Cxxproject
           cmd << sourceRel
 
           if Cxxproject::Utils.old_ruby?
-            cmd.map! {|c| ((c.include?" ") ? ("\""+c+"\"") : c )}
+            cmd.map! {|c| ((c.include?(" ")) ? ("\""+c+"\"") : c )}
             cmdLine = cmd.join(" ")
             if cmdLine.length > 8000
               inputName = objectRel+".tmp"
               File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
-              inputName = "\""+inputName+"\"" if inputName.include?" "
+              inputName = "\""+inputName+"\"" if inputName.include?(" ")
               consoleOutput = `#{compiler[:COMMAND] + " @" + inputName}`
             else
               consoleOutput = `#{cmd.join(" ")} 2>&1`
