@@ -105,8 +105,8 @@ module Cxxproject
         parts << @name
       end
 
-      parts << sourceRel.chomp(File.extname(sourceRel))
-      File.join(parts) + (Rake::application.preproFlags ? ".i" : ".o")
+      parts << sourceRel.chomp(File.extname(sourceRel)).gsub('..', '_')
+      res = File.join(parts) + (Rake::application.preproFlags ? ".i" : ".o")
     end
 
     def get_dep_file(object)
@@ -182,11 +182,6 @@ module Cxxproject
       files = Set.new  # do not build the same file twice
 
       sources.each do |f|
-        if f.include?("..")
-          Printer.printError "Error: Source file '#{f}' must not include '..'"
-          return nil
-        end
-
         next if exclude_files.include?(f)
         next if files.include?(f)
         files << f
