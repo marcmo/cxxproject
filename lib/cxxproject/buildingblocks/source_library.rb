@@ -73,7 +73,7 @@ module Cxxproject
           FileUtils.rm(aname) if File.exists?(aname)
           cmd = [archiver[:COMMAND]] # ar
           cmd += archiver[:ARCHIVE_FLAGS].split(" ")
-          cmd += archiver[:FLAGS].split(" ") # --all_load
+          cmd += archiver[:FLAGS]
           cmd << aname # -o debug/x.exe
           cmd += objs
 

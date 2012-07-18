@@ -15,7 +15,7 @@ module Cxxproject
             :INCLUDE_PATH_FLAG => "",
             :COMPILE_FLAGS => "",
             :DEFINES => [],
-            :FLAGS => "",
+            :FLAGS => [],
             :SOURCE_FILE_ENDINGS => [".cxx", ".cpp", ".c++", ".cc", ".C"],
             :DEP_FLAGS => "",
             :DEP_FLAGS_SPACE => false,
@@ -29,7 +29,7 @@ module Cxxproject
             :INCLUDE_PATH_FLAG => "",
             :COMPILE_FLAGS => "",
             :DEFINES => [],
-            :FLAGS => "",
+            :FLAGS => [],
             :SOURCE_FILE_ENDINGS => [".c"],
             :DEP_FLAGS => "",
             :DEP_FLAGS_SPACE => false,
@@ -43,7 +43,7 @@ module Cxxproject
             :INCLUDE_PATH_FLAG => "",
             :COMPILE_FLAGS => "",
             :DEFINES => [],
-            :FLAGS => "",
+            :FLAGS => [],
             :SOURCE_FILE_ENDINGS => [".asm", ".s", ".S"],
             :DEP_FLAGS => "",
             :ERROR_PARSER => nil,
@@ -55,7 +55,7 @@ module Cxxproject
         {
           :COMMAND => "",
           :ARCHIVE_FLAGS => "",
-          :FLAGS => "",
+          :FLAGS => [],
           :ERROR_PARSER => nil
         },
 
@@ -70,7 +70,7 @@ module Cxxproject
           :LIB_PATH_FLAG => "",
           :LIB_PREFIX_FLAGS => "", # "-Wl,--whole-archive",
           :LIB_POSTFIX_FLAGS => "", # "-Wl,--no-whole-archive",
-          :FLAGS => "",
+          :FLAGS => [],
           :MAP_FILE_FLAG => "",
           :OUTPUT_ENDING => ".exe", # or .elf
           :ERROR_PARSER => nil
@@ -84,7 +84,7 @@ module Cxxproject
           :DIR_FLAG => "-C",
           :CLEAN => "clean"
         },
-        
+
         :CONSOLE_HIGHLIGHTER => ColorizingFormatter.new
       }
 
@@ -127,14 +127,14 @@ module Cxxproject
       end
 
       def self.[](name)
-      
+
         if name == "TI"
           if not ENV['TI_HOME']
             Printer.printError "Error: Please set TI_HOME"
             ExitHelper.exit(1)
           end
         end
-      
+
         return @@settings[name] if @@settings.include? name
         nil
       end
@@ -147,4 +147,3 @@ module Cxxproject
 
   end
 end
-
