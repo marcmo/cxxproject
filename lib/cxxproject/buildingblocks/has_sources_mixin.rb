@@ -272,7 +272,7 @@ module Cxxproject
               cmd[cmd.length-1] << dep_file
             end
           end
-          cmd += compiler[:FLAGS].gsub(/\"/,"").split(" ") # double quotes within string do not work on windows...
+          cmd += compiler[:FLAGS]
           cmd += i_array
           cmd += d_array
           cmd += (compiler[:OBJECT_FILE_FLAG] + objectRel).split(" ")
