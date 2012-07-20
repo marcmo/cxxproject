@@ -21,7 +21,6 @@ describe CxxProject2Rake do
     CxxProject2Rake.new(project_configs, outputdir, 'gcc', base)
   end
 
-
 #  def is_older? fileA, fileB
 #    File.mtime(fileA) < File.mtime(fileB)
 #  end

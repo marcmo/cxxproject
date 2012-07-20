@@ -32,6 +32,26 @@ describe Cxxproject::BuildingBlock do
     deps.should == ['4', '2', '3', '1']
   end
 
+  it 'should generate an error if building block names conflict' do
+    expect {
+      Cxxproject::SourceLibrary.new('1')
+      Cxxproject::SourceLibrary.new('1')
+    }.should raise_exception
+  end
+
+  it 'should be possible to give several binary libs with the same name' do
+    Cxxproject::BinaryLibrary.new('1')
+    Cxxproject::BinaryLibrary.new('1')
+  end
+
+  it 'should be an error if the same name is used for different kinds of building blocks' do
+    expect {
+      Cxxproject::BinaryLibrary.new('1')
+      Cxxproject::SourceLibrary.new('1')
+    }.should raise_exception
+  end
+
+=begin
   it 'should have the right output-directory' do
     lib1 = Cxxproject::SourceLibrary.new('lib1').set_sources(['test.cc'])
     lib1.set_project_dir(File.join(Dir.pwd, 'lib1'))
@@ -54,5 +74,5 @@ describe Cxxproject::BuildingBlock do
       cxx = CxxProject2Rake.new([], 'build', compiler)
     end.to raise_exception(RuntimeError, 'Error: while reading config file for 1: dependent building block "unresolved" was specified but not found!')
   end
-
+=end
 end

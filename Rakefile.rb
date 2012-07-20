@@ -7,7 +7,7 @@ task :default => [:install]
 
 begin
   require 'rubygems/package_task'
-  spec = Gem::Specification.load('cxx.gemspec')
+  spec = Gem::Specification.load('cxxproject.gemspec')
   Gem::PackageTask.new(spec){|pkg|}
 
   desc "install gem globally"

@@ -99,11 +99,13 @@ module Cxxproject
       @printedCmdAlternate = false
       @lastCommand = nil
 
-      if ALL_BUILDING_BLOCKS.include?(@name) and not self.instance_of?(BinaryLibrary)
-        raise "building block already exists: #{name}"
-      else
-        ALL_BUILDING_BLOCKS[@name] = self
+      if ALL_BUILDING_BLOCKS.include?(@name)
+        existing_bb = ALL_BUILDING_BLOCKS[@name]
+        if not (existing_bb.class == BinaryLibrary && self.class == BinaryLibrary)
+          raise "building block already exists: #{name} of type #{ALL_BUILDING_BLOCKS[@name].class} conflicts with #{self.class}"
+        end
       end
+      ALL_BUILDING_BLOCKS[@name] = self
     end
 
     def set_config_name(x)

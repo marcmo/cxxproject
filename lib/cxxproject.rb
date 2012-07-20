@@ -3,7 +3,6 @@ require 'rubygems'
 require 'yaml'
 require 'rake/clean'
 
-
 require 'cxxproject/ext/string'
 require 'cxxproject/ext/hash'
 
@@ -15,6 +14,7 @@ require 'cxxproject/toolchain/provider'
 require 'cxxproject/version'
 
 require 'cxxproject/plugin_context'
+require 'cxxproject/buildingblocks/building_blocks'
 
 require 'frazzle/frazzle'
 registry = Frazzle::Registry.new('cxxproject', '_', '')
