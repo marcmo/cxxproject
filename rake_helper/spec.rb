@@ -44,6 +44,7 @@ def new_rspec
   desc "Run examples"
   RSpec::Core::RakeTask.new() do |t|
     t.pattern = SPEC_PATTERN
+    t.rspec_opts = '-r ./junit.rb -f JUnit -o build/test_details.xml'    
   end
 
   desc 'Run examples with coverage'
