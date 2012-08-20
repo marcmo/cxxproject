@@ -1,6 +1,7 @@
 GEM
   remote: http://rubygems.org/
   specs:
+    builder (3.0.0)
     diff-lcs (1.1.3)
     grit (2.5.0)
       diff-lcs (~> 1.1)
@@ -26,6 +27,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  builder
   grit
   roodi
   rspec
