@@ -10,26 +10,35 @@ describe Cxxproject::BuildingBlock do
   before(:each) do
     Cxxproject::Utils.cleanup_rake
   end
+
   after(:each) do
     Cxxproject::Utils.cleanup_rake
   end
 
-  it 'should build the right dependency-chain' do
+  it 'should collect the dependencies for a single lib' do
+    lib1 = Cxxproject::SourceLibrary.new('1')
+    lib1.collect_dependencies().should == [lib1]
+  end
+
+  it 'should collect the dependencies for a single lib with one dep' do
     lib1 = Cxxproject::SourceLibrary.new('1')
     lib2 = Cxxproject::SourceLibrary.new('2').set_dependencies(['1'])
-    lib3 = Cxxproject::SourceLibrary.new('3').set_dependencies(['1'])
-    lib4 = Cxxproject::SourceLibrary.new('4').set_dependencies(['2', '3'])
-    deps = lib4.all_dependencies.map { |d| d.name }
-    deps.should == ['4', '2', '3', '1']
+    lib2.collect_dependencies().should == [lib2, lib1]
+  end
+
+  it 'should build the right dependency-chain' do
+    lib1 = Cxxproject::SourceLibrary.new('1').set_dependencies(['2'])
+    lib2 = Cxxproject::SourceLibrary.new('2')
+    lib3 = Cxxproject::SourceLibrary.new('3').set_dependencies(['2', '1'])
+    lib3.collect_dependencies().should == [lib3, lib1, lib2]
   end
 
   it 'should build the right dependency-chain for custom blocks' do
     lib1 = Cxxproject::SourceLibrary.new('1')
-    lib2 = Cxxproject::CustomBuildingBlock.new('2').set_dependencies(['1'])
-    lib3 = Cxxproject::SourceLibrary.new('3').set_dependencies(['1'])
-    lib4 = Cxxproject::CustomBuildingBlock.new('4').set_dependencies(['2', '3'])
-    deps = lib4.all_dependencies.map { |d| d.name }
-    deps.should == ['4', '2', '3', '1']
+    lib2 = Cxxproject::SourceLibrary.new('2').set_dependencies(['1'])
+    lib3 = Cxxproject::SourceLibrary.new('3').set_dependencies(['1', '2'])
+    lib4 = Cxxproject::SourceLibrary.new('4').set_dependencies(['1', '2', '3'])
+    lib4.collect_dependencies().should == [lib4, lib3, lib2, lib1]
   end
 
   it 'should generate an error if building block names conflict' do
@@ -49,6 +58,22 @@ describe Cxxproject::BuildingBlock do
       Cxxproject::BinaryLibrary.new('1')
       Cxxproject::SourceLibrary.new('1')
     }.should raise_exception
+  end
+
+  it 'should handle whole archive' do
+    # TODO ... clean up api and also this test
+    l1 = Cxxproject::SourceLibrary.new('1', true)
+    l1.output_dir = 'out'
+    l1.complete_init
+    l2 = Cxxproject::SourceLibrary.new('2', true)
+    l2.output_dir = 'out'
+    l2.complete_init
+    exe = Cxxproject::Executable.new('test')
+    deps = ['1', '2']
+    exe.set_dependencies(deps)
+    exe.complete_init
+    exe.linker_lib_string({:START_OF_WHOLE_ARCHIVE => 'start', :END_OF_WHOLE_ARCHIVE => 'end'}).should == ['start', 'out/lib2.a', 'end', 'start', 'out/lib1.a', 'end']
+    # TODO add a test for recursive whole archive libs a lib that should be whole and that has dependencies to whole libs
   end
 
 =begin

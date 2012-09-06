@@ -11,8 +11,11 @@ module Cxxproject
     include HasSources
     include HasIncludes
 
-    def initialize(name)
+    attr_reader :whole_archive
+
+    def initialize(name, whole_archive=false)
       super(name)
+      @whole_archive = whole_archive
     end
 
     def complete_init()

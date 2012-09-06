@@ -66,7 +66,7 @@ module Cxxproject
       ret
     end
 
-    def adaptPath(v, d, prefix)
+    def adapt_path(v, d, prefix)
       tmp = nil
       if File.is_absolute?(v)
         tmp = v
@@ -77,46 +77,45 @@ module Cxxproject
       [tmp, prefix]
     end
 
-    def linker_lib_string()
-      @lib_path_set = Set.new
-      @dep_set = Set.new
-      calc_linker_lib_string_recursive(self)
-    end
-
-    def calc_linker_lib_string_recursive(d)
+    def linker_lib_string(linker)
+      lib_path_set = Set.new
+      deps = collect_dependencies
       res = []
-      return res if @dep_set.include?(d)
-      @dep_set << d
-
-      if HasLibraries === d
-        prefix = nil
-        linker = @tcs[:LINKER]
-
-        d.lib_elements.each do |elem|
-          case elem[0]
+      deps.each do |d|
+        handle_whole_archive(d, res, linker, :START_OF_WHOLE_ARCHIVE)
+        if HasLibraries === d
+          d.lib_elements.each do |elem|
+            case elem[0]
             when HasLibraries::LIB
-              res << "#{linker[:LIB_FLAG]}#{elem[1]}"
+              res.push("#{linker[:LIB_FLAG]}#{elem[1]}")
             when HasLibraries::USERLIB
-              res << "#{linker[:USER_LIB_FLAG]}#{elem[1]}"
+              res.push("#{linker[:USER_LIB_FLAG]}#{elem[1]}")
             when HasLibraries::LIB_WITH_PATH
-              tmp, prefix = adaptPath(elem[1], d, prefix)
-              res <<  tmp
+              tmp, prefix = adapt_path(elem[1], d, prefix)
+              res.push(tmp)
             when HasLibraries::SEARCH_PATH
-              tmp, prefix = adaptPath(elem[1], d, prefix)
-              if not @lib_path_set.include?(tmp)
-                @lib_path_set << tmp
-                res << "#{linker[:LIB_PATH_FLAG]}#{tmp}"
+              tmp, prefix = adapt_path(elem[1], d, prefix)
+              if not lib_path_set.include?(tmp)
+                lib_path_set << tmp
+                res.push("#{linker[:LIB_PATH_FLAG]}#{tmp}")
               end
-            when HasLibraries::DEPENDENCY
-              if ALL_BUILDING_BLOCKS.include?(elem[1])
-                bb = ALL_BUILDING_BLOCKS[elem[1]]
-                res += calc_linker_lib_string_recursive(bb)
-              end
+            end
           end
         end
+        handle_whole_archive(d, res, linker, :END_OF_WHOLE_ARCHIVE)
       end
-
       res
+    end
+
+    # res the array with command line arguments that is used as result
+    # linker the linker hash
+    # sym the symbol that is used to fish out a value from the linker
+    def handle_whole_archive(building_block, res, linker, sym)
+      if building_block.instance_of?(SourceLibrary)
+        if building_block.whole_archive
+          res.push(linker[sym]) if linker[sym]
+        end
+      end
     end
 
     # create a task that will link an executable from a set of object files
@@ -138,9 +137,9 @@ module Cxxproject
           cmd << linker[:SCRIPT] if @linker_script # -T
           cmd << @linker_script if @linker_script # xy/xy.dld
           cmd << linker[:MAP_FILE_FLAG] if @mapfile # -Wl,-m6
-          cmd += linker[:LIB_PREFIX_FLAGS].split(" ") # "-Wl,--whole-archive "
-          cmd += linker_lib_string
-          cmd += linker[:LIB_POSTFIX_FLAGS].split(" ") # "-Wl,--no-whole-archive "
+          cmd += linker[:LIB_PREFIX_FLAGS].split(" ") # TODO ... is this still needed e.g. for diab
+          cmd += linker_lib_string(@tcs[:LINKER])
+          cmd += linker[:LIB_POSTFIX_FLAGS].split(" ") # TODO ... is this still needed e.g. for diab
 
           mapfileStr = @mapfile ? " >#{@mapfile}" : ""
           if Cxxproject::Utils.old_ruby?

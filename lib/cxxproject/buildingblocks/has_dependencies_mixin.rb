@@ -9,7 +9,7 @@ module Cxxproject
       @helper_dependencies ||= []
     end
 
-   def set_dependencies(deps)
+    def set_dependencies(deps)
       @dependencies = deps.map { |dep| dep.instance_of?(String) ? dep : dep.name }
       self
     end
@@ -51,6 +51,32 @@ module Cxxproject
 
       @direct_deps = @all_dependencies.dup
       @direct_deps
+    end
+
+    def collect_dependencies()
+#      puts "collect for #{name}"
+      res = []
+      res << self
+      todo = dependencies
+      while not todo.empty?
+#        p todo
+        bb = resolve_by_name(todo.pop)
+        add_unique(res, bb)
+        todo += bb.dependencies
+      end
+#      puts "result of collect for #{name} -> #{res}"
+      res
+    end
+
+    def add_unique(res, bb)
+      res.delete(bb)
+      res.push(bb)
+    end
+
+    def resolve_by_name(name)
+      res = ALL_BUILDING_BLOCKS[name]
+      raise "BuildingBlock #{name} not defined" unless res
+      res
     end
 
     def all_dependencies()

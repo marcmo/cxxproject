@@ -94,7 +94,11 @@ module Cxxproject
     end
 
     def get_define_string(tcs, type)
-      tcs[:COMPILER][type][:DEFINES].map {|k| "#{tcs[:COMPILER][type][:DEFINE_FLAG]}#{k}"}
+      if (has_tcs?)
+        return tcs[:COMPILER][type][:DEFINES].map {|k| "#{tcs[:COMPILER][type][:DEFINE_FLAG]}#{k}"}
+      else
+        return 'only needed for spec'
+      end
     end
 
     def get_object_file(sourceRel)
