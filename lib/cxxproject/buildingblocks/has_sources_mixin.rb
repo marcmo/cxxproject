@@ -76,9 +76,13 @@ module Cxxproject
         all_dependencies.each_with_index do |d,i|
           next if not HasIncludes === d
           next if i == 0
-          prefix = File.rel_from_to_project(@project_dir,d.project_dir)
-          next if not prefix
-         @incArray.concat(d.includes.map {|inc| File.add_prefix(prefix,inc)})
+          if BinaryLibrary === d
+            @incArray.concat(d.includes)
+          else
+            prefix = File.rel_from_to_project(@project_dir,d.project_dir)
+            next if not prefix
+            @incArray.concat(d.includes.map {|inc| File.add_prefix(prefix,inc)})
+          end
         end
         @incArray.uniq!
       end
@@ -171,7 +175,6 @@ module Cxxproject
     end
 
     def create_object_file_tasks()
-
       sources_to_build = {}
 
       exclude_files = Set.new
