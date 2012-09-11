@@ -113,7 +113,7 @@ module Cxxproject
     def handle_whole_archive(building_block, res, linker, sym)
       if building_block.instance_of?(SourceLibrary)
         if building_block.whole_archive
-          res.push(linker[sym]) if linker[sym]
+          res.push(linker[sym]) if linker[sym] and !linker[sym].empty?
         end
       end
     end
