@@ -286,27 +286,14 @@ module Cxxproject
           cmd += compiler[:PREPRO_FLAGS].split(" ") if Rake::application.preproFlags
           cmd << sourceRel
 
-          if Cxxproject::Utils.old_ruby?
-            cmd.map! {|c| ((c.include?(" ")) ? ("\""+c+"\"") : c )}
-            cmdLine = cmd.join(" ")
-            if cmdLine.length > 8000
-              inputName = objectRel+".tmp"
-              File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
-              inputName = "\""+inputName+"\"" if inputName.include?(" ")
-              consoleOutput = `#{compiler[:COMMAND] + " @" + inputName}`
-            else
-              consoleOutput = `#{cmd.join(" ")} 2>&1`
-            end
-          else
-            rd, wr = IO.pipe
-            cmd << {
-             :err=>wr,
-             :out=>wr
-            }
-            sp = spawn(*cmd)
-            cmd.pop
-            consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
-          end
+          rd, wr = IO.pipe
+          cmd << {
+            :err=>wr,
+            :out=>wr
+          }
+          sp = spawn(*cmd)
+          cmd.pop
+          consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
 
           process_result(cmd, consoleOutput, compiler[:ERROR_PARSER], "Compiling #{sourceRel}")
 

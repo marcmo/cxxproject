@@ -142,41 +142,21 @@ module Cxxproject
           cmd += linker[:LIB_POSTFIX_FLAGS].split(" ") # TODO ... is this still needed e.g. for diab
 
           mapfileStr = @mapfile ? " >#{@mapfile}" : ""
-          if Cxxproject::Utils.old_ruby?
-            cmd.map! {|c| ((c.include?(" ")) ? ("\""+c+"\"") : c )}
+          rd, wr = IO.pipe
+          cmdLinePrint = cmd
+          printCmd(cmdLinePrint, "Linking #{get_executable_name}", false)
+          cmd << {
+            :out=> @mapfile ? "#{@mapfile}" : wr, # > xy.map
+            :err=>wr
+          }
+          sp = spawn(*cmd)
+          cmd.pop
 
-            # TempFile used, because some compilers, e.g. diab, uses ">" for piping to map files:
-            cmdLinePrint = cmd.join(" ")
-            cmdLine = cmdLinePrint + " 2>" + get_temp_filename
-            if cmdLine.length > 8000
-              inputName = get_executable_name+".tmp"
-              File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
-              inputName = "\""+inputName+"\"" if inputName.include?(' ')
-              strCmd = "#{linker[:COMMAND] + " @" + inputName + mapfileStr + " 2>" + get_temp_filename}"
-            else
-              strCmd = "#{cmd.join(" ") + mapfileStr + " 2>" + get_temp_filename}"
-            end
-            printCmd(cmdLinePrint, "Linking #{get_executable_name}", false)
-            consoleOutput = `#{strCmd}`
-            consoleOutput.concat(read_file_or_empty_string(get_temp_filename))
-          else
-            rd, wr = IO.pipe
-            cmdLinePrint = cmd
-            printCmd(cmdLinePrint, "Linking #{get_executable_name}", false)
-            cmd << {
-             :out=> @mapfile ? "#{@mapfile}" : wr, # > xy.map
-             :err=>wr
-            }
-            sp = spawn(*cmd)
-            cmd.pop
-
-            # for console print
-            cmd << " >#{@mapfile}" if @mapfile
-            consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
-          end
+          # for console print
+          cmd << " >#{@mapfile}" if @mapfile
+          consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
 
           process_result(cmdLinePrint, consoleOutput, linker[:ERROR_PARSER], nil)
-
           check_config_file()
         end
       end

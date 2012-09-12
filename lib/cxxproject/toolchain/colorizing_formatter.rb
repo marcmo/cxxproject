@@ -18,7 +18,7 @@ module Cxxproject
     # simple class to colorize compiler output
     # the class depends on the rainbow gem
     class ColorizingFormatter
-    
+
       # colors are not instance vars due to caching the building blocks
       def self.setColorScheme(scheme)
         if scheme == :black
@@ -76,7 +76,7 @@ module Cxxproject
             else
               res << l
             end
-            res << "\n" 
+            res << "\n"
           end
         rescue Exception => e
           puts "Error while parsing compiler output: #{e}"

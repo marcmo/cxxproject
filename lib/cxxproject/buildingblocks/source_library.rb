@@ -80,29 +80,16 @@ module Cxxproject
           cmd << aname # -o debug/x.exe
           cmd += objs
 
-          if Cxxproject::Utils.old_ruby?
-            cmd.map! {|c| c.include?(' ') ? "\"#{c}\"" : c }
+          cmd.map! {|c| c.include?(' ') ? "\"#{c}\"" : c }
+          rd, wr = IO.pipe
+          cmd << {
+            :err => wr,
+            :out => wr
+          }
+          sp = spawn(*cmd)
+          cmd.pop
 
-            cmdLine = cmd.join(" ")
-            if cmdLine.length > 8000
-              inputName = aname+".tmp"
-              File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
-              consoleOutput = `#{archiver[:COMMAND] + " @" + inputName}`
-            else
-              consoleOutput = `#{cmd.join(" ")} 2>&1`
-            end
-          else
-            cmd.map! {|c| c.include?(' ') ? "\"#{c}\"" : c }
-            rd, wr = IO.pipe
-            cmd << {
-             :err => wr,
-             :out => wr
-            }
-            sp = spawn(*cmd)
-            cmd.pop
-
-            consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
-          end
+          consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
 
           process_result(cmd, consoleOutput, archiver[:ERROR_PARSER], "Creating #{aname}")
 
