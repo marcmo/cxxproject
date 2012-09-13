@@ -44,6 +44,9 @@ def new_rspec
   desc "Run examples"
   RSpec::Core::RakeTask.new() do |t|
     t.pattern = SPEC_PATTERN
+    if ENV['BUILD_SERVER']
+      t.rspec_opts = '-r ./junit.rb -f JUnit -o build/test_details.xml'
+    end
   end
 
   desc 'Run examples with coverage'
@@ -51,30 +54,12 @@ def new_rspec
   CLOBBER.include('coverage')
 end
 
-def old_rspec
-  require 'spec/rake/spectask'
-  desc "Run examples"
-  Spec::Rake::SpecTask.new() do |t|
-    t.spec_files = SPEC_PATTERN
-  end
+namespace :spec do
+  new_rspec
 end
 
-namespace :spec do
-  begin
-    new_rspec
-  rescue LoadError
-    begin
-      old_rspec
-    rescue LoadError
-      desc "Run examples"
-      task 'spec' do
-        puts 'rspec not installed...! please install with "gem install rspec"'
-      end
-    end
-  end
-end
 task :spec do
   puts 'Please use spec:spec or spec:coverage'
 end
-task :gem => [:spec]
 
+task :gem => [:spec]
