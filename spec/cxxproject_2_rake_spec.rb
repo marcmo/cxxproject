@@ -43,7 +43,7 @@ end
 #end
 
 def check_rebuilding (end_product, prereq_file, should_rebuild = true)
-  sleep(1)
+  sleep(2)
   FileUtils.touch prereq_file
   # prereq_file should be newer
   File.mtime(prereq_file).should > File.mtime(end_product)

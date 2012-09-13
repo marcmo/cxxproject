@@ -1,5 +1,28 @@
 module Cxxproject
   module Utils
+  
+    def self.flagSplit(str)
+      hasQuote = false
+      hasDoubleQuote = false
+      ar = []
+      s = ""
+  
+      str.split("").each do |i|
+        hasDoubleQuote = !hasDoubleQuote if !hasQuote and i == '"'
+	    hasQuote = !hasQuote if !hasDoubleQuote and i == '\''
+    	if i == ' '
+	      if not hasDoubleQuote and not hasQuote
+    	    ar << s if s.length > 0
+		    s = ""
+	    	next
+    	  end
+	    end
+        s << i
+      end
+      ar << s if s.length > 0
+      ar
+    end  
+  
     # Simple helper query the operating system we are running in
     module OS
 

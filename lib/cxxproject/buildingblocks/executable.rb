@@ -134,16 +134,16 @@ module Cxxproject
 
           cmd = [linker[:COMMAND]] # g++
           cmd += linker[:MUST_FLAGS].split(" ")
-          cmd += linker[:FLAGS].gsub(/\"/,"").split(" ") # double quotes within string do not work on windows...
+          cmd += Cxxproject::Utils::flagSplit(linker[:FLAGS])
           cmd << linker[:EXE_FLAG]
           cmd << get_executable_name # -o debug/x.exe
           cmd += @objects
           cmd << linker[:SCRIPT] if @linker_script # -T
           cmd << @linker_script if @linker_script # xy/xy.dld
           cmd << linker[:MAP_FILE_FLAG] if @mapfile # -Wl,-m6
-          cmd += linker[:LIB_PREFIX_FLAGS].split(" ") # "-Wl,--whole-archive "
+          cmd += Cxxproject::Utils::flagSplit(linker[:LIB_PREFIX_FLAGS]) # "-Wl,--whole-archive "
           cmd += linker_lib_string
-          cmd += linker[:LIB_POSTFIX_FLAGS].split(" ") # "-Wl,--no-whole-archive "
+          cmd += Cxxproject::Utils::flagSplit(linker[:LIB_POSTFIX_FLAGS]) # "-Wl,--no-whole-archive "
 
           mapfileStr = @mapfile ? " >#{@mapfile}" : ""
           if Cxxproject::Utils.old_ruby?
