@@ -1,5 +1,5 @@
 module Cxxproject
-  VERSION = '0.6.29'
+  VERSION = '0.6.30'
 
   class Version
     def self.cxxproject
