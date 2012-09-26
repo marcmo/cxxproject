@@ -1,0 +1,10 @@
+{
+  "name": "cxxproject-pages",
+  "description": "documentation for the cxxproject",
+  "version": "0.1.0",
+  "private": false,
+  "dependencies": {
+     "stylus": ">= 0.13.0"
+  },
+  "engines": { "node": ">= 0.4.5" }
+}
