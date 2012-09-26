@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.description = <<-EOF
     Some more high level building blocks for cpp projects.
   EOF
-  s.files = `git ls-files`.split($\)
+  s.files = Dir.glob("{bin,lib}/**/*") + %w(LICENSE README.md)
   s.require_path = 'lib'
   s.author = 'oliver mueller'
   s.email = 'oliver.mueller@gmail.com'
