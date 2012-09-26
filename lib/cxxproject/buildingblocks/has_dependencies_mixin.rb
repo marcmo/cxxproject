@@ -54,17 +54,14 @@ module Cxxproject
     end
 
     def collect_dependencies()
-#      puts "collect for #{name}"
       res = []
       res << self
       todo = dependencies
       while not todo.empty?
-#        p todo
         bb = resolve_by_name(todo.pop)
         add_unique(res, bb)
         todo += bb.dependencies
       end
-#      puts "result of collect for #{name} -> #{res}"
       res
     end
 

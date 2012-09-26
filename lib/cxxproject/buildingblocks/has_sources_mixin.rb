@@ -17,6 +17,10 @@ module Cxxproject
       @sources ||= []
     end
     def set_sources(x)
+      if x.class == Rake::FileList
+        raise "specifying sources but FileList is empty!" if x.empty?
+      end
+      x.each {|f| raise "File #{f} does not exist!" unless File.exists?(f)}
       @sources = x
       self
     end

@@ -3,7 +3,6 @@ require 'rubygems'
 require 'yaml'
 require 'rake/clean'
 
-require 'cxxproject/ext/string'
 require 'cxxproject/ext/hash'
 
 require 'cxxproject/utils/optional'

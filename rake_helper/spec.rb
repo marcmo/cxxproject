@@ -1,16 +1,5 @@
 SPEC_PATTERN ='spec/**/*_spec.rb'
 require './lib/cxxproject/utils/optional'
-def rcov_for_18
-  use_rcov = true
-  begin
-    gem "rcov"
-  rescue LoadError
-    warn "rcov not installed...code coverage will not be measured!"
-    use_rcov = false
-  end
-  use_rcov
-end
-
 
 def coverage
   load_rcov = lambda do
