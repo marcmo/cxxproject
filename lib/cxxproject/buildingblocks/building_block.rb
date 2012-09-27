@@ -43,7 +43,7 @@ module Cxxproject
     end
 
     def tcs()
-      raise "Toolchain settings must be set before!" if @tcs.nil?
+      raise "Toolchain settings must be set before!" unless has_tcs?
       @tcs
     end
 

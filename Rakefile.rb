@@ -53,13 +53,14 @@ begin
   require 'grit'
   include Grit
 
+  VERSION_REGEXP = Regexp.new("v?_?(?<x>\\d+)\\.(?<y>\\d+)\.(?<z>\\d+)")
   def git_history
     repo = Repo.new('.')
-    tag_names = repo.tags.collect {|t| t.name }
-    relevant_tags = repo.tags.reject {|t| !t.name.start_with?("v_")}
+
+    relevant_tags = repo.tags.select {|t| VERSION_REGEXP.match(t.name) }
     sorted_tags = relevant_tags.sort_by.each do |t|
-      /v_(?<x>\d+)\.(?<y>\d+)\.(?<z>\d+)/ =~ t.name
-      "#{two_digits(x)}-#{two_digits(y)}-#{two_digits(z)}"
+      match = VERSION_REGEXP.match(t.name)
+      "#{two_digits(match[:x])}-#{two_digits(match[:y])}-#{two_digits(match[:z])}"
     end
 
     change_text = []
@@ -68,9 +69,8 @@ begin
       change_text << ""
       change_text << "#{a.name} => #{b.name}"
       change_text << ""
-      cs = repo.commits_between(a.commit, b.commit)
-      cm = cs.each do |c|
-        change_lines = c.message.lines.to_a
+      cs = repo.commits_between(a.commit, b.commit).each do |c|
+        change_lines = c.message.lines.to_a.delete_if {|x|x.index('Change-Id') || x.strip.size==0}
         first = change_lines.first
         change_text << "    * " + first + "#{change_lines[1..-1].collect {|l| "      #{l}"}.join("")}"
       end

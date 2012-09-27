@@ -5,6 +5,180 @@ see documentation page: [cxxproject](http://marcmo.github.com/cxxproject)
 
 ## Change History:
 
+0.6.28 => 0.6.29
+
+    * Bump to 0.6.29
+
+    * moved some specs to cxx
+
+    * cleanup rake_helper
+
+    * removed support for old ruby (only ruby > 1.9 is now supported)
+
+    * added env-test to generate junit.xml from specs
+
+    * updated gems
+
+
+0.6.27 => 0.6.28
+
+    * Bump to 0.6.28
+
+    * bugfix for whole-archive
+      if compiler does not define the start and end flags
+
+
+0.6.25 => 0.6.27
+
+    * Bump to 0.6.26
+
+    * Fixes #102
+      redefinition of building blocks does not provoke error
+
+    * added junit spec-helper
+
+    * fixed verify error on jenkins
+
+    * added whole_archive to source-libs
+      usually you want to let the linker decide which functions of a
+      library should be linked into the executable. this does not work
+      for some situations where a compile time plugin system registers
+      stuff with variables that are not used in the program. e.g. unit-tests.
+      the old cxxproject handled every library as whole-archive which led to
+      huge binaries ... now you can flag only the needed libraries as such.
+
+    * added includes to binlibs
+
+
+0.6.24 => 0.6.25
+
+    * Bump to 0.6.25
+
+
+0.6.23 => 0.6.24
+
+    * Bump to 0.6.24
+
+    * fixed :FLAGS in empty toolchain
+
+
+0.6.22 => 0.6.23
+
+    * Bump to 0.6.23
+
+    * compiler and linker flags are now arrays
+
+
+v_0.5.58 => 0.6.22
+
+    * removed valgrind support
+    * introducing plugin infrastructure
+    * added gemfile
+
+    * run-fix for spaces in path to executable
+
+    * fixed build for directories with spaces
+
+    * plugins for toolchains
+      added test project for plugins
+
+    * removed whitespace
+
+    * Merge "plugins for toolchains"
+    * removed contrib...will be implemented as plugins if needed
+
+    * finished plugins for toolchains:
+      toolchains for gcc, clang, diab will be published as gems
+      new toolchains have to be implemented as plugins
+      examples and rspecs are fixed to work with plugin toolchains
+
+    * updated version history
+
+    * Merge "updated version history"
+    * added wizard support for toolchains
+
+    * added toolchain candidates to cxx tool
+
+    * added eclipse .buildpath to gitignore
+
+    * fixed custom/big_project examples
+
+    * introduced block for toolchain modification
+      it is not possible to modify toolchains before or after the call to CxxProject2Rake
+      so we have to provid a means to do this;
+
+    * refined project-wizard workflow
+
+    * avaoid exception on project-wizard cancle
+
+    * added default values in project-wizard
+
+    * project-wizard uses regex find installed toolchain
+
+    * added whole-archive for linux
+
+    * updated version
+
+    * torake: cleanup naming
+
+    * fixed so that rake spec:spec can fail again
+
+    * fixed gemfile for specs
+
+    * updated erroroutput when parsing was not successfull
+
+    * updated version and gitignore
+
+    * splitted toolchain and other plugins
+      other plugins need the building blocks .. toolchains not so much
+
+    * args for run task (rake args=123 run:test.exe)
+
+    * inverted default of bail_on_first_error
+
+    * empty lines removed
+
+    * used frazzle for toolchain and general purpose plugins
+
+    * moved torake to plugin rubydsl
+
+    * moved console to seperate plugin
+
+    * moved basic example to examples repository
+
+    * new version
+
+    * code cleanup
+
+    * moved stats to plugin
+
+    * updated version for new gem-release
+      moved plugin-context-files to cxx
+
+    * allowed relative paths for sourcefiles again
+      .. is replaced by _
+
+    * Bump to 0.6.16
+
+    * Bump to 0.6.17
+
+    * Bump to 0.6.18
+
+    * more std. conform gemspec allows version bump
+
+    * moved example ckLayout to examples
+
+    * Bump to 0.6.19
+
+    * Bump to 0.6.20
+
+    * Bump to 0.6.21
+
+    * Bump to 0.1.10
+
+    * Bump to 0.1.11
+
+
 v_0.5.56 => v_0.5.58
 
     * GCC3 include not found error now recognized correctly
@@ -59,7 +233,6 @@ v_0.5.47 => v_0.5.49
 v_0.5.46 => v_0.5.47
 
     * more examples for usage of custom blocks
-      
       bumped version
       updated README
 
@@ -74,12 +247,10 @@ v_0.5.44 => v_0.5.45
 
     * better error message in case of syntax errors in project.rb files
     * extended support for custom building block: can now have dependencies
-      
       also included some example usage
     * better error messages for users when we have a syntax error in project.rb files
     * include output directory for CLOBBER task
     * more robust rakefile in case not all required gems are installed
-      
       version bump
     * version bump
 
@@ -281,7 +452,6 @@ v_0.5.8 => v_0.5.10
     * Fixed some bugs like handling of 0, specs are running again
     * fixed clang compiler formatter (runtime error because formatter api changed)
     * console output was not captured correctly for old ruby versions
-      
       happened for ruby versions < 1.9.2...fixed with this commit
     * fixed namespace error for Printer
     * 0.5.10
@@ -290,7 +460,6 @@ v_0.5.7 => v_0.5.8
 
     * better matches for gcc warnings/error parser
     * some formatter tweaking...
-      
       added rake task to automatically generate and update release history
 
 v_0.5.6 => v_0.5.7
@@ -310,41 +479,25 @@ v_0.5.4 => v_0.5.5
 
     * startet to add new errorparser (#82)
     * command line colorization and ide interface use same formatter now
-      
       closes #82, #83
       regex for parsing the error string is now part of the toolchain,
       colorizing_formatter now uses errorparser to parse command line output
       version bump
 
-v_0.5.3 => v_0.5.4
+v_0.5.3.32 => v_0.5.4
+
+
+v_0.5.3 => v_0.5.3.32
 
     * Removed dot graph stuff
     * fixed non-ascii char console prob in windows
     * polish
     * corrected console highlighting (closes #81)
     * version bump to 0.5.4
-      
-      install dependent gems per default,
-      enable "on" as keyword for toggling the colorized output
-
-v_0.5.3.32 => v_0.5.3
-
-
-v_0.5.2 => v_0.5.3.32
-
-    * exit helper for unit tests
-    * 0.5.3
-    * Removed dot graph stuff
-    * fixed non-ascii char console prob in windows
-    * polish
-    * corrected console highlighting (closes #81)
-    * version bump to 0.5.4
-      
       install dependent gems per default,
       enable "on" as keyword for toggling the colorized output
     * startet to add new errorparser (#82)
     * command line colorization and ide interface use same formatter now
-      
       closes #82, #83
       regex for parsing the error string is now part of the toolchain,
       colorizing_formatter now uses errorparser to parse command line output
@@ -358,12 +511,10 @@ v_0.5.2 => v_0.5.3.32
     * version 0.5.7
     * better matches for gcc warnings/error parser
     * some formatter tweaking...
-      
       added rake task to automatically generate and update release history
     * Fixed some bugs like handling of 0, specs are running again
     * fixed clang compiler formatter (runtime error because formatter api changed)
     * console output was not captured correctly for old ruby versions
-      
       happened for ruby versions < 1.9.2...fixed with this commit
     * fixed namespace error for Printer
     * 0.5.10
@@ -442,6 +593,11 @@ v_0.5.2 => v_0.5.3.32
     * 0.5.31
     * Makefile and CommandLine output immediately visible instead of waiting until the step has been completed. Bugfix: attribute pathTo of Makefile did not work for Build This Project Only
 
+v_0.5.2 => v_0.5.3
+
+    * exit helper for unit tests
+    * 0.5.3
+
 v_0.5.1 => v_0.5.2
 
     * Fixed 1.8.6 compatibility, removed transitive_config_deps
@@ -451,22 +607,24 @@ v_0.5.1 => v_0.5.2
     * fixed task name probs for command line and makefile
     * removed dependencies because they should be optional
 
-v_0.5.0 => v_0.5.1
+0.5.1 => v_0.5.1
 
-    * fix for spawn, only transitive_config_files in prereqs - #68, #75
-    * removed debug output - #68
     * added better errormessage when there is a problem with a project.rb file
-      
       include directory from which the failed command was executed
     * fixed error in gemspec
     * fixed transitive config spec and ruby 1.8.7 compatibility #80
+
+v_0.5.0 => 0.5.1
+
+    * fix for spawn, only transitive_config_files in prereqs - #68, #75
+    * removed debug output - #68
+    * Fixed 1.8.6 compatibility, removed transitive_config_deps
 
 v_0.4.10 => v_0.5.0
 
     * autorefresh after run task - Fixes #58
     * renamed variable - #56
     * added dialog to enter filter (defaults to .*) - Fixes #59
-      
       update of details after invoke
     * better open editor - Fixes #60
     * refactoring of last commits - #24
@@ -479,30 +637,24 @@ v_0.4.10 => v_0.5.0
     * refactoring and test for error-packets in ide_interface
     * nr of sourcefiles per executable - #63
     * added rcov flags to rakefile and fixed ThreadOut accordingly - Fixes #64
-      
       coverage is generated into coverage/
     * Speeded up creating rake tasks
     * bugfix for speed improvements
     * monkey patched Task::enhance - #68
     * Bugfix: clean task is created before monkey patching Rake::Task
     * ok ... new philosophy ... everything should be as optional as possible - #66
-      
       lets see how much rdoc, rake, ... is delivered with 1.8.7 and 1.9.2 (our two supported ruby-interpreters)
     * better warning when a building block is malformed
     * closes #70 - gcov in not needed to execute specs
-      
       there was a load error when gcov gem was not installed
     * rename of extensions (closes #71)
-      
       now all extensions reside in ext folder and are not called *_ext.rb anymore
     * introduced modules for all files
     * added coverage tool for 1.9
-      
       used simplecov (optional package)
     * added google-perftools support - #68
     * some more tests for relFromTo - #65
     * added lazy_attribute_with_default - #67
-      
       added rake_helper/perftools.rb
     * bugfix for osx - a33eeaf254ef8abaeae0
     * preparation of caching. glob on-the-fly. bugfix all_deps.
@@ -530,7 +682,6 @@ v_0.4.10 => v_0.5.0
     * enhanced test - #67
     * removed debug output - #23
     * defined spectask - #Fixes #77
-      
       added spectask to point to spec:spec and spec:coverage which should be used instead
     * made highline optional - Fixes #78
     * using spawn instad of backtricks prevents 8192 max char problem
@@ -547,17 +698,14 @@ v_0.4.8 => v_0.4.9
     * moved svg to ghpages
     * added formatter to gcc toolchain
     * output is controlled by rake flags
-      
       corrected all examples,
       rake -v -> logger->info & BuildingBlock.verbose, rake -t -> logger->debug
     * mini readme for grapgstream server
     * #17 - run:all\[filter\]
     * removed dummy task
     * #17 - added more generic tasks
-      
       filter[], lib:filter[], exe:filter[], run:filter[]
     * #13, #15 - llvm clang support
-      
       you have to download and install clang binaries as well as llvm-gcc front end binaries and set the path to the bin folders
     * polish
     * Fixes #16 - adapted colors to look correct
@@ -567,19 +715,16 @@ v_0.4.8 => v_0.4.9
     * specs are running again
     * #27 - apply will be executed immediately
     * Fixes #28
-      
       enabled is now a static variable of ColorizingFormatter. The instances simply forward to that static field. By default it is false, so no colorization takes place. torake sets it to true be default, but you also have an additional task to enable/disable it again (toggle_colorization)
     * emit compiler command when we have a compiler error
     * Bugfix of >Fixes #28<: did not run without rainbow
     * Fixes #25
-      
       protobuf addressbook_(read|write).exe including:
       protobuf download
       protobuf configure
       protobuf make to get protoc
       call to protoc to generate sources
     * Fixes #29
-      
       added question for generation of Rakefile.rb
     * Fixes for osx and rake 0.9.1
     * Fixes #32
@@ -590,23 +735,18 @@ v_0.4.8 => v_0.4.9
     * clean up after object_dependency_spec
     * Fixes #26
     * Fixes #37
-      
       rework apply_dependency_file
     * rework apply_dependency_file
-      
       Fixes #37
     * Moved method from module scope to class scope as intended
     * Rake DSL now included only once and without warning
     * generator script for big project - Fixes #38
-      
       generates a big project (you can choose nr of projects and max nr of files per project)
     * sync issue in the graphstream client - Fixes #40
     * ascii progressbar - Fixes #20, Fixes #39
-      
       best use together with the rake flag -s
     * benchmark of the progress precalculations - Fixes #41
     * Cleanup structure of single directory builds - Fixes #7
-      
       the dir output of examples/basic looks like this:
       build
       ├── exes
@@ -661,7 +801,6 @@ v_0.4.8 => v_0.4.9
     * Removed puts of num threads
     * roodi refactorings - Fixes #24
     * Revert "roodi refactorings - Fixes #24"
-      
       commit was accidental...
       This reverts commit e92885c1615c1c3d593b54bfea2b33c7ea40a88a.
     * dont use static fields as much - Fixes #53
@@ -673,11 +812,9 @@ v_0.4.8 => v_0.4.9
 v_0.4.7 => v_0.4.8
 
     * added graphstream support
-      
       javalibs, javaserver and client, rubyclient
     * used a new snapshot of gs-core, where clear works
     * added support for custom building blocks
-      
       and a little bugfix: rebuilding did not work correctly
     * corrected pom of graphstream_server
     * start of error parser development
@@ -688,7 +825,6 @@ v_0.4.7 => v_0.4.8
     * better warning when rubigraph not found
     * fix example for osx
     * added support for custom building blocks
-      
       and a little bugfix: rebuilding did not work correctly
     * start of error parser development
     * cleanup task manager, continued error parser, some cosmetics
@@ -696,17 +832,14 @@ v_0.4.7 => v_0.4.8
     * fixed indention
     * reverted indention fix in project.rb and Rakefile.rb
     * added graphstream support
-      
       javalibs, javaserver and client, rubyclient
     * tuned continuous layout of graphstream server
     * Merge branch 'graphstream'
     * removed old jars
     * added executable jar for grapgstream server
-      
       java -jar target/gs-server-0.1-SNAPSHOT-jar-with-dependencies.jar
     * error parser: further dev
     * building-block cleanup:
-      
       every building block has a convert_to_rake function
       less implicit state when invoking functions (less side effects)
       better debug output
@@ -730,7 +863,6 @@ v_0.4.5 => v_0.4.6
     * split up gemspec
     * some docu and fixes for rspecs
     * new tests for correctly setting build dependencies,
-      
       found and fixed a bug where we did not rebuild after project file changed
     * tuned spec rake task
     * added sozi presentation
@@ -751,7 +883,6 @@ v_0.4.4 => v_0.4.5
     * namespaces for exes, libs, runs
     * Merge branch 'master' of github.com:marcmo/cxxproject
     * refactoring of main task creation function in task_maker,
-      
       some corrections to the readme
     * fixed missing parameter for single_souce case
     * fixed the refactoring: module building block has also sources, add defines to compiler only one. minor cosmetic stuff
@@ -768,16 +899,13 @@ v_0.4.3 => v_0.4.4
 
     * fixed deep copy, added var to change num of cores
     * flush implementation needed for 1.9.2
-      
       also added some targets to work with ubigraph
     * Merge branch 'master' of https://github.com/marcmo/cxxproject
     * reformat
     * added command line bb
     * enhanced ubigraph support + bugfix for lazy FileLists
-      
       see rubygraph: rake namespace
     * mainly torake changes:
-      
       now possible to define multiple configurations in one cxxconfiguration (e.g. one for debug, one for release)
       updated all examples to work with toolchains instead of compiler
 
@@ -798,10 +926,8 @@ v_0.4.2 => v_0.4.3
     * bugfix: c flags incorrect
     * fixed apply-enhance-break-dependencies-bug, fixed crash if file i depfile does not exist anymore, removed tabs
     * removed optimization of timestamps...
-      
       caching prevented correct builds
     * added ubigraph support,
-      
       bugfixes for needed? method
     * some roodi fixes and removal of unneeded function
     * reverted removal of function...is needed to display linker warnings/errors
@@ -831,7 +957,6 @@ v_0.4.1 => v_0.4.2
     * merged alternative and master branch
     * fixed basic usecases again
     * Merge branch 'apichange'
-      
       Conflicts:
       	lib/cxxproject.rb
       	lib/cxxproject/buildingblock.rb
@@ -850,7 +975,6 @@ v_0.4.1 => v_0.4.2
     * bugfix: output dir created if task has no sources
     * some refactorings and renames
     * default to whole-archive linker option on gcc
-      
       this is neccessary when linking c++ code where global instances register in constructors (as in cppunit)
     * refactoring name of function
 
@@ -863,6 +987,12 @@ v_0.4.0 => v_0.4.1
       task_maker introduces interface that takes the building-blocks and creates the tasks
     * removed old taskmaker
     * added comments and tests
-      
       started to add dependendy base specs to test correct build/rebuild behavior
     * added feature: build only for collection of source files
+
+0.1.10 => v_0.4.0
+
+
+0.1.9 => 0.1.10
+
+    * Bump to 0.1.10
