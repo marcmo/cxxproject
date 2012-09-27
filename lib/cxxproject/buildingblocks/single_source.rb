@@ -27,7 +27,6 @@ module Cxxproject
   class SingleSource < BuildingBlock
     include HasSources
     include HasIncludes
-
     include SingleSourceModule
   end
 end

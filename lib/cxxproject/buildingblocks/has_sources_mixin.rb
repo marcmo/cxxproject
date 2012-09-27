@@ -4,6 +4,8 @@ require 'cxxproject/utils/utils'
 require 'cxxproject/utils/printer'
 
 module Cxxproject
+
+  # users of this module can implement no_sources_found() to handle cases where no sources are given
   module HasSources
 
     attr_writer :file_dependencies
@@ -217,9 +219,8 @@ module Cxxproject
       end
 
       ordered = sources_to_build.keys.sort()
-      if sources_to_build.empty?
-        raise "nothing todo for #{name}"
-      end
+
+      no_sources_found() if sources_to_build.empty?
 
       dirs = []
       filemap = {}
@@ -363,6 +364,10 @@ module Cxxproject
       t.transparent_timestamp = true
       t.set_building_block(self)
       t
+    end
+
+    def no_sources_found()
+      raise "No Sources found for '#{self.class} #{name}'"
     end
 
   end

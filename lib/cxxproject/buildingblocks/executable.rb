@@ -220,5 +220,8 @@ module Cxxproject
       Dir.tmpdir + "/lake.tmp"
     end
 
+    def no_sources_found()
+    end
+
   end
 end
