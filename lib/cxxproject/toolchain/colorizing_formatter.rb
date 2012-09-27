@@ -37,24 +37,27 @@ module Cxxproject
       end
       ColorizingFormatter.setColorScheme(:black) # default
 
+      def print_color_style(str, color, style)
+        [color, style].inject(str) {|m,x| m.send(x)}
+      end
       def printError(str)
-        [@@error_color,:bold].inject(str) {|m,x| m.send(x)}
+        print_color_style(str, @@error_color, :bold)
       end
 
       def printWarning(str)
-        [@@warning_color,:bold].inject(str) {|m,x| m.send(x)}
+        print_color_style(str, @@warning_color, :bold)
       end
 
       def printInfo(str)
-        [@@info_color,:bold].inject(str) {|m,x| m.send(x)}
+        print_color_style(str, @@info_color, :bold)
       end
 
       def printAdditionalInfo(str)
-        [@@additional_info_color,:bold].inject(str) {|m,x| m.send(x)}
+        print_color_style(str, @@additional_info_color, :bold)
       end
 
       def printSuccess(str)
-        [@@success_color,:bold].inject(str) {|m,x| m.send(x)}
+        print_color_style(str, @@success_color, :bold)
       end
 
       # formats several lines of usually compiler output

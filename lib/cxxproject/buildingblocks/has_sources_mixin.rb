@@ -178,6 +178,15 @@ module Cxxproject
       end
     end
 
+    def add_to_sources_to_build(sources_to_build, excluded_files, sources, alternative_toolchain=nil)
+      sources.each do |f|
+        next if excluded_files.include?(f)
+        next if sources_to_build.has_key?(f)
+        t = tcs4source(f) || alternative_toolchain
+        sources_to_build[f] = t
+      end
+    end
+
     def create_object_file_tasks()
       sources_to_build = {}
 
@@ -192,12 +201,7 @@ module Cxxproject
       end
       files = Set.new  # do not build the same file twice
 
-      sources.each do |f|
-        next if exclude_files.include?(f)
-        next if files.include?(f)
-        files << f
-        sources_to_build[f] = tcs4source(f)
-      end
+      add_to_sources_to_build(sources_to_build, exclude_files, sources)
 
       source_patterns.each do |p|
         if p.include?("..")
@@ -209,17 +213,14 @@ module Cxxproject
         if (globRes.length == 0)
           Printer.printWarning "Warning: Source file pattern '#{p}' did not match to any file"
         end
-        globRes.each do |f|
-          next if exclude_files.include?(f)
-          next if files.include?(f)
-          files << f
-          t = tcs4source(f)
-          t = tcs4source(p) if t == nil
-          sources_to_build[f] = t
-        end
+        add_to_sources_to_build(sources_to_build, exclude_files, globRes, tcs4source(p))
       end
 
       ordered = sources_to_build.keys.sort()
+      if sources_to_build.empty?
+        raise "nothing todo for #{name}"
+      end
+
       dirs = []
       filemap = {}
       ordered.reverse.each do |o|
@@ -228,7 +229,7 @@ module Cxxproject
           filemap[d] << o
         else
           filemap[d] = [o]
-	      dirs << d
+          dirs << d
         end
       end
 
@@ -243,12 +244,16 @@ module Cxxproject
     end
 
     def create_object_file_task(sourceRel, the_tcs)
+      if !File.exists?(sourceRel)
+        raise "File '#{sourceRel}' not found"
+      end
+
       if File.is_absolute?(sourceRel)
         sourceRel = File.rel_from_to_project(@project_dir, sourceRel, false)
       end
 
       type = get_source_type(sourceRel)
-      return nil if type.nil?
+      raise "Unknown filetype for #{sourceRel}" unless type
 
       objectRel = get_object_file(sourceRel)
       @objects << objectRel

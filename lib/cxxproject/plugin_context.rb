@@ -101,13 +101,15 @@ module Cxxproject
       return res[0] if res.length > 0
     end
 
-
+    def check_compiler_hash(hash, sym)
+      check_hash(hash[sym], Cxxproject::Toolchain::Provider.default[:COMPILER][sym].keys << :BASED_ON) if hash[sym]
+    end
     def check_compiler(hash)
       raise "not a hash" unless hash.is_a?(Hash)
       check_hash(hash, Cxxproject::Toolchain::Provider.default[:COMPILER].keys)
-      check_hash(hash[:CPP], Cxxproject::Toolchain::Provider.default[:COMPILER][:CPP].keys << :BASED_ON) if hash[:CPP]
-      check_hash(hash[:C], Cxxproject::Toolchain::Provider.default[:COMPILER][:C].keys << :BASED_ON) if hash[:C]
-      check_hash(hash[:ASM], Cxxproject::Toolchain::Provider.default[:COMPILER][:ASM].keys << :BASED_ON) if hash[:ASM]
+      [:CPP, :C, :ASM].each do |sym|
+        check_compiler_hash(hash, sym)
+      end
     end
 
     def check_linker(hash)

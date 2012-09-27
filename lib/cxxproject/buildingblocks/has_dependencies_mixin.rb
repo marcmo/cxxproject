@@ -9,13 +9,16 @@ module Cxxproject
       @helper_dependencies ||= []
     end
 
+    def convert_named_values_to_string(values)
+      values.map { |v| v.instance_of?(String) ? v : v.name }
+    end
     def set_dependencies(deps)
-      @dependencies = deps.map { |dep| dep.instance_of?(String) ? dep : dep.name }
+      @dependencies = convert_named_values_to_string(deps)
       self
     end
 
     def set_helper_dependencies(deps)
-      @helper_dependencies = deps.map { |dep| dep.instance_of?(String) ? dep : dep.name }
+      @helper_dependencies = convert_named_values_to_string(deps)
       self
     end
 
