@@ -45,7 +45,7 @@ describe Cxxproject::BuildingBlock do
     expect {
       Cxxproject::SourceLibrary.new('1')
       Cxxproject::SourceLibrary.new('1')
-    }.should raise_exception
+    }.to raise_exception
   end
 
   it 'should be possible to give several binary libs with the same name' do
@@ -57,7 +57,7 @@ describe Cxxproject::BuildingBlock do
     expect {
       Cxxproject::BinaryLibrary.new('1')
       Cxxproject::SourceLibrary.new('1')
-    }.should raise_exception
+    }.to raise_exception
   end
 
   it 'should handle whole archive' do

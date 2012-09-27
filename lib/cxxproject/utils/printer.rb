@@ -1,10 +1,10 @@
 require 'cxxproject/toolchain/colorizing_formatter'
 
 module Cxxproject
-  
+
   class Printer
     @@cf = ColorizingFormatter.new
-    
+
     def self.printInfo(str)
       if @@cf.enabled?
         puts @@cf.printInfo(str)
@@ -12,7 +12,7 @@ module Cxxproject
         puts str
       end
     end
-    
+
     def self.printAdditionalInfo(str)
       if @@cf.enabled?
         puts @@cf.printAdditionalInfo(str)
@@ -20,7 +20,7 @@ module Cxxproject
         puts str
       end
     end
-    
+
     def self.printWarning(str)
       if @@cf.enabled?
         puts @@cf.printWarning(str)
@@ -44,7 +44,7 @@ module Cxxproject
         puts str
       end
     end
-   
+
   end
-  
+
 end
