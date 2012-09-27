@@ -22,11 +22,11 @@ module Rake
     end
   end
 
-  def self.augmented_invoke_prerequisites(name, invoke_prerequisites_original, obj, task_args, invocation_chain)
+  def self.augmented_invoke_prerequisites(o, name, invoke_prerequisites_original, obj, task_args, invocation_chain)
       Rake::notify_listener(:before_prerequisites, name)
       invoke_prerequisites_original.bind(obj).call(task_args, invocation_chain)
       Rake::notify_listener(:after_prerequisites, name)
-      if !needed?
+      if !o.needed?
         Rake::notify_listener(:after_execute, name)
       end
   end
@@ -34,14 +34,14 @@ module Rake
   class MultiTask
     invoke_prerequisites_original = self.instance_method(:invoke_prerequisites)
     define_method(:invoke_prerequisites) do |task_args, invocation_chain|
-      Rake::augmented_invoke_prerequisites(name, invoke_prerequisites_original, self, task_args, invocation_chain)
+      Rake::augmented_invoke_prerequisites(self, name, invoke_prerequisites_original, self, task_args, invocation_chain)
     end
   end
 
   class Task
     invoke_prerequisites_original = self.instance_method(:invoke_prerequisites)
     define_method (:invoke_prerequisites) do |task_args, invocation_chain|
-      Rake::augmented_invoke_prerequisites(name, invoke_prerequisites_original, self, task_args, invocation_chain)
+      Rake::augmented_invoke_prerequisites(self, name, invoke_prerequisites_original, self, task_args, invocation_chain)
     end
 
     execute_original = self.instance_method(:execute)

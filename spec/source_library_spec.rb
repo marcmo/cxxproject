@@ -14,11 +14,8 @@ describe Cxxproject::BuildingBlock do
   end
 
   it 'should raise an exception if no sourcefiles are matched by a pattern' do
-    lib1 = Cxxproject::SourceLibrary.new('1').set_sources(['testerle.cpp'])
-    lib1.output_dir = 'out'
-    lib1.complete_init
     expect {
-      lib1.create_object_file_tasks
+      lib1 = Cxxproject::SourceLibrary.new('1').set_sources(['testerle.cpp'])
     }.to raise_exception
   end
 
