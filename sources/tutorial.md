@@ -46,15 +46,16 @@ Now we also need to tweek the Rakefile.rb a little. We want to
 * add some additional flags
 
     require 'cxxproject'
-    BuildDir = "BuildDir"
-
+    BUILD_DIR = "BuildDir"
+    TC="clang"
     unittest_flags = {
-      :DEFINES => ['UNIT_TEST'],
-      :FLAGS => "-O0 -g3 -Wall"
+      :DEFINES => ['UNIT_TEST','CPPUNIT_MAIN=main'],
+      :FLAGS => ["-O0","-g3","-std=c++11","-stdlib=libc++","-Wall"]
     }
-    toolchain = Provider.modify_cpp_compiler("GCC", unittest_flags)
-    dependent_projects =  FileList['**/project.rb']
-    CxxProject2Rake.new(dependent_projects, BuildDir, toolchain, '.')
+
+    cxx(FileList['**/project.rb'], BUILD_DIR, TC, './') do
+      Provider.modify_cpp_compiler(TC, unittest_flags)
+    end
 
 Well...looks good! Now we can check what rake tasks are generated for us:
 

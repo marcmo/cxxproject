@@ -21,13 +21,13 @@ One ore more building-blocks are described by a small project.rb file which spec
   * defines to use
   * ...
 
-A typically rakefile that uses this system simply collects all project.rb files and feeds them into the CxxProject2Rake-helper.
+A typically rakefile that uses this system simply collects all project.rb files and feeds them into the cxx-helper.
 
     require 'cxxproject'
 
     BuildDir="build"
-    CxxProject2Rake.new(
-      FileList['**/project.rb'], BuildDir, GCCChain)
+    cxx(
+      FileList['**/project.rb'], BuildDir, "clang")
 
 
 ### Examples

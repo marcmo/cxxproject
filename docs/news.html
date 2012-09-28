@@ -1,0 +1,20 @@
+<!DOCTYPE html><html><head><title>Cxxproject</title><link rel="stylesheet" href="../main.css"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="container"><h1><a href="http://github.com/marcmo/cxxproject">Cxxproject</a></h1><p class="tagline"><em class="simple">Simple,</em><em class="flexible">flexible,</em><em class="c_cpp">C/C++</em><em class="buildsystem">Buildsystem</em></p><div id="ribbon"><a href="http://github.com/marcmo/cxxproject">Fork me on GitHub</a></div><ul id="menu"><li><a href="../index.html">Index</a></li><li><a href="../docs/basic_usage.html">Basic Usage</a></li><li><a href="../docs/whyruby.html">Why Ruby?</a></li><li><a href="../docs/tutorial.html">Tutorial</a></li><li><a href="../docs/tutorial_protobuf.html">Tutorial2</a></li><li><a href="../docs/wizard.html">Setup-Tool</a></li><li><a href="../docs/news.html">New and Noteworthy</a></li></ul><div id="content"><h2>New features</h2>
+
+<h3>since 0.6.30</h3>
+
+<ul>
+<li>each building block is now addressable using it's name, e.g.</li>
+</ul>
+
+<p>project.rb</p>
+
+<pre><code>source_lib 'a',
+  :sources =&gt; FileList['**/*.cpp'],
+  :includes =&gt; ['include']
+</code></pre>
+
+<p>Rakefile.rb</p>
+
+<pre><code>task :do_a_before =&gt; 'a'
+</code></pre>
+</div></div></body></html>

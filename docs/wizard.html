@@ -1,5 +1,4 @@
-<!DOCTYPE html><html><head><title>Cxxproject</title><link rel="stylesheet" href="../main.css"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="container"><h1><a href="http://github.com/marcmo/cxxproject">Cxxproject</a></h1><p class="tagline"><em class="simple">Simple, </em><em class="flexible">flexible, </em><em class="c_cpp">C/C++ </em><em class="buildsystem">Buildsystem</em></p><div id="ribbon"><a href="http://github.com/marcmo/cxxproject">Fork me on GitHub</a></div><ul id="menu"><li><a href="../index.html">Index</a></li><li><a href="../docs/basic_usage.html">Basic Usage</a></li><li><a href="../docs/whyruby.html">Why Ruby?</a></li><li><a href="../docs/tutorial.html">Tutorial</a></li><li><a href="../docs/wizard.html">Setup-Tool</a></li></ul><div id="content">
-<h2>Setup Tool</h2>
+<!DOCTYPE html><html><head><title>Cxxproject</title><link rel="stylesheet" href="../main.css"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="container"><h1><a href="http://github.com/marcmo/cxxproject">Cxxproject</a></h1><p class="tagline"><em class="simple">Simple,</em><em class="flexible">flexible,</em><em class="c_cpp">C/C++</em><em class="buildsystem">Buildsystem</em></p><div id="ribbon"><a href="http://github.com/marcmo/cxxproject">Fork me on GitHub</a></div><ul id="menu"><li><a href="../index.html">Index</a></li><li><a href="../docs/basic_usage.html">Basic Usage</a></li><li><a href="../docs/whyruby.html">Why Ruby?</a></li><li><a href="../docs/tutorial.html">Tutorial</a></li><li><a href="../docs/tutorial_protobuf.html">Tutorial2</a></li><li><a href="../docs/wizard.html">Setup-Tool</a></li><li><a href="../docs/news.html">New and Noteworthy</a></li></ul><div id="content"><h2>Setup Tool</h2>
 
 <p>Cxxproject comes with a little helper command-line tool that helps with
 - creating a basic building-block description (project.rb)
@@ -44,10 +43,11 @@ BuildDir = "BuildDir"
 
 unittest_flags = {
   :DEFINES =&gt; ['UNIT_TEST','CPPUNIT_MAIN=main'],
-  :FLAGS =&gt; "-O0 -g3 -Wall"
+  :FLAGS =&gt; ["-O0","-g3","-Wall"]
 }
-toolchain = Provider.modify_cpp_compiler("GCC", unittest_flags)
-dependent_projects =  ['./project.rb']
-CxxProject2Rake.new(dependent_projects, BuildDir, toolchain, './')
+TC = "gcc"
+cxx(FileList['./project.rb'], BuildDir, TC, './') do
+  Provider.modify_cpp_compiler(TC, unittest_flags)
+end
 </code></pre>
 </div></div></body></html>

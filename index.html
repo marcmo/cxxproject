@@ -1,27 +1,26 @@
-<!DOCTYPE html><html><head><title>Cxxproject</title><link rel="stylesheet" href="main.css"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="container"><h1><a href="http://github.com/marcmo/cxxproject">Cxxproject</a></h1><p class="tagline"><em class="simple">Simple, </em><em class="flexible">flexible, </em><em class="c_cpp">C/C++ </em><em class="buildsystem">Buildsystem</em></p><div id="ribbon"><a href="http://github.com/marcmo/cxxproject">Fork me on GitHub</a></div><ul id="menu"><li><a href="index.html">Index</a></li><li><a href="docs/basic_usage.html">Basic Usage</a></li><li><a href="docs/whyruby.html">Why Ruby?</a></li><li><a href="docs/tutorial.html">Tutorial</a></li><li><a href="docs/tutorial_protobuf.html">Tutorial2</a></li><li><a href="docs/wizard.html">Setup-Tool</a></li></ul><div id="content"><div class="example"><h2>Simple buildsystem for C/C++ projects</h2><p>Building C/C++ projects is often done with make or an ide backed system a la visual studio/eclipse etc.
-Makefiles are the most flexible solution, IDEs offer some comfort but configurations are often not very accessible.
-</p><pre>cxx_configuration do
+<!DOCTYPE html><html><head><title>Cxxproject</title><link rel="stylesheet" href="main.css"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="container"><h1><a href="http://github.com/marcmo/cxxproject">Cxxproject</a></h1><p class="tagline"><em class="simple">Simple,</em><em class="flexible">flexible,</em><em class="c_cpp">C/C++</em><em class="buildsystem">Buildsystem</em></p><div id="ribbon"><a href="http://github.com/marcmo/cxxproject">Fork me on GitHub</a></div><ul id="menu"><li><a href="index.html">Index</a></li><li><a href="docs/basic_usage.html">Basic Usage</a></li><li><a href="docs/whyruby.html">Why Ruby?</a></li><li><a href="docs/tutorial.html">Tutorial</a></li><li><a href="docs/tutorial_protobuf.html">Tutorial2</a></li><li><a href="docs/wizard.html">Setup-Tool</a></li><li><a href="docs/news.html">New and Noteworthy</a></li></ul><div id="content"><div class="example"><h2>Simple buildsystem for C/C++ projects</h2><p>Building C/C++ projects is often done with make or an ide backed system a la visual studio/eclipse etc.
+Makefiles are the most flexible solution, IDEs offer some comfort but configurations are often not very accessible.</p><pre>cxx_configuration do
   exe &quot;basic&quot;,
     :sources =&gt; FileList['**/*.cpp'],
     :dependencies =&gt; ['2']
   exe &quot;debug&quot;,
     :sources =&gt; FileList['**/*.cpp'],
     :dependencies =&gt; ['2_debug']
-end
-</pre><img src="images/down.png"></div><div class="example closing"><h2>Start using cxxproject</h2><pre class="terminal">$ gem install cxxproject</pre><h2>Installation from source</h2><pre class="terminal">$ rake install</pre><p>should install the freshly built gem (if you need sudo,
-please install the package by hand via rake package)
-</p><pre class="terminal">$ sudo gem install pkg/...</pre><h2>Running the examples</h2><pre class="terminal">$ cd examples; rake </pre><p>should compile all examples and run the resulting executables
-</p><h2>Prerequisites</h2><ul><li>gems: <a href="http://rspec.info/">rspec</a>, <a href="http://roodi.rubyforge.org">roodi</a> (optional)</li><li>libs: cppunit (only required for some examples)</li></ul><p></p><div class="features"><h2>Features</h2><ul><li>gcc-compiler-toolchain</li><li>diab-compiler-toolchain</li><li>tested on Linux, Window, MacOS</li><li>multi-threaded build (similar to make -j)</li></ul></div><p></p><h2>Authors</h2><ul><li>Christian Koestlin (christian.koestlin@gmail.com) </li><li>Oliver Mueller (oliver.mueller@gmail.com) </li></ul><p></p><h2>Contributers</h2><ul><li>Alexander Schaal</li><li>Martin Thiede</li><li>Kevin Russ</li></ul><p></p><h2>Contact</h2><ul><li>oliver.mueller@gmail.com</li><li>christian.koestlin@gmail.com </li></ul><p></p><h2>Get Sources</h2><pre class="terminal">$ git clone git://github.com/marcmo/cxxproject</pre><p></p><h2>Licence</h2><pre>Copyright (c) 2010, All rights reserved.
+end</pre><img src="images/down.png"></div><div class="example closing"><h2>Start using cxxproject</h2><pre class="terminal">$ gem install cxxproject</pre><h2>Installation from source</h2><pre class="terminal">$ rake install</pre><p>should install the freshly built gem (if you need sudo,
+please install the package by hand via rake package)</p><pre class="terminal">$ sudo gem install pkg/...</pre><h2>Running the examples</h2><pre class="terminal">$ cd examples; rake</pre><p>should compile all examples and run the resulting executables</p><h2>Prerequisites</h2><ul>
+<li>gems: <a href="http://rspec.info/">rspec</a>, <a href="http://roodi.rubyforge.org">roodi</a> (optional)</li>
+<li>libs: cppunit (only required for some examples)</li>
+</ul>
+<p></p><div class="features"><h2>Features</h2><ul><li>gcc-compiler-toolchain</li><li>diab-compiler-toolchain</li><li>tested on Linux, Window, MacOS</li><li>multi-threaded build (similar to make -j)</li></ul></div><p></p><h2>Authors</h2><ul><li>Christian Koestlin (christian.koestlin@gmail.com)</li><li>Oliver Mueller (oliver.mueller@gmail.com)</li></ul><p></p><h2>Contributers</h2><ul><li>Alexander Schaal</li><li>Martin Thiede</li><li>Kevin Russ</li></ul><p></p><h2>Contact</h2><ul><li>oliver.mueller@gmail.com</li><li>christian.koestlin@gmail.com</li></ul><p></p><h2>Get Sources</h2><pre class="terminal">$ git clone git://github.com/marcmo/cxxproject</pre><p></p><h2>Licence</h2><pre>Copyright (c) 2010, All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
-  * Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
-  * Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
-
-
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+      
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 &quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -33,6 +32,5 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 
 </pre></div></div></div></body></html>

@@ -1,5 +1,4 @@
-<!DOCTYPE html><html><head><title>Cxxproject</title><link rel="stylesheet" href="../main.css"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="container"><h1><a href="http://github.com/marcmo/cxxproject">Cxxproject</a></h1><p class="tagline"><em class="simple">Simple, </em><em class="flexible">flexible, </em><em class="c_cpp">C/C++ </em><em class="buildsystem">Buildsystem</em></p><div id="ribbon"><a href="http://github.com/marcmo/cxxproject">Fork me on GitHub</a></div><ul id="menu"><li><a href="../index.html">Index</a></li><li><a href="../docs/basic_usage.html">Basic Usage</a></li><li><a href="../docs/whyruby.html">Why Ruby?</a></li><li><a href="../docs/tutorial.html">Tutorial</a></li><li><a href="../docs/wizard.html">Setup-Tool</a></li></ul><div id="content">
-<h2>Tutorial</h2>
+<!DOCTYPE html><html><head><title>Cxxproject</title><link rel="stylesheet" href="../main.css"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="container"><h1><a href="http://github.com/marcmo/cxxproject">Cxxproject</a></h1><p class="tagline"><em class="simple">Simple,</em><em class="flexible">flexible,</em><em class="c_cpp">C/C++</em><em class="buildsystem">Buildsystem</em></p><div id="ribbon"><a href="http://github.com/marcmo/cxxproject">Fork me on GitHub</a></div><ul id="menu"><li><a href="../index.html">Index</a></li><li><a href="../docs/basic_usage.html">Basic Usage</a></li><li><a href="../docs/whyruby.html">Why Ruby?</a></li><li><a href="../docs/tutorial.html">Tutorial</a></li><li><a href="../docs/tutorial_protobuf.html">Tutorial2</a></li><li><a href="../docs/wizard.html">Setup-Tool</a></li><li><a href="../docs/news.html">New and Noteworthy</a></li></ul><div id="content"><h2>Tutorial</h2>
 
 <p>In this little tutorial we're going to walk through an example of setting up cxx-build support for a c++ project.
 This is our basic scenario:
@@ -44,15 +43,16 @@ end
 * add some additional flags</p>
 
 <pre><code>require 'cxxproject'
-BuildDir = "BuildDir"
-
+BUILD_DIR = "BuildDir"
+TC="clang"
 unittest_flags = {
-  :DEFINES =&gt; ['UNIT_TEST'],
-  :FLAGS =&gt; "-O0 -g3 -Wall"
+  :DEFINES =&gt; ['UNIT_TEST','CPPUNIT_MAIN=main'],
+  :FLAGS =&gt; ["-O0","-g3","-std=c++11","-stdlib=libc++","-Wall"]
 }
-toolchain = Provider.modify_cpp_compiler("GCC", unittest_flags)
-dependent_projects =  FileList['**/project.rb']
-CxxProject2Rake.new(dependent_projects, BuildDir, toolchain, '.')
+
+cxx(FileList['**/project.rb'], BUILD_DIR, TC, './') do
+  Provider.modify_cpp_compiler(TC, unittest_flags)
+end
 </code></pre>
 
 <p>Well...looks good! Now we can check what rake tasks are generated for us:</p>

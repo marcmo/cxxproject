@@ -43,10 +43,11 @@ Let's say we select the exe option, now we get 2 files:
 
     unittest_flags = {
       :DEFINES => ['UNIT_TEST','CPPUNIT_MAIN=main'],
-      :FLAGS => "-O0 -g3 -Wall"
+      :FLAGS => ["-O0","-g3","-Wall"]
     }
-    toolchain = Provider.modify_cpp_compiler("GCC", unittest_flags)
-    dependent_projects =  ['./project.rb']
-    CxxProject2Rake.new(dependent_projects, BuildDir, toolchain, './')
+    TC = "gcc"
+    cxx(FileList['./project.rb'], BuildDir, TC, './') do
+      Provider.modify_cpp_compiler(TC, unittest_flags)
+    end
 
   

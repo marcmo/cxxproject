@@ -31,7 +31,7 @@ In this step we create a directory-structure with:
     end
     create Rakefile.rb with:
     require 'cxxproject'
-    CxxProject2Rake.new(FileList['**/*project.rb'] , "build", GCCChain, ".")
+    cxx(FileList['**/project.rb'], "build", "gcc", './') do
 ### Explanation
 in the cxx-projectfile we say, that we want to build 2 executables by giving a sourcefile and depending on the addressbook_pb_api (which will be a library created from the generated sources).
 the rakefile simply collects all *project.rb files in all directories, gives build as outputdirectory for the compilation process, chooses gcc as toolchain and . as working directory.
