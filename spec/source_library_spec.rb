@@ -48,5 +48,6 @@ describe Cxxproject::BuildingBlock do
     expect {
       lib1.create_object_file_tasks
     }.to raise_exception
+    sh 'rm test.ccc'
   end
 end

@@ -121,11 +121,15 @@ module Cxxproject
         @@default
       end
 
-      def self.modify_cpp_compiler(based_on, h)
+      def self.modify_compiler(based_on, compiler_type, h)
         chain = @@settings[based_on]
         raise "unknown toolchain: #{based_on}" unless chain
-        chain[:COMPILER][:CPP].update(h)
+        chain[:COMPILER][compiler_type].update(h)
         chain
+      end
+
+      def self.modify_cpp_compiler(based_on, h)
+        modify_compiler(based_on, :CPP, h)
       end
 
       def self.[](name)
