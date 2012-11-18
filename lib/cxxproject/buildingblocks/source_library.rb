@@ -56,12 +56,10 @@ module Cxxproject
 
     def calc_command_line
       objs = @objects
-
-      if @output_dir_abs
+       if @output_dir_abs
         prefix = File.rel_from_to_project(@project_dir, @output_dir)
-        objs.map! { |m| m[prefix.length..-1] }
+#        objs.map! { |m| m[prefix.length..-1] }
       end
-
       archiver = @tcs[:ARCHIVER]
       cmd = [archiver[:COMMAND]] # ar
       cmd += archiver[:ARCHIVE_FLAGS].split(" ")
@@ -93,8 +91,7 @@ module Cxxproject
         aname = calc_archive_name
         Dir.chdir(calc_working_dir) do
           FileUtils.rm(aname) if File.exists?(aname)
-
-          cmd.map! {|c| c.include?(' ') ? "\"#{c}\"" : c }
+#          cmd.map! {|c| c.include?(' ') ? "\"#{c}\"" : c }
           rd, wr = IO.pipe
           cmd << {
             :err => wr,

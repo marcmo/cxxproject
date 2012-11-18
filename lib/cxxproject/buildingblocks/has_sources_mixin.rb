@@ -85,7 +85,7 @@ module Cxxproject
           if BinaryLibrary === d
             @incArray.concat(d.includes)
           else
-            prefix = File.rel_from_to_project(@project_dir,d.project_dir)
+            prefix = File.rel_from_to_project(@project_dir, d.project_dir)
             next if not prefix
             @incArray.concat(d.includes.map {|inc| File.add_prefix(prefix,inc)})
           end
@@ -251,73 +251,79 @@ module Cxxproject
       obj_tasks
     end
 
-    def create_object_file_task(sourceRel, the_tcs)
-      if !File.exists?(sourceRel)
-        raise "File '#{sourceRel}' not found"
+    def calc_command_line_for_source(source, toolchain)
+      if !File.exists?(source)
+        raise "File '#{source}' not found"
+      end
+      if File.is_absolute?(source)
+        source = File.rel_from_to_project(@project_dir, source, false)
       end
 
-      if File.is_absolute?(sourceRel)
-        sourceRel = File.rel_from_to_project(@project_dir, sourceRel, false)
-      end
+      type = get_source_type(source)
+      raise "Unknown filetype for #{source}" unless type
 
-      type = get_source_type(sourceRel)
-      raise "Unknown filetype for #{sourceRel}" unless type
+      object = get_object_file(source)
+      object_path = File.expand_path(object)
+      source_path = File.expand_path(source)
 
-      objectRel = get_object_file(sourceRel)
-      @objects << objectRel
-      object = File.expand_path(objectRel)
-      source = File.expand_path(sourceRel)
+      @objects << object
 
       depStr = ""
       dep_file = nil
       if type != :ASM
-        dep_file = get_dep_file(objectRel)
+        dep_file = get_dep_file(object)
         dep_file = "\""+dep_file+"\"" if dep_file.include?(" ")
-        depStr = the_tcs[:COMPILER][type][:DEP_FLAGS]
+        depStr = toolchain[:COMPILER][type][:DEP_FLAGS]
       end
 
-      res = typed_file_task Rake::Task::OBJECT, object => source do
-        compiler = the_tcs[:COMPILER][type]
+      compiler = toolchain[:COMPILER][type]
+      i_array = toolchain == @tcs ? @include_string[type] : get_include_string(toolchain, type)
+      d_array = toolchain == @tcs ? @define_string[type] : get_define_string(toolchain, type)
 
-        if Rake::application.preproFlags and compiler[:PREPRO_FLAGS] == ""
-          Printer.printInfo("Info: No preprocessor option available for " + sourceRel)
+      cmd = [compiler[:COMMAND]]
+      cmd += compiler[:COMPILE_FLAGS].split(" ")
+      if dep_file
+        cmd += depStr.split(" ")
+        if toolchain[:COMPILER][type][:DEP_FLAGS_SPACE]
+          cmd << dep_file
         else
-
-          i_array = the_tcs == @tcs ? @include_string[type] : get_include_string(the_tcs, type)
-          d_array = the_tcs == @tcs ? @define_string[type] : get_define_string(the_tcs, type)
-
-          cmd = [compiler[:COMMAND]]
-          cmd += compiler[:COMPILE_FLAGS].split(" ")
-          if dep_file
-            cmd += depStr.split(" ")
-            if the_tcs[:COMPILER][type][:DEP_FLAGS_SPACE]
-              cmd << dep_file
-            else
-              cmd[cmd.length-1] << dep_file
-            end
-          end
-          cmd += compiler[:FLAGS]
-          cmd += i_array
-          cmd += d_array
-          cmd += (compiler[:OBJECT_FILE_FLAG] + objectRel).split(" ")
-          cmd += compiler[:PREPRO_FLAGS].split(" ") if Rake::application.preproFlags
-          cmd << sourceRel
-
-          rd, wr = IO.pipe
-          cmd << {
-            :err=>wr,
-            :out=>wr
-          }
-          sp = spawn(*cmd)
-          cmd.pop
-          consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
-
-          process_result(cmd, consoleOutput, compiler[:ERROR_PARSER], "Compiling #{sourceRel}")
-
-          convert_depfile(dep_file) if dep_file
-
-          check_config_file()
+          cmd[cmd.length-1] << dep_file
         end
+      end
+      cmd += compiler[:FLAGS]
+      cmd += i_array
+      cmd += d_array
+      cmd += (compiler[:OBJECT_FILE_FLAG] + object).split(" ")
+      cmd += compiler[:PREPRO_FLAGS].split(" ") if Rake::application.preproFlags
+      cmd << source
+      return [cmd, source_path, object_path, compiler, type]
+    end
+
+    def create_object_file_task(sourceRel, the_tcs)
+      cmd, source, object, compiler, type = calc_command_line_for_source(sourceRel, the_tcs)
+      depStr = ""
+      dep_file = nil
+      if type != :ASM
+        dep_file = get_dep_file(object)
+        dep_file = "\""+dep_file+"\"" if dep_file.include?(" ")
+        depStr = compiler[:DEP_FLAGS]
+      end
+      p cmd
+      res = typed_file_task Rake::Task::OBJECT, object => source do
+        rd, wr = IO.pipe
+        cmd << {
+          :err=>wr,
+          :out=>wr
+        }
+        sp = spawn(*cmd)
+        cmd.pop
+        consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
+
+        process_result(cmd, consoleOutput, compiler[:ERROR_PARSER], "Compiling #{sourceRel}")
+
+        convert_depfile(dep_file) if dep_file
+
+        check_config_file()
       end
       enhance_with_additional_files(res)
       add_output_dir_dependency(object, res, false)
