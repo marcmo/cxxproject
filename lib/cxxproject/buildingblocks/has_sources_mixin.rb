@@ -189,7 +189,8 @@ module Cxxproject
       end
     end
 
-    def create_object_file_tasks()
+    # returns a hash from all sources to the toolchain that should be used for a source
+    def collect_sources_and_toolchains
       sources_to_build = {}
 
       exclude_files = Set.new
@@ -217,26 +218,32 @@ module Cxxproject
         end
         add_to_sources_to_build(sources_to_build, exclude_files, globRes, tcs4source(p))
       end
+      return sources_to_build
+    end
 
-      ordered = sources_to_build.keys.sort()
-
-      no_sources_found() if sources_to_build.empty?
-
-      dirs = []
+    # calcs a map from unique directories to array of sources within this dir
+    def calc_dirs_with_files(sources)
       filemap = {}
-      ordered.reverse.each do |o|
+      sources.keys.sort.reverse.each do |o|
         d = File.dirname(o)
         if filemap.include?(d)
           filemap[d] << o
         else
           filemap[d] = [o]
-          dirs << d
         end
       end
+      return filemap
+    end
+
+    def create_object_file_tasks()
+      sources_to_build = collect_sources_and_toolchains()
+      no_sources_found() if sources_to_build.empty?
+
+      dirs_with_files = calc_dirs_with_files(sources_to_build)
 
       obj_tasks = []
-      dirs.each do |d|
-        filemap[d].reverse.each do |f|
+      dirs_with_files.each do |dir, files|
+        files.reverse.each do |f|
           obj_task = create_object_file_task(f, sources_to_build[f])
           obj_tasks << obj_task unless obj_task.nil?
         end
