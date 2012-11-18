@@ -54,6 +54,34 @@ module Cxxproject
       @task_name
     end
 
+    def calc_command_line
+      objs = @objects
+
+      if @output_dir_abs
+        prefix = File.rel_from_to_project(@project_dir, @output_dir)
+        objs.map! { |m| m[prefix.length..-1] }
+      end
+
+      archiver = @tcs[:ARCHIVER]
+      cmd = [archiver[:COMMAND]] # ar
+      cmd += archiver[:ARCHIVE_FLAGS].split(" ")
+      cmd += archiver[:FLAGS]
+      cmd << calc_archive_name # -o debug/x.exe
+      cmd += objs
+    end
+
+    def calc_archive_name
+      aname = get_archive_name
+      if @output_dir_abs
+        prefix = File.rel_from_to_project(@project_dir, @output_dir)
+        aname = aname[prefix.length..-1]
+      end
+      return aname
+    end
+    def calc_working_dir
+      @output_dir_abs ? @output_dir : @project_dir
+    end
+
     # task that will link the given object files to a static lib
     #
     def convert_to_rake()
@@ -61,24 +89,10 @@ module Cxxproject
       archiver = @tcs[:ARCHIVER]
 
       res = typed_file_task Rake::Task::LIBRARY, get_task_name => object_multitask do
-        dir = @project_dir
-        objs = @objects
-        aname = get_archive_name
-
-        if @output_dir_abs
-          dir = @output_dir
-          prefix = File.rel_from_to_project(@project_dir, @output_dir)
-          objs.map! { |m| m[prefix.length..-1] }
-          aname = aname[prefix.length..-1]
-        end
-
-        Dir.chdir(dir) do
+        cmd = calc_command_line
+        aname = calc_archive_name
+        Dir.chdir(calc_working_dir) do
           FileUtils.rm(aname) if File.exists?(aname)
-          cmd = [archiver[:COMMAND]] # ar
-          cmd += archiver[:ARCHIVE_FLAGS].split(" ")
-          cmd += archiver[:FLAGS]
-          cmd << aname # -o debug/x.exe
-          cmd += objs
 
           cmd.map! {|c| c.include?(' ') ? "\"#{c}\"" : c }
           rd, wr = IO.pipe
@@ -91,7 +105,7 @@ module Cxxproject
 
           consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
 
-          process_result(cmd, consoleOutput, archiver[:ERROR_PARSER], "Creating #{aname}")
+          process_result(cmd, consoleOutput, @tcs[:ARCHIVER][:ERROR_PARSER], "Creating #{aname}")
 
           check_config_file()
         end
