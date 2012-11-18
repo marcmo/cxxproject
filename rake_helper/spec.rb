@@ -47,8 +47,8 @@ namespace :spec do
   new_rspec
 end
 
-task :spec do
-  puts 'Please use spec:spec or spec:coverage'
+task :spec => 'spec:spec' do
+#  puts 'Please use spec:spec or spec:coverage'
 end
 
 task :gem => [:spec]

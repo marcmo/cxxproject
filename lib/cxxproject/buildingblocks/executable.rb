@@ -118,29 +118,31 @@ module Cxxproject
       end
     end
 
+    def calc_command_line
+      linker = @tcs[:LINKER]
+      cmd = [linker[:COMMAND]] # g++
+      cmd += linker[:MUST_FLAGS].split(" ")
+      cmd += linker[:FLAGS]
+      cmd << linker[:EXE_FLAG]
+      cmd << get_executable_name # -o debug/x.exe
+      cmd += @objects
+      cmd << linker[:SCRIPT] if @linker_script # -T
+      cmd << @linker_script if @linker_script # xy/xy.dld
+      cmd << linker[:MAP_FILE_FLAG] if @mapfile # -Wl,-m6
+      cmd += linker[:LIB_PREFIX_FLAGS].split(" ") # TODO ... is this still needed e.g. for diab
+      cmd += linker_lib_string(@tcs[:LINKER])
+      cmd += linker[:LIB_POSTFIX_FLAGS].split(" ") # TODO ... is this still needed e.g. for diab
+      cmd
+    end
+
     # create a task that will link an executable from a set of object files
     #
     def convert_to_rake()
       object_multitask = prepare_tasks_for_objects()
 
-      linker = @tcs[:LINKER]
-
       res = typed_file_task Rake::Task::EXECUTABLE, get_task_name => object_multitask do
+        cmd = calc_command_line
         Dir.chdir(@project_dir) do
-
-          cmd = [linker[:COMMAND]] # g++
-          cmd += linker[:MUST_FLAGS].split(" ")
-          cmd += linker[:FLAGS]
-          cmd << linker[:EXE_FLAG]
-          cmd << get_executable_name # -o debug/x.exe
-          cmd += @objects
-          cmd << linker[:SCRIPT] if @linker_script # -T
-          cmd << @linker_script if @linker_script # xy/xy.dld
-          cmd << linker[:MAP_FILE_FLAG] if @mapfile # -Wl,-m6
-          cmd += linker[:LIB_PREFIX_FLAGS].split(" ") # TODO ... is this still needed e.g. for diab
-          cmd += linker_lib_string(@tcs[:LINKER])
-          cmd += linker[:LIB_POSTFIX_FLAGS].split(" ") # TODO ... is this still needed e.g. for diab
-
           mapfileStr = @mapfile ? " >#{@mapfile}" : ""
           rd, wr = IO.pipe
           cmdLinePrint = cmd
@@ -156,7 +158,7 @@ module Cxxproject
           cmd << " >#{@mapfile}" if @mapfile
           consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
 
-          process_result(cmdLinePrint, consoleOutput, linker[:ERROR_PARSER], nil)
+          process_result(cmdLinePrint, consoleOutput, @tcs[:LINKER][:ERROR_PARSER], nil)
           check_config_file()
         end
       end
