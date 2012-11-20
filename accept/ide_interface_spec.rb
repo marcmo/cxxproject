@@ -1,4 +1,3 @@
-require 'spec_helper'
 require 'cxxproject/ide_interface'
 require 'cxxproject/utils/utils'
 require 'cxxproject/errorparser/error_parser'

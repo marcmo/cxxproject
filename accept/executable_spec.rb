@@ -1,6 +1,3 @@
-require 'spec_helper'
-
-require 'rspec'
 require 'cxxproject'
 require 'cxxproject/utils/cleanup'
 

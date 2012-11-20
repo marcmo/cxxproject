@@ -8,7 +8,6 @@ out
 .idea
 *.iml
 *_output_dir
-testdata
 *~
 coverage
 html

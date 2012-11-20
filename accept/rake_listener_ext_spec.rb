@@ -1,4 +1,3 @@
-require 'spec_helper'
 require 'cxxproject'
 require 'cxxproject/ext/rake_listener.rb'
 require 'cxxproject/utils/cleanup'

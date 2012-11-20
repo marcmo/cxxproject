@@ -3,6 +3,20 @@
 
 see documentation page: [cxxproject](http://marcmo.github.com/cxxproject)
 
+# teststrategy for plugins
+
+each plugin should have unit-tests and acceptance-tests.
+
+rake-task: spec
+unit-tests should be able to run from source without preinstalled gems (apart from rspec).
+
+rake-task: prepare_accept
+should prepare the current gemset with all gems needed. usually this should build cxxproject, cxx and a toolchain and install those gems.
+
+rake-task: accept
+this should run with the gems that are installed by prepare_accept. this can be a whole build.
+
+
 ## Change History:
 
 0.6.28 => 0.6.29
