@@ -76,9 +76,6 @@ module Cxxproject
 #      end
       return aname
     end
-    def calc_working_dir
-      @output_dir_abs ? @output_dir : @project_dir
-    end
 
     # task that will link the given object files to a static lib
     #
@@ -89,7 +86,7 @@ module Cxxproject
       res = typed_file_task Rake::Task::LIBRARY, get_task_name => object_multitask do
         cmd = calc_command_line
         aname = calc_archive_name
-        Dir.chdir(calc_working_dir) do
+        Dir.chdir(@project_dir) do
           FileUtils.rm(aname) if File.exists?(aname)
 #          cmd.map! {|c| c.include?(' ') ? "\"#{c}\"" : c }
           rd, wr = IO.pipe

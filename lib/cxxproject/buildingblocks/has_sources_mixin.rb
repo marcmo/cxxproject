@@ -280,7 +280,7 @@ module Cxxproject
       i_array = toolchain == @tcs ? @include_string[type] : get_include_string(toolchain, type)
       d_array = toolchain == @tcs ? @define_string[type] : get_define_string(toolchain, type)
 
-      cmd = [compiler[:COMMAND]]
+      cmd = [compiler[:COMMAND]].flatten
       cmd += compiler[:COMPILE_FLAGS].split(" ")
       if dep_file
         cmd += depStr.split(" ")
@@ -296,11 +296,11 @@ module Cxxproject
       cmd += (compiler[:OBJECT_FILE_FLAG] + object).split(" ")
       cmd += compiler[:PREPRO_FLAGS].split(" ") if Rake::application.preproFlags
       cmd << source
-      return [cmd, source_path, object_path, compiler, type]
+      return [cmd, source_path, object, object_path, compiler, type]
     end
 
     def create_object_file_task(sourceRel, the_tcs)
-      cmd, source, object, compiler, type = calc_command_line_for_source(sourceRel, the_tcs)
+      cmd, source, object, object_path, compiler, type = calc_command_line_for_source(sourceRel, the_tcs)
       depStr = ""
       dep_file = nil
       if type != :ASM
@@ -308,8 +308,7 @@ module Cxxproject
         dep_file = "\""+dep_file+"\"" if dep_file.include?(" ")
         depStr = compiler[:DEP_FLAGS]
       end
-      p cmd
-      res = typed_file_task Rake::Task::OBJECT, object => source do
+      res = typed_file_task Rake::Task::OBJECT, object_path=> source do
         rd, wr = IO.pipe
         cmd << {
           :err=>wr,
