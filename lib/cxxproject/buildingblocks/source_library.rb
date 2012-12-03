@@ -70,10 +70,10 @@ module Cxxproject
 
     def calc_archive_name
       aname = get_archive_name
-      if @output_dir_abs
-        prefix = File.rel_from_to_project(@project_dir, @output_dir)
-        aname = aname[prefix.length..-1]
-      end
+#      if @output_dir_abs
+#        prefix = File.rel_from_to_project(@project_dir, @output_dir)
+#        aname = aname[prefix.length..-1]
+#      end
       return aname
     end
     def calc_working_dir

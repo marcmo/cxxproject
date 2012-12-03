@@ -12,6 +12,29 @@ module Cxxproject
   # stores all defined buildingblocks by name (the name should be unique)
   ALL_BUILDING_BLOCKS = {}
 
+  def self.sorted_building_blocks
+    todo = ALL_BUILDING_BLOCKS.keys.dup
+    res = []
+    while not todo.empty?
+      bb = resolve_by_name(todo.pop)
+      add_unique(res, bb)
+      todo += bb.dependencies
+    end
+    return res.reverse
+  end
+
+  def self.resolve_by_name(name)
+    res = ALL_BUILDING_BLOCKS[name]
+    raise "BuildingBlock #{name} not defined" unless res
+    res
+  end
+
+  def self.add_unique(res, bb)
+    res.delete(bb)
+    res.push(bb)
+  end
+
+
   trap("INT") do
     Rake.application.idei.set_abort(true)
   end
