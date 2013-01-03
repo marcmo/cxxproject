@@ -34,6 +34,9 @@ module Cxxproject
     res.push(bb)
   end
 
+  def self.find_by_tag(tag)
+    ALL_BUILDING_BLOCKS.values.find_all{|o|o.tags.include?(tag)}
+  end
 
   trap("INT") do
     Rake.application.idei.set_abort(true)
@@ -50,6 +53,7 @@ module Cxxproject
     attr_accessor :output_dir
     attr_accessor :pre_step
     attr_reader :output_dir_abs
+    attr_accessor :tags
 
     def set_name(x)
       @name = x

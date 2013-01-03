@@ -162,6 +162,7 @@ module Cxxproject
           check_config_file()
         end
       end
+      res.tags = tags
       res.immediate_output = true
       res.enhance(@config_files)
       res.enhance([@project_dir + "/" + @linker_script]) if @linker_script

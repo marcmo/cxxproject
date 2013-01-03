@@ -24,3 +24,11 @@ RSpec::Core::RakeTask.new(:accept) do |t|
     t.rspec_opts = '-r ./junit.rb -f JUnit -o build/test_details.xml'
   end
 end
+
+desc "Run unittests"
+RSpec::Core::RakeTask.new() do |t|
+  t.pattern = 'spec/**/*_spec.rb'
+#  if ENV['BUILD_SERVER']
+#    t.rspec_opts = '-r ./junit.rb -f JUnit -o build/test_details.xml'
+#  end
+end

@@ -73,6 +73,21 @@ describe Cxxproject::BuildingBlock do
     # TODO add a test for recursive whole archive libs a lib that should be whole and that has dependencies to whole libs
   end
 
+  it 'should have tags' do
+    s1 = Cxxproject::SourceLibrary.new('s1')
+    s1.tags = ["a", "b"].to_set
+  end
+
+  it 'should be possible to find building blocks by tag' do
+    s1 = Cxxproject::SourceLibrary.new('s1')
+    s1.tags = ["a", "b"].to_set
+    s2 = Cxxproject::SourceLibrary.new('s2')
+    s2.tags = ["b"].to_set
+
+    Cxxproject::find_by_tag('a').to_set == [s1].to_set
+    Cxxproject::find_by_tag('b').to_set == [s1, s2].to_set
+  end
+
 =begin
   it 'should have the right output-directory' do
     lib1 = Cxxproject::SourceLibrary.new('lib1').set_sources(['test.cc'])

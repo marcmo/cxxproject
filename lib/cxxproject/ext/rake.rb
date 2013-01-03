@@ -231,6 +231,11 @@ module Rake
     attr_accessor :output_after_execute
     attr_accessor :immediate_output
     attr_accessor :prerequisites
+    attr_writer :tags
+    def tags
+      @tags = Set.new unless @tags
+      return @tags
+    end
 
     UNKNOWN     = 0x0000 #
     OBJECT      = 0x0001 #

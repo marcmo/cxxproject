@@ -104,6 +104,7 @@ module Cxxproject
           check_config_file()
         end
       end
+      res.tags = tags
       enhance_with_additional_files(res)
       add_output_dir_dependency(get_task_name, res, true)
 
