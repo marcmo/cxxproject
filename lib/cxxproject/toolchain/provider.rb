@@ -121,6 +121,13 @@ module Cxxproject
         @@default
       end
 
+      def self.modify_linker(based_on, h)
+        chain = @@settings[based_on]
+        raise "unknown toolchain: #{based_on}" unless chain
+        chain[:LINKER].update(h)
+        chain
+      end
+
       def self.modify_compiler(based_on, compiler_type, h)
         chain = @@settings[based_on]
         raise "unknown toolchain: #{based_on}" unless chain
