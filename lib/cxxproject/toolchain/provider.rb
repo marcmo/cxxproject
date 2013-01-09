@@ -142,14 +142,6 @@ module Cxxproject
       end
 
       def self.[](name)
-
-        if name == "TI"
-          if not ENV['TI_HOME']
-            Printer.printError "Error: Please set TI_HOME"
-            ExitHelper.exit(1)
-          end
-        end
-
         return @@settings[name] if @@settings.include? name
         nil
       end
