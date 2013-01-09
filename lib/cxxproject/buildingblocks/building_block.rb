@@ -4,6 +4,7 @@ require 'cxxproject/ext/rake'
 require 'cxxproject/ext/file'
 require 'cxxproject/ide_interface'
 require 'cxxproject/utils/printer'
+require 'rake/clean'
 
 # no deprecated warning for rake >= 0.9.x
 include Rake::DSL if defined?(Rake::DSL)
