@@ -1,4 +1,5 @@
 require 'cxxproject/toolchain/colorizing_formatter'
+require 'cxxproject/utils/utils'
 
 module Cxxproject
   module Toolchain
@@ -6,6 +7,7 @@ module Cxxproject
     class Provider
       @@settings = {}
       @@default = {
+        :TARGET_OS => Utils::OS.os(),
         :COMPILER =>
         {
           :CPP => {

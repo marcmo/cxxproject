@@ -77,12 +77,22 @@ module Cxxproject
       [tmp, prefix]
     end
 
-    def linker_lib_string(linker)
+    def start_of_whole_archive_flag_symbol(target_os)
+      return :START_OF_WHOLE_ARCHIVE_FOR_OSX if target_os == :OSX
+      return :START_OF_WHOLE_ARCHIVE
+    end
+
+    def end_of_whole_archive_flag_symbol(target_os)
+      return :END_OF_WHOLE_ARCHIVE_FOR_OSX if target_os == :OSX
+      return :END_OF_WHOLE_ARCHIVE
+    end
+
+    def linker_lib_string(target_os, linker)
       lib_path_set = Set.new
       deps = collect_dependencies
       res = []
       deps.each do |d|
-        handle_whole_archive(d, res, linker, :START_OF_WHOLE_ARCHIVE)
+        handle_whole_archive(d, res, linker, start_of_whole_archive_flag_symbol(target_os))
         if HasLibraries === d
           d.lib_elements.each do |elem|
             case elem[0]
@@ -102,7 +112,7 @@ module Cxxproject
             end
           end
         end
-        handle_whole_archive(d, res, linker, :END_OF_WHOLE_ARCHIVE)
+        handle_whole_archive(d, res, linker, end_of_whole_archive_flag_symbol(target_os))
       end
       res
     end
@@ -130,7 +140,7 @@ module Cxxproject
       cmd << @linker_script if @linker_script # xy/xy.dld
       cmd << linker[:MAP_FILE_FLAG] if @mapfile # -Wl,-m6
       cmd += linker[:LIB_PREFIX_FLAGS].split(" ") # TODO ... is this still needed e.g. for diab
-      cmd += linker_lib_string(@tcs[:LINKER])
+      cmd += linker_lib_string(@tcs[:TARGET_OS], @tcs[:LINKER])
       cmd += linker[:LIB_POSTFIX_FLAGS].split(" ") # TODO ... is this still needed e.g. for diab
       cmd
     end
