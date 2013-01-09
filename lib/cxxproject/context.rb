@@ -5,7 +5,7 @@ module Cxxproject
       hash.keys.map do |k|
         error_string = ["error while evaluating \"#{@current_working_dir}/#{@current_project_file}\"",
                         "\"#{k}\" is not a valid specifier!",
-                        "allowd specifiers: #{allowed}"].join($/)
+                        "allowed specifiers: #{allowed}"].join($/)
         raise error_string unless allowed.include?(k)
       end
     end

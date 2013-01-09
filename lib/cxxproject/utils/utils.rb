@@ -5,9 +5,8 @@ module Cxxproject
 
       def self.os
         return :OSX if mac?
-        return :LINUX if linux?
         return :WINDOWS if windows?
-        return :OTHER
+        return :UNIX
       end
 
       # Is it windows

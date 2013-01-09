@@ -6,7 +6,7 @@ require 'cxxproject/utils/cleanup'
 
 describe Cxxproject::Executable do
   SOURCE_NAME = './hello.cpp'
-  OUTDIR = 'out'
+  OUTDIR = "#{Dir.pwd}/out"
   COMMAND = 'cmd'
   MUSTFLAG1 = '-mustflag1'
   MUSTFLAG2 = '-mustflag2'
@@ -15,10 +15,11 @@ describe Cxxproject::Executable do
   OUTPUT_ENDING = '.exe'
   LIB_PREFIX = 'libprefix'
   LIB_POSTFIX = 'libpostfix'
-  START_OF_WHOLE_ARCHIVE = 'startofwholearchive'
-  END_OF_WHOLE_ARCHIVE = 'endofwholearchive'
-  START_OF_WHOLE_ARCHIVE_FOR_OSX = 'startofwholearchiveforosx'
-  END_OF_WHOLE_ARCHIVE_FOR_OSX = 'endofwholearchiveforosx'
+  START_OF_WHOLE_ARCHIVE = {:UNIX => 'startofwholearchive', :OSX => 'startofwholearchiveforosx'}
+  END_OF_WHOLE_ARCHIVE = {:UNIX => 'endofwholearchive', :OSX => 'endofwholearchiveforosx'}
+  LIB_FLAG = 'libflag'
+  LIB_PATH_FLAG = 'libpathflag'
+  USER_LIB_FLAG = 'userlibflag'
   before(:each) do
     Cxxproject::Utils.cleanup_rake
 
@@ -47,8 +48,8 @@ describe Cxxproject::Executable do
     @linker.stub(:[]).with(:LIB_POSTFIX_FLAGS).and_return(LIB_POSTFIX)
     @linker.stub(:[]).with(:START_OF_WHOLE_ARCHIVE).and_return(START_OF_WHOLE_ARCHIVE)
     @linker.stub(:[]).with(:END_OF_WHOLE_ARCHIVE).and_return(END_OF_WHOLE_ARCHIVE)
-    @linker.stub(:[]).with(:START_OF_WHOLE_ARCHIVE_FOR_OSX).and_return(START_OF_WHOLE_ARCHIVE_FOR_OSX)
-    @linker.stub(:[]).with(:END_OF_WHOLE_ARCHIVE_FOR_OSX).and_return(END_OF_WHOLE_ARCHIVE_FOR_OSX)
+    @linker.stub(:[]).with(:LIB_FLAG).and_return(LIB_FLAG)
+    @linker.stub(:[]).with(:LIB_PATH_FLAG).and_return(LIB_PATH_FLAG)
     @toolchain.stub(:[]).with(:LINKER).and_return(@linker)
     @exe.set_tcs(@toolchain)
     @exe.convert_to_rake
@@ -57,15 +58,12 @@ describe Cxxproject::Executable do
   after(:each) do
     File.delete(SOURCE_NAME)
   end
-  
-  it 'should work for linux' do
-    @toolchain.stub(:[]).with(:TARGET_OS).and_return(:LINUX)
-    @exe.calc_command_line.should eq([COMMAND, MUSTFLAG1, MUSTFLAG2, FLAGS, EXE_FLAG, "#{OUTDIR}/#{@exe.name}#{OUTPUT_ENDING}", LIB_PREFIX, START_OF_WHOLE_ARCHIVE, @lib1.get_archive_name, END_OF_WHOLE_ARCHIVE, LIB_POSTFIX])
-  end
 
-  it 'should work for osx' do
-    @toolchain.stub(:[]).with(:TARGET_OS).and_return(:OSX)
-    @exe.calc_command_line.should eq([COMMAND, MUSTFLAG1, MUSTFLAG2, FLAGS, EXE_FLAG, "#{OUTDIR}/#{@exe.name}#{OUTPUT_ENDING}", LIB_PREFIX, START_OF_WHOLE_ARCHIVE_FOR_OSX, @lib1.get_archive_name, END_OF_WHOLE_ARCHIVE_FOR_OSX, LIB_POSTFIX])
+  [:OSX, :UNIX].each do |os|
+    it 'should work for #{os}' do
+      @toolchain.stub(:[]).with(:TARGET_OS).and_return(os)
+      @exe.calc_command_line.should eq([COMMAND, MUSTFLAG1, MUSTFLAG2, FLAGS, EXE_FLAG, 'out/test.exe', LIB_PREFIX, START_OF_WHOLE_ARCHIVE[os], @lib1.get_archive_name, END_OF_WHOLE_ARCHIVE[os], LIB_POSTFIX])
+    end
   end
 
 end

@@ -76,8 +76,8 @@ module Cxxproject
           :MAP_FILE_FLAG => "",
           :OUTPUT_ENDING => ".exe", # or .elf
           :ERROR_PARSER => nil,
-          :START_OF_WHOLE_ARCHIVE => '',
-          :END_OF_WHOLE_ARCHIVE => ''
+          :START_OF_WHOLE_ARCHIVE => {:UNIX => '', :OSX => '', :WINDOWS => ''},
+          :END_OF_WHOLE_ARCHIVE => {:UNIX => '', :OSX => '', :WINDOWS => ''},
         },
 
         :MAKE =>
