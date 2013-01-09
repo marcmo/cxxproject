@@ -8,7 +8,7 @@ class ::ProgressBar
 
   show_original = self.instance_method(:show)
   define_method(:show) do
-    if @unblocked && !RakeFileUtils.verbose
+    if @unblocked && !(RakeFileUtils.verbose == true)
       show_original.bind(self).call
     end
   end

@@ -310,7 +310,7 @@ module Rake
               return
             end
             Cxxproject::Printer.printError "Error #{name}: #{e.message}"
-            if RakeFileUtils.verbose
+            if RakeFileUtils.verbose == true
               puts e.backtrace
             end
             set_failed
