@@ -67,7 +67,7 @@ module Cxxproject
           :MUST_FLAGS => "",
           :SCRIPT => "",
           :USER_LIB_FLAG => "",
-          :EXE_FLAG => 'exe_flag_default',
+          :OUTPUT_FLAG => 'output_flag_default',
           :SHARED_FLAG => 'shared_flag_default',
           :LIB_FLAG => "",
           :LIB_PATH_FLAG => "",

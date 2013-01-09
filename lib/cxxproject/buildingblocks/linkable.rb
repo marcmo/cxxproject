@@ -141,8 +141,13 @@ module Cxxproject
       cmd = [linker[:COMMAND]] # g++
       cmd += linker[:MUST_FLAGS].split(" ")
       cmd += linker[:FLAGS]
+<<<<<<< HEAD:lib/cxxproject/buildingblocks/linkable.rb
       cmd += get_flags_for_output(linker)
       cmd << get_executable_name() # debug/x.exe
+=======
+      cmd << linker[:OUTPUT_FLAG]
+      cmd << get_executable_name # -o debug/x.exe
+>>>>>>> Added shared libraries support using Cxxproject:SharedLibrary:lib/cxxproject/buildingblocks/executable.rb
       cmd += @objects
       cmd << linker[:SCRIPT] if @linker_script # -T
       cmd << @linker_script if @linker_script # xy/xy.dld
