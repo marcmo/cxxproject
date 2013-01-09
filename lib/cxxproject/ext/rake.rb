@@ -242,16 +242,17 @@ module Rake
     SOURCEMULTI = 0x0002 # x
     DEPFILE     = 0x0004 #
     LIBRARY     = 0x0008 # x
-    EXECUTABLE  = 0x0010 # x
-    CONFIG      = 0x0020 #
-    APPLY       = 0x0040 #
-    UTIL        = 0x0080 #
-    BINARY      = 0x0100 # x
-    MODULE      = 0x0200 # x
-    MAKE        = 0x0400 # x
-    RUN         = 0x0800 #
-    CUSTOM      = 0x1000 # x
-    COMMANDLINE = 0x2000 # x
+    SHALIBRARY  = 0x0010 # x
+    EXECUTABLE  = 0x0020 # x
+    CONFIG      = 0x0040 #
+    APPLY       = 0x0080 #
+    UTIL        = 0x0100 #
+    BINARY      = 0x0200 # x
+    MODULE      = 0x0400 # x
+    MAKE        = 0x0800 # x
+    RUN         = 0x1000 #
+    CUSTOM      = 0x2000 # x
+    COMMANDLINE = 0x4000 # x
 
     STANDARD    = 0x371A # x above means included in STANDARD
     attr_reader :ignore

@@ -1,6 +1,7 @@
 require 'cxxproject/buildingblocks/binary_library'
 require 'cxxproject/buildingblocks/building_block'
 require 'cxxproject/buildingblocks/executable'
+require 'cxxproject/buildingblocks/shared_library'
 require 'cxxproject/buildingblocks/source_library'
 require 'cxxproject/buildingblocks/module'
 require 'cxxproject/buildingblocks/custom_building_block'
