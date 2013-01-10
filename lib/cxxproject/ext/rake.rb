@@ -375,6 +375,11 @@ module Rake
       if not Rake.application.idei.get_abort()
         if not isSysCmd
           Cxxproject::Printer.printError "Error for task #{@name}: #{ex1.message}"
+          if Rake.application.options.trace
+            ex1.backtrace.each do |t|
+              Cxxproject::Printer.printError t
+            end
+          end
         end
       end
       begin
