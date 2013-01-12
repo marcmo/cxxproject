@@ -1,4 +1,5 @@
 require 'cxxproject/toolchain/colorizing_formatter'
+require 'cxxproject/utils/utils'
 
 module Cxxproject
   module Toolchain
@@ -6,6 +7,7 @@ module Cxxproject
     class Provider
       @@settings = {}
       @@default = {
+        :TARGET_OS => Utils::OS.os(),
         :COMPILER =>
         {
           :CPP => {
@@ -77,8 +79,8 @@ module Cxxproject
           :SHA_ENDING => ".dll", # or .so
           :SHA_PREFIX => "lib",
           :ERROR_PARSER => nil,
-          :START_OF_WHOLE_ARCHIVE => '',
-          :END_OF_WHOLE_ARCHIVE => ''
+          :START_OF_WHOLE_ARCHIVE => {:UNIX => '', :OSX => '', :WINDOWS => ''},
+          :END_OF_WHOLE_ARCHIVE => {:UNIX => '', :OSX => '', :WINDOWS => ''},
         },
 
         :MAKE =>
@@ -148,14 +150,6 @@ module Cxxproject
       end
 
       def self.[](name)
-
-        if name == "TI"
-          if not ENV['TI_HOME']
-            Printer.printError "Error: Please set TI_HOME"
-            ExitHelper.exit(1)
-          end
-        end
-
         return @@settings[name] if @@settings.include? name
         nil
       end

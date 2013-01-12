@@ -1,5 +1,6 @@
 require 'cxxproject'
 require 'cxxproject/utils/cleanup'
+require 'cxxproject/utils/utils'
 
 describe Cxxproject::BuildingBlock do
   compiler = 'gcc'
@@ -69,7 +70,7 @@ describe Cxxproject::BuildingBlock do
     deps = ['1', '2']
     exe.set_dependencies(deps)
     exe.complete_init
-    exe.linker_lib_string({:START_OF_WHOLE_ARCHIVE => 'start', :END_OF_WHOLE_ARCHIVE => 'end'}).should == ['start', 'out/lib2.a', 'end', 'start', 'out/lib1.a', 'end']
+    exe.linker_lib_string(Cxxproject::Utils::OS.os, {:START_OF_WHOLE_ARCHIVE => {Cxxproject::Utils::OS.os => 'start'}, :END_OF_WHOLE_ARCHIVE => {Cxxproject::Utils::OS.os =>'end'}}).should == ['start', 'out/lib2.a', 'end', 'start', 'out/lib1.a', 'end']
     # TODO add a test for recursive whole archive libs a lib that should be whole and that has dependencies to whole libs
   end
 

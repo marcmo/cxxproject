@@ -96,32 +96,42 @@ module Cxxproject
 			libraries
 		end
 
-    def linker_lib_string(linker)
+    def linker_lib_string(target_os, linker)
       lib_path_set = Set.new
       deps = collect_dependencies
       res = []
       deps.each do |d|
-        handle_whole_archive(d, res, linker, :START_OF_WHOLE_ARCHIVE)
+        handle_whole_archive(d, res, linker, linker[:START_OF_WHOLE_ARCHIVE][target_os])
         if HasLibraries === d
           d.lib_elements.each do |elem|
             case elem[0]
             when HasLibraries::LIB
-              res.push("#{linker[:LIB_FLAG]}#{elem[1]}")
+              if not is_whole_archive(d)
+                res.push("#{linker[:LIB_FLAG]}#{elem[1]}")
+              end
             when HasLibraries::USERLIB
               res.push("#{linker[:USER_LIB_FLAG]}#{elem[1]}")
             when HasLibraries::LIB_WITH_PATH
-              tmp, prefix = adapt_path(elem[1], d, prefix)
-              res.push(tmp)
+              if is_whole_archive(d)
+                res.push(d.get_archive_name)
+              else
+                tmp, prefix = adapt_path(elem[1], d, prefix)
+                res.push(tmp)
+              end
             when HasLibraries::SEARCH_PATH
-              tmp, prefix = adapt_path(elem[1], d, prefix)
-              if not lib_path_set.include?(tmp)
-                lib_path_set << tmp
-                res.push("#{linker[:LIB_PATH_FLAG]}#{tmp}")
+              if is_whole_archive(d)
+                res.push(d.get_archive_name)
+              else
+                tmp, prefix = adapt_path(elem[1], d, prefix)
+                if not lib_path_set.include?(tmp)
+                  lib_path_set << tmp
+                  res.push("#{linker[:LIB_PATH_FLAG]}#{tmp}")
+                end
               end
             end
           end
         end
-        handle_whole_archive(d, res, linker, :END_OF_WHOLE_ARCHIVE)
+        handle_whole_archive(d, res, linker, linker[:END_OF_WHOLE_ARCHIVE][target_os])
       end
       res
     end
@@ -129,12 +139,14 @@ module Cxxproject
     # res the array with command line arguments that is used as result
     # linker the linker hash
     # sym the symbol that is used to fish out a value from the linker
-    def handle_whole_archive(building_block, res, linker, sym)
-      if building_block.instance_of?(SourceLibrary)
-        if building_block.whole_archive
-          res.push(linker[sym]) if linker[sym] and !linker[sym].empty?
-        end
+    def handle_whole_archive(building_block, res, linker, flag)
+      if is_whole_archive(building_block)
+        res.push(flag) if flag and !flag.empty?
       end
+    end
+
+    def is_whole_archive(building_block)
+      return building_block.instance_of?(SourceLibrary) && building_block.whole_archive
     end
 
     def calc_command_line
@@ -149,7 +161,7 @@ module Cxxproject
       cmd << @linker_script if @linker_script # xy/xy.dld
       cmd << linker[:MAP_FILE_FLAG] if @mapfile # -Wl,-m6
       cmd += linker[:LIB_PREFIX_FLAGS].split(" ") # TODO ... is this still needed e.g. for diab
-      cmd += linker_lib_string(@tcs[:LINKER])
+      cmd += linker_lib_string(@tcs[:TARGET_OS], @tcs[:LINKER])
       cmd += linker[:LIB_POSTFIX_FLAGS].split(" ") # TODO ... is this still needed e.g. for diab
       cmd
     end

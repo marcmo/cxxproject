@@ -3,23 +3,29 @@ module Cxxproject
     # Simple helper query the operating system we are running in
     module OS
 
+      def self.os
+        return :OSX if mac?
+        return :WINDOWS if windows?
+        return :UNIX
+      end
+
       # Is it windows
-      def OS.windows?
+      def self.windows?
         (RUBY_PLATFORM =~ /cygwin|mswin|mingw|bccwin|wince|emx/) != nil
       end
 
       # Is it osx
-      def OS.mac?
+      def self.mac?
         (RUBY_PLATFORM =~ /darwin/) != nil
       end
 
       # Is it kind of unix
-      def OS.unix?
+      def self.unix?
         !OS.windows?
       end
 
       # Is it linux
-      def OS.linux?
+      def self.linux?
         OS.unix? and not OS.mac?
       end
 
