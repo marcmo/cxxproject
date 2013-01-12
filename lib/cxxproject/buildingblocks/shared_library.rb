@@ -31,7 +31,16 @@ module Cxxproject
       @linker_script = nil
       @mapfile = nil
     end
-
+    def complete_init()
+      if @output_dir_abs
+        add_lib_element(HasLibraries::LIB, @name, true)
+        add_lib_element(HasLibraries::SEARCH_PATH, File.join(@output_dir, 'libs'), true)
+      else
+        add_lib_element(HasLibraries::LIB_WITH_PATH, File.join(@output_dir,"lib#{@name}.a"), true)
+      end
+      super
+    end
+    
     def set_library_name(name) # ensure it's relative
       @lib_name = name
     end
@@ -43,8 +52,8 @@ module Cxxproject
 
       if @output_dir_abs
         parts = [@output_dir_relPath] if @output_dir_relPath
+	parts << 'libs'
       end
-
       parts << "#{@tcs[:LINKER][:SHA_PREFIX]}#{@name}#{@tcs[:LINKER][:SHA_ENDING]}"
 
       @lib_name = File.join(parts)
@@ -81,8 +90,8 @@ module Cxxproject
       deps = collect_dependencies
       res = []
       deps.each do |d|
-        handle_whole_archive(d, res, linker, :START_OF_WHOLE_ARCHIVE)
-        if HasLibraries === d
+	handle_whole_archive(d, res, linker, :START_OF_WHOLE_ARCHIVE)
+        if HasLibraries === d and d != self
           d.lib_elements.each do |elem|
             case elem[0]
             when HasLibraries::LIB
