@@ -77,6 +77,25 @@ module Cxxproject
       [tmp, prefix]
     end
 
+		def cmd_lib_string
+			libraries=''
+      deps = collect_dependencies
+			deps.each do |d|
+				if HasLibraries === d
+					d.lib_elements.each do |elem|
+						case elem[0]
+						when HasLibraries::SEARCH_PATH
+							tmp, prefix = adapt_path(elem[1], d, prefix)
+							libraries << tmp
+							libraries << @tcs[:ENV][:LIB_SEPARATOR]
+						end
+					end
+				end
+			end
+			puts libraries
+			libraries
+		end
+
     def linker_lib_string(linker)
       lib_path_set = Set.new
       deps = collect_dependencies
@@ -211,7 +230,8 @@ module Cxxproject
       namespace 'run' do
         desc "run executable #{executable}"
         res = task name => executable do |t|
-          args = ENV['args'] ? ' ' + ENV['args'] : ''
+          ENV[@tcs[:ENV][:LIB_VAR]] = cmd_lib_string
+					args = ENV['args'] ? ' ' + ENV['args'] : ''
           sh "\"#{executable}\"#{args}"
         end
         res.type = Rake::Task::RUN
