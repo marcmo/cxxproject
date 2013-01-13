@@ -1,7 +1,4 @@
-require 'cxxproject/buildingblocks/building_block'
-require 'cxxproject/buildingblocks/binary_library'
-require 'cxxproject/buildingblocks/static_library'
-require 'cxxproject/buildingblocks/executable'
+require 'cxxproject/buildingblocks/building_blocks'
 require 'cxxproject/utils/cleanup'
 
 describe Cxxproject::Linkable do
