@@ -1,13 +1,7 @@
-require 'rspec'
-require 'cxxproject'
-require 'cxxproject/utils/cleanup'
+#require 'cxxproject/buildingblocks/static_library'
 
-describe Cxxproject::BuildingBlock do
+describe Cxxproject::StaticLibrary do
   before(:each) do
-    Cxxproject::Utils.cleanup_rake
-  end
-
-  after(:each) do
     Cxxproject::Utils.cleanup_rake
   end
 
@@ -33,6 +27,7 @@ describe Cxxproject::BuildingBlock do
     expect {
       lib1.create_object_file_tasks
     }.to raise_exception
+
   end
 
   def dummy_toolchain
@@ -48,4 +43,5 @@ describe Cxxproject::BuildingBlock do
     }.to raise_exception
     sh 'rm test.ccc'
   end
+
 end

@@ -12,7 +12,7 @@ require 'etc'
 
 module Cxxproject
 
-  class Executable < BuildingBlock
+  class Linkable < BuildingBlock
     include HasLibraries
     include HasSources
     include HasIncludes
@@ -37,6 +37,11 @@ module Cxxproject
       @exe_name = name
     end
 
+    def get_output_name(linker)
+      prefix = get_output_prefix(linker)
+      suffix = get_output_suffix(linker)
+      return "#{prefix}#{name}#{suffix}"
+    end
     def get_executable_name() # relative path
       return @exe_name if @exe_name
 
@@ -44,9 +49,10 @@ module Cxxproject
 
       if @output_dir_abs
         parts = [@output_dir_relPath] if @output_dir_relPath
+        parts += additional_path_components()
       end
-
-      parts << "#{@name}#{@tcs[:LINKER][:OUTPUT_ENDING][:EXECUTABLE]}"
+      linker = @tcs[:LINKER]
+      parts << get_output_name(linker)
 
       @exe_name = File.join(parts)
       @exe_name
@@ -135,14 +141,15 @@ module Cxxproject
       cmd = [linker[:COMMAND]] # g++
       cmd += linker[:MUST_FLAGS].split(" ")
       cmd += linker[:FLAGS]
-      cmd << linker[:EXE_FLAG]
-      cmd << get_executable_name # -o debug/x.exe
+      cmd += get_flags_for_output(linker)
+      cmd << get_executable_name() # debug/x.exe
+      cmd += additional_linker_commands(linker)
       cmd += @objects
       cmd << linker[:SCRIPT] if @linker_script # -T
       cmd << @linker_script if @linker_script # xy/xy.dld
       cmd << linker[:MAP_FILE_FLAG] if @mapfile # -Wl,-m6
       cmd += linker[:LIB_PREFIX_FLAGS].split(" ") # TODO ... is this still needed e.g. for diab
-      cmd += linker_lib_string(@tcs[:TARGET_OS], @tcs[:LINKER])
+      cmd += linker_lib_string(target_os(), @tcs[:LINKER])
       cmd += linker[:LIB_POSTFIX_FLAGS].split(" ") # TODO ... is this still needed e.g. for diab
       cmd
     end
@@ -238,5 +245,46 @@ module Cxxproject
     def no_sources_found()
     end
 
+    def target_os
+      @tcs[:TARGET_OS]
+    end
+  end
+
+  class Executable < Linkable
+    def get_flags_for_output(linker)
+      [linker[:EXE_FLAG]]
+    end
+    def get_output_prefix(linker)
+      ""
+    end
+    def get_output_suffix(linker)
+      linker[:OUTPUT_SUFFIX][:EXECUTABLE]
+    end
+    def additional_linker_commands(linker)
+      []
+    end
+  end
+
+  class SharedLibrary < Linkable
+    def get_flags_for_output(linker)
+      [linker[:SHARED_FLAG], linker[:EXE_FLAG]]
+    end
+    def get_output_prefix(linker)
+      linker[:OUTPUT_PREFIX][:SHARED_LIBRARY][target_os()]
+    end
+    def get_output_suffix(linker)
+      linker[:OUTPUT_SUFFIX][:SHARED_LIBRARY][target_os()]
+    end
+    def additional_path_components()
+      ['libs']
+    end
+    def additional_linker_commands(linker)
+      h = linker[:ADDITIONAL_COMMANDS][target_os()]
+      if h
+        h.calc(linker, self)
+      else
+        []
+      end
+    end
   end
 end

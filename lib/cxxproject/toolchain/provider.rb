@@ -74,7 +74,8 @@ module Cxxproject
           :LIB_POSTFIX_FLAGS => "", # "-Wl,--no-whole-archive",
           :FLAGS => [],
           :MAP_FILE_FLAG => "",
-          :OUTPUT_ENDING => {
+          :OUTPUT_PREFIX => {:EXECUTABLE => '', :SHARED_LIBRARY => 'lib'},
+          :OUTPUT_SUFFIX => {
             :EXECUTABLE => '.exe',
             :SHARED_LIBRARY => {
               :UNIX => '.so',
@@ -85,6 +86,7 @@ module Cxxproject
           :ERROR_PARSER => nil,
           :START_OF_WHOLE_ARCHIVE => {:UNIX => '', :OSX => '', :WINDOWS => ''},
           :END_OF_WHOLE_ARCHIVE => {:UNIX => '', :OSX => '', :WINDOWS => ''},
+          :ADDITIONAL_COMMANDS => {:OSX => '', :UNIX => ''}
         },
 
         :MAKE =>

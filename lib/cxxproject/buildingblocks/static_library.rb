@@ -28,13 +28,17 @@ module Cxxproject
       super
     end
 
+    def additional_path_components
+      ['libs']
+    end
+
     def get_archive_name() # relative path
       return @archive_name if @archive_name
       parts = [@output_dir]
 
       if @output_dir_abs
         parts = [@output_dir_relPath] if @output_dir_relPath
-        parts << 'libs'
+        parts += additional_path_components()
       end
 
       parts << "lib#{@name}.a"

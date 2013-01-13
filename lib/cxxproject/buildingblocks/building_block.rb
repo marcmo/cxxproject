@@ -277,6 +277,9 @@ module Cxxproject
       end
     end
 
+    def additional_path_components
+      []
+    end
   end
 
 end
