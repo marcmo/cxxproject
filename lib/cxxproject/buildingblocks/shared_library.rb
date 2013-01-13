@@ -52,7 +52,7 @@ module Cxxproject
 
       if @output_dir_abs
         parts = [@output_dir_relPath] if @output_dir_relPath
-	parts << 'libs'
+        parts << 'libs'
       end
       parts << "#{@tcs[:LINKER][:SHA_PREFIX]}#{@name}#{@tcs[:LINKER][:SHA_ENDING]}"
 
@@ -90,7 +90,7 @@ module Cxxproject
       deps = collect_dependencies
       res = []
       deps.each do |d|
-	handle_whole_archive(d, res, linker, :START_OF_WHOLE_ARCHIVE)
+        handle_whole_archive(d, res, linker, :START_OF_WHOLE_ARCHIVE)
         if HasLibraries === d and d != self
           d.lib_elements.each do |elem|
             case elem[0]

@@ -100,11 +100,11 @@ module Cxxproject
           :CLEAN => "clean"
         },
 
-				:ENV =>
-				{
-					:LIB_VAR=> "LD_LIBRARY_PATH",
-					:LIB_SEPARATOR => ":"
-				},
+        :ENV =>
+        {
+          :LIB_VAR=> {:UNIX => 'LD_LIBRARY_PATH', :OSX => '', :WINDOWS => ''},
+          :LIB_SEPARATOR => {:UNIX => ":", :OSX => '', :WINDOWS => ''}
+        },
         :CONSOLE_HIGHLIGHTER => ColorizingFormatter.new
       }
 
