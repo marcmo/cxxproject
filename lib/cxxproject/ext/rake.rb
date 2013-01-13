@@ -370,12 +370,12 @@ module Rake
       end
     end
 
-    def handle_error(ex1, isSysCmd)
+    def handle_error(exception, isSysCmd)
       if not Rake.application.idei.get_abort()
         if not isSysCmd
-          Cxxproject::Printer.printError "Error for task #{@name}: #{ex1.message}"
+          Cxxproject::Printer.printError "Error for task #{@name}: #{exception.message}"
           if Rake.application.options.trace
-            ex1.backtrace.each do |t|
+            exception.backtrace.each do |t|
               Cxxproject::Printer.printError t
             end
           end
@@ -383,8 +383,8 @@ module Rake
       end
       begin
         FileUtils.rm(@name) if File.exists?(@name)
-      rescue Exception => ex2
-        Cxxproject::Printer.printError "Error: Could not delete #{@name}: #{ex2.message}"
+      rescue Exception => follow_up_exception
+        Cxxproject::Printer.printError "Error: Could not delete #{@name}: #{follow_up_exception.message}"
       end
       set_failed
     end
