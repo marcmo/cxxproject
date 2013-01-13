@@ -77,28 +77,31 @@ module Cxxproject
       [tmp, prefix]
     end
 
-		def cmd_lib_string
-			libraries=''
-      deps = collect_dependencies
-			deps.each do |d|
-				if HasLibraries === d
-					d.lib_elements.each do |elem|
-						case elem[0]
-						when HasLibraries::SEARCH_PATH
-							tmp, prefix = adapt_path(elem[1], d, prefix)
-							libraries << tmp
-							libraries << @tcs[:ENV][:LIB_SEPARATOR]
-						end
-					end
-				end
-			end
-			puts libraries
-			libraries
-		end
+    def deps
+      if @deps == nil
+        @deps = collect_dependencies
+      end
+      @deps
+    end
+    def cmd_lib_string(target_os)
+      libraries=''
+      deps.each do |d|
+        if HasLibraries === d
+          d.lib_elements.each do |elem|
+            case elem[0]
+            when HasLibraries::SEARCH_PATH
+              tmp, prefix = adapt_path(elem[1], d, prefix)
+              libraries << tmp
+              libraries << @tcs[:ENV][:LIB_SEPARATOR][target_os]
+            end
+          end
+        end
+      end
+      libraries
+    end
 
     def linker_lib_string(target_os, linker)
       lib_path_set = Set.new
-      deps = collect_dependencies
       res = []
       deps.each do |d|
         handle_whole_archive(d, res, linker, linker[:START_OF_WHOLE_ARCHIVE][target_os])
@@ -110,7 +113,7 @@ module Cxxproject
                 res.push("#{linker[:LIB_FLAG]}#{elem[1]}")
               end
             when HasLibraries::USERLIB
-              res.push("#{linker[:USER_LIB_FLAG]}#{elem[1]}")
+              res.push("#{linker[:USER_LIB_FLAG]}#{elem[1]}") 
             when HasLibraries::LIB_WITH_PATH
               if is_whole_archive(d)
                 res.push(d.get_archive_name)
@@ -242,8 +245,8 @@ module Cxxproject
       namespace 'run' do
         desc "run executable #{executable}"
         res = task name => executable do |t|
-          ENV[@tcs[:ENV][:LIB_VAR]] = cmd_lib_string
-					args = ENV['args'] ? ' ' + ENV['args'] : ''
+          ENV[@tcs[:ENV][:LIB_VAR][@tcs[:TARGET_OS]]] = cmd_lib_string(@tcs[:TARGET_OS])
+          args = ENV['args'] ? ' ' + ENV['args'] : ''
           sh "\"#{executable}\"#{args}"
         end
         res.type = Rake::Task::RUN
