@@ -74,7 +74,14 @@ module Cxxproject
           :LIB_POSTFIX_FLAGS => "", # "-Wl,--no-whole-archive",
           :FLAGS => [],
           :MAP_FILE_FLAG => "",
-          :OUTPUT_ENDING => ".exe", # or .elf
+          :OUTPUT_ENDING => {
+            :EXECUTABLE => '.exe',
+            :SHARED_LIBRARY => {
+              :UNIX => '.so',
+              :OSX => '.dylib',
+              :WINDOWS => '.dll'
+            }
+          },
           :ERROR_PARSER => nil,
           :START_OF_WHOLE_ARCHIVE => {:UNIX => '', :OSX => '', :WINDOWS => ''},
           :END_OF_WHOLE_ARCHIVE => {:UNIX => '', :OSX => '', :WINDOWS => ''},

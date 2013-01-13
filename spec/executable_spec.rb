@@ -12,7 +12,7 @@ describe Cxxproject::Executable do
   MUSTFLAG2 = '-mustflag2'
   FLAGS = '-flags'
   EXE_FLAG = 'exeflag'
-  OUTPUT_ENDING = '.exe'
+  OUTPUT_ENDING = {:EXECUTABLE => '.exe', :SHARED_LIBRARY => {:UNIX => '.so'}}
   LIB_PREFIX = 'libprefix'
   LIB_POSTFIX = 'libpostfix'
   START_OF_WHOLE_ARCHIVE = {:UNIX => 'startofwholearchive', :OSX => 'startofwholearchiveforosx'}

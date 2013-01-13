@@ -46,7 +46,7 @@ module Cxxproject
         parts = [@output_dir_relPath] if @output_dir_relPath
       end
 
-      parts << "#{@name}#{@tcs[:LINKER][:OUTPUT_ENDING]}"
+      parts << "#{@name}#{@tcs[:LINKER][:OUTPUT_ENDING][:EXECUTABLE]}"
 
       @exe_name = File.join(parts)
       @exe_name
