@@ -1,6 +1,6 @@
 require 'cxxproject/buildingblocks/building_block'
 require 'cxxproject/buildingblocks/binary_library'
-require 'cxxproject/buildingblocks/source_library'
+require 'cxxproject/buildingblocks/static_library'
 require 'cxxproject/buildingblocks/executable'
 require 'cxxproject/utils/cleanup'
 
