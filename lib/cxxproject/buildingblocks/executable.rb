@@ -127,7 +127,7 @@ module Cxxproject
     end
 
     def is_whole_archive(building_block)
-      return building_block.instance_of?(SourceLibrary) && building_block.whole_archive
+      return building_block.instance_of?(StaticLibrary) && building_block.whole_archive
     end
 
     def calc_command_line
@@ -188,7 +188,7 @@ module Cxxproject
         libChecker = task get_task_name+"LibChecker" do
           if File.exists?(get_task_name) # otherwise the task will be executed anyway
             all_dependencies.each do |bb|
-              if bb and SourceLibrary === bb
+              if bb and StaticLibrary === bb
                 f = bb.get_task_name # = abs path of library
                 if not File.exists?(f) or File.mtime(f) > File.mtime(get_task_name)
                   def res.needed?

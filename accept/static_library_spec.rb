@@ -13,12 +13,12 @@ describe Cxxproject::BuildingBlock do
 
   it 'should raise an exception if no sourcefiles are matched by a pattern' do
     expect {
-      lib1 = Cxxproject::SourceLibrary.new('1').set_sources(['testerle.cpp'])
+      lib1 = Cxxproject::StaticLibrary.new('1').set_sources(['testerle.cpp'])
     }.to raise_exception
   end
 
   it 'should raise an exception if no sourcefiles are given' do
-    lib1 = Cxxproject::SourceLibrary.new('1')
+    lib1 = Cxxproject::StaticLibrary.new('1')
     lib1.output_dir = 'out'
     lib1.complete_init
     expect {
@@ -27,7 +27,7 @@ describe Cxxproject::BuildingBlock do
   end
 
   it 'should raise an exception if sourcepatterns dont match anything' do
-    lib1 = Cxxproject::SourceLibrary.new('1').set_source_patterns(['*.ccc'])
+    lib1 = Cxxproject::StaticLibrary.new('1').set_source_patterns(['*.ccc'])
     lib1.output_dir = 'out'
     lib1.complete_init
     expect {
@@ -40,7 +40,7 @@ describe Cxxproject::BuildingBlock do
   end
   it 'should raise an exception if a filetype is unknown' do
     sh 'touch test.ccc'
-    lib1 = Cxxproject::SourceLibrary.new('1').set_tcs(dummy_toolchain).set_sources(["test.ccc"])
+    lib1 = Cxxproject::StaticLibrary.new('1').set_tcs(dummy_toolchain).set_sources(["test.ccc"])
     lib1.output_dir = 'out'
     lib1.complete_init
     expect {

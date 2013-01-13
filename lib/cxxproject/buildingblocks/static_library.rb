@@ -6,7 +6,7 @@ require 'cxxproject/utils/process'
 require 'cxxproject/utils/utils'
 
 module Cxxproject
-  class SourceLibrary < BuildingBlock
+  class StaticLibrary < BuildingBlock
     include HasLibraries
     include HasSources
     include HasIncludes

@@ -26,7 +26,7 @@ describe Cxxproject::Executable do
     File.open(SOURCE_NAME, 'w') do |io|
       io.puts('// just for testing')
     end
-    @lib1 = Cxxproject::SourceLibrary.new('lib1', true)
+    @lib1 = Cxxproject::StaticLibrary.new('lib1', true)
     @lib1.set_output_dir(OUTDIR)
     @lib1.set_project_dir('.')
     @lib1.set_sources([SOURCE_NAME])
