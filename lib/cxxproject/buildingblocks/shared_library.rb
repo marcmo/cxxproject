@@ -15,6 +15,9 @@ module Cxxproject
     include HasLibraries
     include HasSources
     include HasIncludes
+    
+    attr_accessor :major
+    attr_accessor :minor
 
     def set_linker_script(x)
       @linker_script = x
@@ -30,6 +33,8 @@ module Cxxproject
       super(name)
       @linker_script = nil
       @mapfile = nil
+      @major = nil
+      @minor = nil
     end
     def complete_init()
       if @output_dir_abs
@@ -45,6 +50,20 @@ module Cxxproject
     def set_library_name(name) # ensure it's relative
       @lib_name = name
     end
+    
+    def get_library_version()
+      @version
+      "#{(major ? major : '')}#{(major and minor ? '.' : '')}#{(minor ? minor : '')}" 
+    end
+
+    def get_library_file_name()
+      "#{@tcs[:LINKER][:SHA_PREFIX]}#{@name}#{@tcs[:LINKER][:SHA_ENDING]}"
+    end
+
+    def get_library_soname()
+      return @lib_soname if @lib_soname
+      "#{get_library_file_name}#{(major ? ".#{major}" : '')}"
+    end
 
     def get_library_name() # relative path
       return @lib_name if @lib_name
@@ -55,7 +74,7 @@ module Cxxproject
         parts = [@output_dir_relPath] if @output_dir_relPath
         parts << 'libs'
       end
-      parts << "#{@tcs[:LINKER][:SHA_PREFIX]}#{@name}#{@tcs[:LINKER][:SHA_ENDING]}"
+      parts << "#{get_library_file_name}#{(get_library_version == '' ? '' : ".#{get_library_version}")}"
 
       @lib_name = File.join(parts)
       @lib_name
@@ -136,12 +155,14 @@ module Cxxproject
 
       res = typed_file_task Rake::Task::SHALIBRARY, get_task_name => object_multitask do
         Dir.chdir(@project_dir) do
+          puts "soname #{get_library_soname}"
           cmd = [linker[:COMMAND]] # g++
           cmd += linker[:MUST_FLAGS].split(" ")
           cmd += linker[:FLAGS]
           cmd << linker[:SHARED_FLAG]
+          cmd << linker[:SONAME_FLAG] + get_library_soname
           cmd << linker[:OUTPUT_FLAG]
-          cmd << get_library_name 
+          cmd << get_library_name
           cmd += @objects
           cmd << linker[:SCRIPT] if @linker_script # -T
           cmd << @linker_script if @linker_script # xy/xy.dld
@@ -164,8 +185,15 @@ module Cxxproject
           # for console print
           cmd << " >#{@mapfile}" if @mapfile
           consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
-
           process_result(cmdLinePrint, consoleOutput, linker[:ERROR_PARSER], nil)
+          cd "#{@output_dir}/libs"
+          library_basename = File.basename(get_library_name)
+          if library_basename != get_library_file_name
+            symlink(library_basename, get_library_file_name)
+          end
+          if library_basename != get_library_soname
+            symlink(library_basename, get_library_soname)
+          end
           check_config_file()
         end
       end

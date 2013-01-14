@@ -70,6 +70,7 @@ module Cxxproject
           :USER_LIB_FLAG => "",
           :OUTPUT_FLAG => "",
           :SHARED_FLAG => "",
+          :SONAME_FLAG => "",
           :LIB_FLAG => "",
           :LIB_PATH_FLAG => "",
           :LIB_PREFIX_FLAGS => "", # "-Wl,--whole-archive",
