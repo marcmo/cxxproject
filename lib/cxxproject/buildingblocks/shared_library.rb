@@ -38,6 +38,7 @@ module Cxxproject
       else
         add_lib_element(HasLibraries::LIB_WITH_PATH, File.join(@output_dir,"lib#{@name}.a"), true)
       end
+      shared true
       super
     end
     
