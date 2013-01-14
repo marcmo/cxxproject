@@ -67,7 +67,8 @@ module Cxxproject
           :MUST_FLAGS => "",
           :SCRIPT => "",
           :USER_LIB_FLAG => "",
-          :EXE_FLAG => "",
+          :EXE_FLAG => 'exe_flag_default',
+          :SHARED_FLAG => 'shared_flag_default',
           :LIB_FLAG => "",
           :LIB_PATH_FLAG => "",
           :LIB_PREFIX_FLAGS => "", # "-Wl,--whole-archive",
@@ -86,7 +87,8 @@ module Cxxproject
           :ERROR_PARSER => nil,
           :START_OF_WHOLE_ARCHIVE => {:UNIX => '', :OSX => '', :WINDOWS => ''},
           :END_OF_WHOLE_ARCHIVE => {:UNIX => '', :OSX => '', :WINDOWS => ''},
-          :ADDITIONAL_COMMANDS => {:OSX => '', :UNIX => ''}
+          :ADDITIONAL_COMMANDS => {:OSX => '', :UNIX => ''},
+          :ADDITIONAL_OBJECT_FILE_FLAGS => {:OSX => [], :UNIX => []}
         },
 
         :MAKE =>

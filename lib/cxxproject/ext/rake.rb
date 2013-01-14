@@ -252,6 +252,7 @@ module Rake
     RUN         = 0x0800 #
     CUSTOM      = 0x1000 # x
     COMMANDLINE = 0x2000 # x
+    SHARED_LIBRARY = 0x4000 # x
 
     STANDARD    = 0x371A # x above means included in STANDARD
     attr_reader :ignore

@@ -86,7 +86,7 @@ describe Cxxproject::Linkable do
     @toolchain.stub(:[]).with(:TARGET_OS).and_return(:OSX)
     @exe.convert_to_rake
     @shared_lib.convert_to_rake
-    @shared_lib.calc_command_line.should eq([COMMAND, MUSTFLAG1, MUSTFLAG2, FLAGS, SHARED_FLAG, EXE_FLAG, 'out/libs/libshared_lib.dylib'] + ADDITIONAL_COMMANDS_CONTENT + [LIB_PREFIX, LIB_POSTFIX])
+    @shared_lib.calc_command_line.should eq([COMMAND, MUSTFLAG1, MUSTFLAG2, FLAGS, SHARED_FLAG] + ADDITIONAL_COMMANDS_CONTENT + [EXE_FLAG, 'out/libs/libshared_lib.dylib', LIB_PREFIX, LIB_POSTFIX])
   end
 
   it 'should be possible to define an executable without sources' do

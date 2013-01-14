@@ -143,7 +143,6 @@ module Cxxproject
       cmd += linker[:FLAGS]
       cmd += get_flags_for_output(linker)
       cmd << get_executable_name() # debug/x.exe
-      cmd += additional_linker_commands(linker)
       cmd += @objects
       cmd << linker[:SCRIPT] if @linker_script # -T
       cmd << @linker_script if @linker_script # xy/xy.dld
@@ -159,7 +158,7 @@ module Cxxproject
     def convert_to_rake()
       object_multitask = prepare_tasks_for_objects()
 
-      res = typed_file_task Rake::Task::EXECUTABLE, get_task_name => object_multitask do
+      res = typed_file_task get_rake_task_type(), get_task_name => object_multitask do
         cmd = calc_command_line
         Dir.chdir(@project_dir) do
           mapfileStr = @mapfile ? " >#{@mapfile}" : ""
@@ -218,14 +217,6 @@ module Cxxproject
       return res
     end
 
-    def add_grouping_tasks(executable)
-      namespace 'exe' do
-        desc executable
-        task @name => executable
-      end
-      create_run_task(executable, @name)
-    end
-
     def create_run_task(executable, name)
       namespace 'run' do
         desc "run executable #{executable}"
@@ -260,14 +251,25 @@ module Cxxproject
     def get_output_suffix(linker)
       linker[:OUTPUT_SUFFIX][:EXECUTABLE]
     end
-    def additional_linker_commands(linker)
+    def get_rake_task_type
+      Rake::Task::EXECUTABLE
+    end
+    def additional_object_file_flags
       []
     end
+    def add_grouping_tasks(executable)
+      namespace 'exe' do
+        desc executable
+        task @name => executable
+      end
+      create_run_task(executable, @name)
+    end
+
   end
 
   class SharedLibrary < Linkable
     def get_flags_for_output(linker)
-      [linker[:SHARED_FLAG], linker[:EXE_FLAG]]
+      [linker[:SHARED_FLAG]] + additional_linker_commands(linker) + [linker[:EXE_FLAG]]
     end
     def get_output_prefix(linker)
       linker[:OUTPUT_PREFIX][:SHARED_LIBRARY][target_os()]
@@ -278,6 +280,21 @@ module Cxxproject
     def additional_path_components()
       ['libs']
     end
+    def get_rake_task_type
+      Rake::Task::SHARED_LIBRARY
+    end
+    def additional_object_file_flags
+      linker = @tcs[:LINKER]
+      linker[:ADDITIONAL_OBJECT_FILE_FLAGS][target_os()]
+    end
+    def add_grouping_tasks(shared_lib)
+      namespace 'shared' do
+        desc shared_lib
+        task @name => shared_lib
+      end
+    end
+    
+    private
     def additional_linker_commands(linker)
       h = linker[:ADDITIONAL_COMMANDS][target_os()]
       if h

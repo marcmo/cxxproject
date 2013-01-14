@@ -280,6 +280,6 @@ module Cxxproject
     def additional_path_components
       []
     end
-  end
+  end # class BuildingBlock
 
 end
