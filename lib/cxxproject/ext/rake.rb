@@ -220,7 +220,6 @@ module Rake
     attr_accessor :deps # used to store deps by depfile task for the apply task (no re-read of depsfile)
     attr_accessor :type
     attr_accessor :transparent_timestamp
-    attr_accessor :progress_count
     attr_accessor :output_string
     attr_accessor :output_after_execute
     attr_accessor :immediate_output
@@ -255,7 +254,6 @@ module Rake
       @type = UNKNOWN
       @deps = nil
       @transparent_timestamp = false
-      @progress_count = 0
       @ignore = false
       @failure = false
       @output_after_execute = true

@@ -216,7 +216,6 @@ module Cxxproject
         block.call
       end
       t.type = type
-      t.progress_count = 1
       return t
     end
 
