@@ -15,10 +15,19 @@ module Cxxproject
   class PluginContext
     include Context
 
-    def initialize(cxxproject2rake, building_blocks, log)
+    def self.create_no_args_context
+      return PluginContext.new(nil, nil, nil, 0)
+    end
+
+    def self.create_three_args_context(cxx, building_blocks, log)
+      return PluginContext.new(cxx, building_blocks, log, 3)
+    end
+
+    def initialize(cxxproject2rake, building_blocks, log, expected_arity)
       @cxxproject2rake = cxxproject2rake
       @building_blocks = building_blocks
       @log = log
+      @expected_arity = expected_arity
     end
 
     # method for plugins to get the
@@ -26,7 +35,16 @@ module Cxxproject
     # building_blocks
     # log
     def cxx_plugin(&blk)
-      blk.call(@cxxproject2rake, @building_blocks, @log)
+      if blk.arity != @expected_arity
+        return
+      end
+    
+      case blk.arity
+      when 0
+        blk.call()
+      when 3
+        blk.call(@cxxproject2rake, @building_blocks, @log)
+      end
     end
 
     # specify a toolchain
