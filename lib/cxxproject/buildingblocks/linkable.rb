@@ -12,7 +12,7 @@ require 'etc'
 
 module Cxxproject
 
-  class Executable < BuildingBlock
+  class Linkable < BuildingBlock
     include HasLibraries
     include HasSources
     include HasIncludes
@@ -37,23 +37,29 @@ module Cxxproject
       @exe_name = name
     end
 
-    def get_executable_name() # relative path
+    def get_output_name(linker)
+      prefix = get_output_prefix(linker)
+      suffix = get_output_suffix(linker)
+      return "#{prefix}#{name}#{suffix}"
+    end
+    def executable_name() # relative path
       return @exe_name if @exe_name
 
       parts = [@output_dir]
 
       if @output_dir_abs
         parts = [@output_dir_relPath] if @output_dir_relPath
+        parts += additional_path_components()
       end
-
-      parts << "#{@name}#{@tcs[:LINKER][:EXE_ENDING]}"
+      linker = @tcs[:LINKER]
+      parts << get_output_name(linker)
 
       @exe_name = File.join(parts)
       @exe_name
     end
 
     def get_task_name() # full path
-      @project_dir + "/" + get_executable_name
+      @project_dir + "/" + executable_name
     end
 
     def collect_unique(array, set)
@@ -105,7 +111,7 @@ module Cxxproject
       res = []
       deps.each do |d|
         handle_whole_archive(d, res, linker, linker[:START_OF_WHOLE_ARCHIVE][target_os])
-        if HasLibraries === d
+        if HasLibraries === d and d != self
           d.lib_elements.each do |elem|
             case elem[0]
             when HasLibraries::LIB
@@ -149,7 +155,7 @@ module Cxxproject
     end
 
     def is_whole_archive(building_block)
-      return building_block.instance_of?(SourceLibrary) && building_block.whole_archive
+      return building_block.instance_of?(StaticLibrary) && building_block.whole_archive
     end
 
     def calc_command_line
@@ -157,14 +163,14 @@ module Cxxproject
       cmd = [linker[:COMMAND]] # g++
       cmd += linker[:MUST_FLAGS].split(" ")
       cmd += linker[:FLAGS]
-      cmd << linker[:OUTPUT_FLAG]
-      cmd << get_executable_name # -o debug/x.exe
+      cmd += get_flags_for_output(linker)
+      cmd << executable_name() # debug/x.exe
       cmd += @objects
       cmd << linker[:SCRIPT] if @linker_script # -T
       cmd << @linker_script if @linker_script # xy/xy.dld
       cmd << linker[:MAP_FILE_FLAG] if @mapfile # -Wl,-m6
       cmd += linker[:LIB_PREFIX_FLAGS].split(" ") # TODO ... is this still needed e.g. for diab
-      cmd += linker_lib_string(@tcs[:TARGET_OS], @tcs[:LINKER])
+      cmd += linker_lib_string(target_os(), @tcs[:LINKER])
       cmd += linker[:LIB_POSTFIX_FLAGS].split(" ") # TODO ... is this still needed e.g. for diab
       cmd
     end
@@ -174,26 +180,26 @@ module Cxxproject
     def convert_to_rake()
       object_multitask = prepare_tasks_for_objects()
 
-      res = typed_file_task Rake::Task::EXECUTABLE, get_task_name => object_multitask do
+      res = typed_file_task get_rake_task_type(), get_task_name => object_multitask do
         cmd = calc_command_line
         Dir.chdir(@project_dir) do
           mapfileStr = @mapfile ? " >#{@mapfile}" : ""
           rd, wr = IO.pipe
           cmdLinePrint = cmd
-          printCmd(cmdLinePrint, "Linking #{get_executable_name}", false)
+          printCmd(cmdLinePrint, "Linking #{executable_name}", false)
           cmd << {
             :out=> @mapfile ? "#{@mapfile}" : wr, # > xy.map
             :err=>wr
           }
           sp = spawn(*cmd)
           cmd.pop
-
           # for console print
           cmd << " >#{@mapfile}" if @mapfile
           consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
 
           process_result(cmdLinePrint, consoleOutput, @tcs[:LINKER][:ERROR_PARSER], nil)
           check_config_file()
+          post_link_hook(@tcs[:LINKER])
         end
       end
       res.tags = tags
@@ -210,7 +216,7 @@ module Cxxproject
         libChecker = task get_task_name+"LibChecker" do
           if File.exists?(get_task_name) # otherwise the task will be executed anyway
             all_dependencies.each do |bb|
-              if bb and SourceLibrary === bb
+              if bb and StaticLibrary === bb
                 f = bb.get_task_name # = abs path of library
                 if not File.exists?(f) or File.mtime(f) > File.mtime(get_task_name)
                   def res.needed?
@@ -233,14 +239,6 @@ module Cxxproject
       return res
     end
 
-    def add_grouping_tasks(executable)
-      namespace 'exe' do
-        desc executable
-        task @name => executable
-      end
-      create_run_task(executable, @name)
-    end
-
     def create_run_task(executable, name)
       namespace 'run' do
         desc "run executable #{executable}"
@@ -261,5 +259,136 @@ module Cxxproject
     def no_sources_found()
     end
 
+    def target_os
+      @tcs[:TARGET_OS]
+    end
+  end
+
+  class Executable < Linkable
+    def get_flags_for_output(linker)
+      [linker[:OUTPUT_FLAG]]
+    end
+    def get_output_prefix(linker)
+      ""
+    end
+    def get_output_suffix(linker)
+      linker[:OUTPUT_SUFFIX][:EXECUTABLE][target_os]
+    end
+    def get_rake_task_type
+      Rake::Task::EXECUTABLE
+    end
+    def additional_object_file_flags
+      []
+    end
+    def add_grouping_tasks(executable)
+      namespace 'exe' do
+        desc executable
+        task @name => executable
+      end
+      create_run_task(executable, @name)
+    end
+    def post_link_hook(linker)
+    end
+
+  end
+
+  class SharedLibrary < Linkable
+    
+    attr_accessor :major
+    attr_accessor :minor
+    
+    def complete_init()
+      if @output_dir_abs
+        add_lib_element(HasLibraries::LIB, @name, true)
+        add_lib_element(HasLibraries::SEARCH_PATH, File.join(@output_dir, 'libs'), true)
+      else
+        add_lib_element(HasLibraries::LIB_WITH_PATH, File.join(@output_dir,"lib#{@name}.a"), true)
+      end
+      super
+    end
+
+
+    def get_flags_for_output(linker)
+      [linker[:SHARED_FLAG]] + additional_linker_commands(linker) + [linker[:OUTPUT_FLAG]]
+    end
+    def get_output_prefix(linker)
+      linker[:OUTPUT_PREFIX][:SHARED_LIBRARY][target_os()]
+    end
+
+    # For :major=>1, minor=>2 fullname is '1.2.so'
+    def get_output_suffix(linker)
+      "#{major_minor_suffix}#{shared_suffix linker}"
+    end
+
+    # For :major=>1, minor=>2 soname is 'libfoo.1.so'
+    def get_soname(linker)
+      prefix = get_output_prefix(linker)
+      return "#{prefix}#{name}#{major_suffix}#{shared_suffix linker}"
+    end
+    
+    # For :major=>1, minor=>2 fullname is 'libfoo.so'
+    def get_basic_name(linker)
+      prefix = get_output_prefix(linker)
+      return "#{prefix}#{name}#{shared_suffix linker}"
+    end
+
+    def additional_path_components()
+      ['libs']
+    end
+    def get_rake_task_type
+      Rake::Task::SHARED_LIBRARY
+    end
+    def additional_object_file_flags
+      linker = @tcs[:LINKER]
+      linker[:ADDITIONAL_OBJECT_FILE_FLAGS][target_os()]
+    end
+    def add_grouping_tasks(shared_lib)
+      namespace 'shared' do
+        desc shared_lib
+        task @name => shared_lib
+      end
+    end
+
+    # Some symbolic links
+    # ln -s libfoo.so libfoo.1.2.so
+    # ln -s libfoo.1.so libfoo.1.2.so
+    def post_link_hook(linker)
+      basic_name = get_basic_name(linker)
+      soname = get_soname(linker)
+      symlink_lib_to basic_name
+      symlink_lib_to soname
+    end
+
+    private
+
+    def symlink_lib_to(link)
+      file = File.basename(executable_name)
+      if file !=link 
+        cd "#{@output_dir}/libs" do
+          symlink(file, link)
+        end            
+      end
+    end
+
+    def shared_suffix(linker)
+      linker[:OUTPUT_SUFFIX][:SHARED_LIBRARY][target_os()]
+    end
+
+    def major_suffix()
+      "#{(major ? ".#{major}" : '')}"
+    end
+    def major_minor_suffix()
+      "#{major_suffix}#{(major and minor ? '.' : '')}#{(minor ? minor : '')}" 
+    end
+
+
+    def additional_linker_commands(linker)
+      h = linker[:ADDITIONAL_COMMANDS][target_os()]
+      if h
+        h.calc(linker, self)
+      else
+        []
+      end
+    end
   end
 end

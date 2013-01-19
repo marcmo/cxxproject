@@ -242,17 +242,17 @@ module Rake
     SOURCEMULTI = 0x0002 # x
     DEPFILE     = 0x0004 #
     LIBRARY     = 0x0008 # x
-    SHALIBRARY  = 0x0010 # x
-    EXECUTABLE  = 0x0020 # x
-    CONFIG      = 0x0040 #
-    APPLY       = 0x0080 #
-    UTIL        = 0x0100 #
-    BINARY      = 0x0200 # x
-    MODULE      = 0x0400 # x
-    MAKE        = 0x0800 # x
-    RUN         = 0x1000 #
-    CUSTOM      = 0x2000 # x
-    COMMANDLINE = 0x4000 # x
+    EXECUTABLE  = 0x0010 # x
+    CONFIG      = 0x0020 #
+    APPLY       = 0x0040 #
+    UTIL        = 0x0080 #
+    BINARY      = 0x0100 # x
+    MODULE      = 0x0200 # x
+    MAKE        = 0x0400 # x
+    RUN         = 0x0800 #
+    CUSTOM      = 0x1000 # x
+    COMMANDLINE = 0x2000 # x
+    SHARED_LIBRARY = 0x4000 # x
 
     STANDARD    = 0x371A # x above means included in STANDARD
     attr_reader :ignore
@@ -371,12 +371,12 @@ module Rake
       end
     end
 
-    def handle_error(ex1, isSysCmd)
+    def handle_error(exception, isSysCmd)
       if not Rake.application.idei.get_abort()
         if not isSysCmd
-          Cxxproject::Printer.printError "Error for task #{@name}: #{ex1.message}"
+          Cxxproject::Printer.printError "Error for task #{@name}: #{exception.message}"
           if Rake.application.options.trace
-            ex1.backtrace.each do |t|
+            exception.backtrace.each do |t|
               Cxxproject::Printer.printError t
             end
           end
@@ -384,8 +384,8 @@ module Rake
       end
       begin
         FileUtils.rm(@name) if File.exists?(@name)
-      rescue Exception => ex2
-        Cxxproject::Printer.printError "Error: Could not delete #{@name}: #{ex2.message}"
+      rescue Exception => follow_up_exception
+        Cxxproject::Printer.printError "Error: Could not delete #{@name}: #{follow_up_exception.message}"
       end
       set_failed
     end

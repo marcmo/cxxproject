@@ -68,21 +68,33 @@ module Cxxproject
           :MUST_FLAGS => "",
           :SCRIPT => "",
           :USER_LIB_FLAG => "",
-          :OUTPUT_FLAG => "",
-          :SHARED_FLAG => "",
-          :SONAME_FLAG => "",
+          :OUTPUT_FLAG => 'output_flag_default',
+          :SHARED_FLAG => 'shared_flag_default',
+          :SONAME_FLAG => 'soname_flag_default',
           :LIB_FLAG => "",
           :LIB_PATH_FLAG => "",
           :LIB_PREFIX_FLAGS => "", # "-Wl,--whole-archive",
           :LIB_POSTFIX_FLAGS => "", # "-Wl,--no-whole-archive",
           :FLAGS => [],
           :MAP_FILE_FLAG => "",
-          :EXE_ENDING => ".exe", # or .elf
-          :SHA_ENDING => ".dll", # or .so
-          :SHA_PREFIX => "lib",
+          :OUTPUT_PREFIX => {:EXECUTABLE => '', :SHARED_LIBRARY => 'lib'},
+          :OUTPUT_SUFFIX => {
+            :EXECUTABLE => {
+              :UNIX => '',
+              :OSX => '',
+              :WINDOWS => '.exe'
+            },
+            :SHARED_LIBRARY => {
+              :UNIX => '.so',
+              :OSX => '.dylib',
+              :WINDOWS => '.dll'
+            }
+          },
           :ERROR_PARSER => nil,
           :START_OF_WHOLE_ARCHIVE => {:UNIX => '', :OSX => '', :WINDOWS => ''},
           :END_OF_WHOLE_ARCHIVE => {:UNIX => '', :OSX => '', :WINDOWS => ''},
+          :ADDITIONAL_COMMANDS => {:OSX => '', :UNIX => ''},
+          :ADDITIONAL_OBJECT_FILE_FLAGS => {:OSX => [], :UNIX => []}
         },
 
         :MAKE =>

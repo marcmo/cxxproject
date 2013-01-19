@@ -305,12 +305,17 @@ module Cxxproject
         end
       end
       cmd += compiler[:FLAGS]
+      cmd += additional_object_file_flags
       cmd += i_array
       cmd += d_array
       cmd += (compiler[:OBJECT_FILE_FLAG] + object).split(" ")
       cmd += compiler[:PREPRO_FLAGS].split(" ") if Rake::application.preproFlags
       cmd << source
       return [cmd, source_path, object, object_path, compiler, type]
+    end
+
+    def additional_object_file_flags
+      []
     end
 
     def create_object_file_task(sourceRel, the_tcs)
