@@ -70,6 +70,7 @@ module Cxxproject
           :USER_LIB_FLAG => "",
           :OUTPUT_FLAG => 'output_flag_default',
           :SHARED_FLAG => 'shared_flag_default',
+          :SONAME_FLAG => 'soname_flag_default',
           :LIB_FLAG => "",
           :LIB_PATH_FLAG => "",
           :LIB_PREFIX_FLAGS => "", # "-Wl,--whole-archive",
@@ -78,7 +79,11 @@ module Cxxproject
           :MAP_FILE_FLAG => "",
           :OUTPUT_PREFIX => {:EXECUTABLE => '', :SHARED_LIBRARY => 'lib'},
           :OUTPUT_SUFFIX => {
-            :EXECUTABLE => '.exe',
+            :EXECUTABLE => {
+              :UNIX => '',
+              :OSX => '',
+              :WINDOWS => '.exe'
+            },
             :SHARED_LIBRARY => {
               :UNIX => '.so',
               :OSX => '.dylib',
