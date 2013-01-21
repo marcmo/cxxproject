@@ -244,7 +244,10 @@ module Cxxproject
       namespace 'run' do
         desc "run executable #{executable}"
         res = task name => executable do |t|
-          ENV[@tcs[:ENV][:LIB_VAR][@tcs[:TARGET_OS]]] = cmd_lib_string(@tcs[:TARGET_OS])
+          lib_var = @tcs[:ENV][:LIB_VAR][@tcs[:TARGET_OS]]
+          if lib_var != ''
+            ENV[lib_var] = cmd_lib_string(@tcs[:TARGET_OS])
+          end
           args = ENV['args'] ? ' ' + ENV['args'] : ''
           sh "\"#{executable}\"#{args}"
         end
@@ -288,6 +291,7 @@ module Cxxproject
       end
       create_run_task(executable, @name)
     end
+
     def post_link_hook(linker)
     end
   end
@@ -295,6 +299,7 @@ module Cxxproject
   class SharedLibrary < Linkable
     attr_accessor :major
     attr_accessor :minor
+    attr_accessor :compatibility
     
     def complete_init()
       if @output_dir_abs
@@ -314,23 +319,11 @@ module Cxxproject
       linker[:OUTPUT_PREFIX][:SHARED_LIBRARY][target_os()]
     end
 
-    # For :major=>1, minor=>2 fullname is '1.2.so'
     def get_output_suffix(linker)
-      "#{major_minor_suffix}#{shared_suffix linker}"
+      h = linker[:ADDITIONAL_COMMANDS][target_os()]
+      "#{(h ? h.get_version_suffix(linker, self) : "")}#{shared_suffix linker}"
     end
-
-    # For :major=>1, minor=>2 soname is 'libfoo.1.so'
-    def get_soname(linker)
-      prefix = get_output_prefix(linker)
-      return "#{prefix}#{name}#{major_suffix}#{shared_suffix linker}"
-    end
-    
-    # For :major=>1, minor=>2 fullname is 'libfoo.so'
-    def get_basic_name(linker)
-      prefix = get_output_prefix(linker)
-      return "#{prefix}#{name}#{shared_suffix linker}"
-    end
-
+   
     def additional_path_components()
       ['libs']
     end
@@ -384,6 +377,13 @@ module Cxxproject
       "#{major_suffix}#{(major and minor ? '.' : '')}#{(minor ? minor : '')}" 
     end
 
+    def post_link_hook(linker)
+      linker = @tcs[:LINKER]
+      os_linker_helper=linker[:ADDITIONAL_COMMANDS][target_os()]
+      os_linker_helper.post_link_hook(linker, self)
+    end
+    private
+    
     def additional_linker_commands(linker)
       h = linker[:ADDITIONAL_COMMANDS][target_os()]
       if h
