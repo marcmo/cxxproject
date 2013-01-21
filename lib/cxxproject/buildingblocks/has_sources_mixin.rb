@@ -332,6 +332,17 @@ module Cxxproject
             error_descs, console_output_full = error_parser.scan_lines(console_output, @project_dir)
 
             console_output = console_output_full if Rake::application.consoleOutput_fullnames
+            
+            if Rake::application.consoleOutput_visualStudio
+              console_output_VS = ""
+              descCounter = 0
+              console_output.each_line do |l|
+                d = error_descs[descCounter]
+                console_output_VS << error_parser.makeVsError(l, d) << "\n"
+                descCounter = descCounter + 1
+              end
+              console_output = console_output_VS
+            end
 
             ret = error_descs.any? { |e| e.severity == ErrorParser::SEVERITY_ERROR }
 

@@ -22,6 +22,7 @@ module Rake
     attr_writer :deriveIncludes
     attr_writer :preproFlags
     attr_writer :consoleOutput_fullnames
+    attr_writer :consoleOutput_visualStudio
     attr_writer :addEmptyLine
     def max_parallel_tasks
       @max_parallel_tasks ||= 8
@@ -67,6 +68,10 @@ module Rake
 
     def consoleOutput_fullnames
       @consoleOutput_fullnames ||= false
+    end
+    
+    def consoleOutput_visualStudio
+      @consoleOutput_visualStudio ||= false
     end
     
   end
