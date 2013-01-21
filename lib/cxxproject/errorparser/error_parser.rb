@@ -64,7 +64,7 @@ module Cxxproject
 
       ret = d.file_name
       ret = ret + "(" + d.line_number.to_s + ")" if (d.line_number and d.line_number > 0)
-      ret = ret + ": " + inv_severity(d.severity) + ": " + d.message + "\n" 
+      ret = ret + ": " + inv_severity(d.severity) + ": " + d.message 
       return ret 
     end    
     
