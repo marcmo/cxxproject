@@ -109,7 +109,6 @@ module Cxxproject
         :ENV =>
         {
           :LIB_VAR=> {:UNIX => 'LD_LIBRARY_PATH', :OSX => 'DYLD_LIBRARY_PATH', :WINDOWS => ''},
-          :LIB_SEPARATOR => {:UNIX => ":", :OSX => ':', :WINDOWS => ''}
         },
         :CONSOLE_HIGHLIGHTER => ColorizingFormatter.new
       }
