@@ -99,7 +99,6 @@ module Cxxproject
             when HasLibraries::SEARCH_PATH
               tmp, prefix = adapt_path(elem[1], d, prefix)
               libraries << tmp
-              libraries << @tcs[:ENV][:LIB_SEPARATOR][target_os]
               libraries << File::PATH_SEPARATOR
             end
           end
