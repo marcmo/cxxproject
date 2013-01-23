@@ -1,6 +1,6 @@
 cxx_configuration do
 
-  source_lib "testme",
+  static_lib "testme",
     :sources => FileList['**/*.cpp'],
     :includes => ['include'],
     :dependencies => []
