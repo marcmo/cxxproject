@@ -16,7 +16,6 @@ module Cxxproject
             :OBJECT_FILE_FLAG => "",
             :INCLUDE_PATH_FLAG => "",
             :COMPILE_FLAGS => "",
-            :SHARED_FLAGS => '',
             :DEFINES => [],
             :FLAGS => [],
             :SOURCE_FILE_ENDINGS => [".cxx", ".cpp", ".c++", ".cc", ".C"],
@@ -108,7 +107,7 @@ module Cxxproject
 
         :ENV =>
         {
-          :LIB_VAR=> {:UNIX => 'LD_LIBRARY_PATH', :OSX => 'DYLD_LIBRARY_PATH', :WINDOWS => ''},
+          :LIB_VAR=> {:UNIX => 'LD_LIBRARY_PATH', :OSX => 'DYLD_LIBRARY_PATH', :WINDOWS => 'PATH'},
         },
         :CONSOLE_HIGHLIGHTER => ColorizingFormatter.new
       }
