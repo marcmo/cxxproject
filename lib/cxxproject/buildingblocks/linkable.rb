@@ -353,6 +353,10 @@ module Cxxproject
       symlink_lib_to soname
     end
 
+    def shared_suffix(linker)
+      linker[:OUTPUT_SUFFIX][:SHARED_LIBRARY][target_os()]
+    end
+
     private
 
     def symlink_lib_to(link)
@@ -362,10 +366,6 @@ module Cxxproject
           symlink(file, link)
         end            
       end
-    end
-
-    def shared_suffix(linker)
-      linker[:OUTPUT_SUFFIX][:SHARED_LIBRARY][target_os()]
     end
 
     def major_suffix()
