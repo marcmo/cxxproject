@@ -67,17 +67,22 @@ module Cxxproject
           :MUST_FLAGS => "",
           :SCRIPT => "",
           :USER_LIB_FLAG => "",
-          :EXE_FLAG => 'exe_flag_default',
+          :OUTPUT_FLAG => 'output_flag_default',
           :SHARED_FLAG => 'shared_flag_default',
+          :SONAME_FLAG => 'soname_flag_default',
           :LIB_FLAG => "",
           :LIB_PATH_FLAG => "",
           :LIB_PREFIX_FLAGS => "", # "-Wl,--whole-archive",
           :LIB_POSTFIX_FLAGS => "", # "-Wl,--no-whole-archive",
           :FLAGS => [],
           :MAP_FILE_FLAG => "",
-          :OUTPUT_PREFIX => {:EXECUTABLE => '', :SHARED_LIBRARY => 'lib'},
+          :OUTPUT_PREFIX => {:EXECUTABLE => '', :SHARED_LIBRARY => {:UNIX => 'lib', :OSX => 'lib'} },
           :OUTPUT_SUFFIX => {
-            :EXECUTABLE => '.exe',
+            :EXECUTABLE => {
+              :UNIX => '.exe',
+              :OSX => '.exe',
+              :WINDOWS => '.exe'
+            },
             :SHARED_LIBRARY => {
               :UNIX => '.so',
               :OSX => '.dylib',
@@ -100,6 +105,10 @@ module Cxxproject
           :CLEAN => "clean"
         },
 
+        :ENV =>
+        {
+          :LIB_VAR=> {:UNIX => 'LD_LIBRARY_PATH', :OSX => 'DYLD_LIBRARY_PATH', :WINDOWS => 'PATH'},
+        },
         :CONSOLE_HIGHLIGHTER => ColorizingFormatter.new
       }
 

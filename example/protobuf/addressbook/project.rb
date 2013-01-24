@@ -1,6 +1,6 @@
 cxx_configuration do
 
-  source_lib 'addressbook_pb_api',
+  static_lib 'addressbook_pb_api',
     :sources => ['gen/addressbook/addressbook.pb.cc'],
     :includes => ['gen'],
     :dependencies => ['protobuf']

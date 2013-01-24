@@ -1,3 +1,4 @@
+require 'cxxproject/buildingblocks/building_block'
 require 'cxxproject/buildingblocks/module'
 require 'cxxproject/buildingblocks/makefile'
 require 'cxxproject/buildingblocks/linkable'
