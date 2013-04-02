@@ -105,7 +105,7 @@ module Cxxproject
         parts << @name
       end
 
-      parts << sourceRel.chomp(File.extname(sourceRel))
+      parts << sourceRel.chomp(File.extname(sourceRel)).gsub(/\.\./, "##")
       File.join(parts) + (Rake::application.preproFlags ? ".i" : ".o")
     end
 
@@ -167,26 +167,15 @@ module Cxxproject
     end
 
     def create_object_file_tasks()
-
       sources_to_build = {}
 
       exclude_files = Set.new
       exclude_sources.each do |p|
-        if p.include?".."
-          Printer.printError "Error: Exclude source file pattern '#{p}' must not include '..'"
-          return nil
-        end
-
         Dir.glob(p).each {|f| exclude_files << f}
       end
       files = Set.new  # do not build the same file twice
 
       sources.each do |f|
-        if f.include?".."
-          Printer.printError "Error: Source file '#{f}' must not include '..'"
-          return nil
-        end
-
         next if exclude_files.include?(f)
         next if files.include?(f)
         files << f
@@ -194,11 +183,6 @@ module Cxxproject
       end
 
       source_patterns.each do |p|
-        if p.include?".."
-          Printer.printError "Error: Source file pattern '#{p}' must not include '..'"
-          return nil
-        end
-
         globRes = Dir.glob(p)
         if (globRes.length == 0)
           Printer.printWarning "Warning: Source file pattern '#{p}' did not match to any file"
@@ -291,9 +275,9 @@ module Cxxproject
               inputName = objectRel+".tmp"
               File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
               inputName = "\""+inputName+"\"" if inputName.include?" "
-              consoleOutput = `#{compiler[:COMMAND] + " @" + inputName}`
+              success, consoleOutput = ProcessHelper.safeExecute() { `#{compiler[:COMMAND] + " @" + inputName}` }
             else
-              consoleOutput = `#{cmd.join(" ")} 2>&1`
+              success, consoleOutput = ProcessHelper.safeExecute() { `#{cmd.join(" ")} 2>&1` }
             end
           else
             rd, wr = IO.pipe
@@ -301,12 +285,11 @@ module Cxxproject
              :err=>wr,
              :out=>wr
             }
-            sp = spawn(*cmd)
+            success, consoleOutput = ProcessHelper.safeExecute() { sp = spawn(*cmd); ProcessHelper.readOutput(sp, rd, wr) }
             cmd.pop
-            consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
           end
 
-          process_result(cmd, consoleOutput, compiler[:ERROR_PARSER], "Compiling #{sourceRel}")
+          process_result(cmd, consoleOutput, compiler[:ERROR_PARSER], "Compiling #{sourceRel}", success)
 
           convert_depfile(dep_file) if dep_file
 

@@ -25,15 +25,14 @@ module Cxxproject
       rd.close
       
       # seems that pipe cannot handle non-ascii characters right on windows (even with correct encoding)  
-      consoleOutput.gsub!(/\xE2\x80\x98/,"`") # ÔÇÿ
-      consoleOutput.gsub!(/\xE2\x80\x99/,"'") # ÔÇÖ
+      consoleOutput.gsub!(/\xE2\x80\x98/,"`") # Ã”Ã‡Ã¿
+      consoleOutput.gsub!(/\xE2\x80\x99/,"'") # Ã”Ã‡Ã–
       
       consoleOutput
     end
 
     def self.spawnProcess(cmdLine)
       return system(cmdLine) if Cxxproject::Utils.old_ruby?
-      
       @@pid = spawn(cmdLine)
       pid, status = Process.wait2(@@pid)
       @@pid = nil
@@ -48,6 +47,14 @@ module Cxxproject
       @@pid = nil
     end
     
+    def self.safeExecute
+      begin
+        consoleOutput = yield
+        [$?.success?, consoleOutput, false]
+      rescue Exception => e
+        [false, e.message, true]
+      end
+    end
   end
 
 end

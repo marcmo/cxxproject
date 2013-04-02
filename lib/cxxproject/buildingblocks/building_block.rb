@@ -180,8 +180,8 @@ module Cxxproject
     end
 
 
-    def process_result(cmd, console_output, error_parser, alternate)
-      hasError = ($?.success? == false)
+    def process_result(cmd, console_output, error_parser, alternate, success)
+      hasError = (success == false)
       if (cmd != @lastCommand) or (@printedCmdAlternate and hasError)
         printCmd(cmd, alternate, hasError)
       end

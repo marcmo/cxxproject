@@ -84,9 +84,9 @@ module Cxxproject
             if cmdLine.length > 8000
               inputName = aname+".tmp"
               File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
-              consoleOutput = `#{archiver[:COMMAND] + " @" + inputName}`
+              success, consoleOutput = ProcessHelper.safeExecute() { `#{archiver[:COMMAND] + " @" + inputName}` }
             else
-              consoleOutput = `#{cmd.join(" ")} 2>&1`
+              success, consoleOutput = ProcessHelper.safeExecute() { `#{cmd.join(" ")} 2>&1` }
             end
           else
             rd, wr = IO.pipe
@@ -94,13 +94,11 @@ module Cxxproject
              :err=>wr,
              :out=>wr
             }
-            sp = spawn(*cmd)
+            success, consoleOutput = ProcessHelper.safeExecute() { sp = spawn(*cmd); ProcessHelper.readOutput(sp, rd, wr) }
             cmd.pop
-
-            consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
           end
 
-          process_result(cmd, consoleOutput, archiver[:ERROR_PARSER], "Creating #{aname}")
+          process_result(cmd, consoleOutput, archiver[:ERROR_PARSER], "Creating #{aname}", success)
 
           check_config_file()
         end

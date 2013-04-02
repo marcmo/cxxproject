@@ -161,8 +161,10 @@ module Cxxproject
               strCmd = "#{cmd.join(" ") + mapfileStr + " 2>" + get_temp_filename}"
             end
             printCmd(cmdLinePrint, "Linking #{get_executable_name}", false)
-            consoleOutput = `#{strCmd}`
-            consoleOutput.concat(read_file_or_empty_string(get_temp_filename))
+            
+            success, consoleOutput, exceptionThrown = ProcessHelper.safeExecute() { `#{strCmd}` }
+            consoleOutput.concat(read_file_or_empty_string(get_temp_filename)) unless exceptionThrown
+            
           else
             rd, wr = IO.pipe
             cmdLinePrint = cmd
@@ -171,15 +173,15 @@ module Cxxproject
              :out=> @mapfile ? "#{@mapfile}" : wr, # > xy.map
              :err=>wr
             }
-            sp = spawn(*cmd)
+            
+            success, consoleOutput = ProcessHelper.safeExecute() { sp = spawn(*cmd); ProcessHelper.readOutput(sp, rd, wr) }
             cmd.pop
 
             # for console print
             cmd << " >#{@mapfile}" if @mapfile
-            consoleOutput = ProcessHelper.readOutput(sp, rd, wr)
           end
 
-          process_result(cmdLinePrint, consoleOutput, linker[:ERROR_PARSER], nil)
+          process_result(cmdLinePrint, consoleOutput, linker[:ERROR_PARSER], nil, success)
 
           check_config_file()
         end
