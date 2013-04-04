@@ -50,7 +50,14 @@ module Cxxproject
           puts cmd + (RakeFileUtils.verbose ? " (executed in '#{@project_dir}')" : "")
           cmd_result = false
           begin
-            cmd_result = ProcessHelper.spawnProcess(cmd + " 2>&1")
+            rd, wr = IO.pipe
+            cmd = [cmd]
+            cmd << {
+             :err=>wr,
+             :out=>wr
+            }
+            cmd_result, consoleOutput = ProcessHelper.safeExecute() { sp = spawn(*cmd); ProcessHelper.readOutput(sp, rd, wr) }
+            puts consoleOutput
           rescue
           end
           if (cmd_result == false)
