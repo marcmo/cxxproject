@@ -50,7 +50,7 @@ module Cxxproject
       @task_name = @project_dir + "/" + @task_name unless @output_dir_abs
       @task_name
     end
-
+    
     # task that will link the given object files to a static lib
     #
     def convert_to_rake()
@@ -60,52 +60,75 @@ module Cxxproject
       res = typed_file_task Rake::Task::LIBRARY, get_task_name => object_multitask do
         dir = @project_dir
         objs = @objects
-        aname = get_archive_name
-
+        aname = get_archive_name        
+          
         if @output_dir_abs
           dir = @output_dir
           prefix = File.rel_from_to_project(@project_dir, @output_dir)
           objs.map! { |m| m[prefix.length..-1] }
           aname = aname[prefix.length..-1]
         end
-
-        Dir.chdir(dir) do
-          FileUtils.rm(aname) if File.exists?(aname)
-          cmd = [archiver[:COMMAND]] # ar
-          cmd += archiver[:ARCHIVE_FLAGS].split(" ")
-          cmd += Cxxproject::Utils::flagSplit(archiver[:FLAGS]) # --all_load
-          cmd << aname # -o debug/x.exe
-          cmd += objs
-
-          if Cxxproject::Utils.old_ruby?
-            cmd.map! {|c| ((c.include?" ") ? ("\""+c+"\"") : c )}
-
-            cmdLine = cmd.join(" ")
-            if cmdLine.length > 8000
-              inputName = aname+".tmp"
-              File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
-              success, consoleOutput = ProcessHelper.safeExecute() { `#{archiver[:COMMAND] + " @" + inputName}` }
-            else
-              success, consoleOutput = ProcessHelper.safeExecute() { `#{cmd.join(" ")} 2>&1` }
+        
+        if (objs.length != 0 or not File.exist?(get_task_name))
+          Dir.chdir(dir) do
+            if File.exists?(aname)
+              FileUtils.rm(aname)
+            else 
+              d = File.dirname(aname)
+              FileUtils.mkdir_p(d)
             end
-          else
-            rd, wr = IO.pipe
-            cmd << {
-             :err=>wr,
-             :out=>wr
-            }
-            success, consoleOutput = ProcessHelper.safeExecute() { sp = spawn(*cmd); ProcessHelper.readOutput(sp, rd, wr) }
-            cmd.pop
+            
+            cmd = [archiver[:COMMAND]] # ar
+            cmd += archiver[:ARCHIVE_FLAGS].split(" ")
+            cmd += Cxxproject::Utils::flagSplit(archiver[:FLAGS]) # --all_load
+            cmd << aname # -o debug/x.exe
+            cmd += objs
+  
+            if Cxxproject::Utils.old_ruby?
+              cmd.map! {|c| ((c.include?" ") ? ("\""+c+"\"") : c )}
+  
+              cmdLine = cmd.join(" ")
+              if cmdLine.length > 8000
+                inputName = aname+".tmp"
+                File.open(inputName,"wb") { |f| f.write(cmd[1..-1].join(" ")) }
+                success, consoleOutput = ProcessHelper.safeExecute() { `#{archiver[:COMMAND] + " @" + inputName}` }
+              else
+                success, consoleOutput = ProcessHelper.safeExecute() { `#{cmd.join(" ")} 2>&1` }
+              end
+            else
+              rd, wr = IO.pipe
+              cmd << {
+               :err=>wr,
+               :out=>wr
+              }
+              success, consoleOutput = ProcessHelper.safeExecute() { sp = spawn(*cmd); ProcessHelper.readOutput(sp, rd, wr) }
+              cmd.pop
+            end
+  
+            process_result(cmd, consoleOutput, archiver[:ERROR_PARSER], "Creating #{aname}", success)
+  
+            check_config_file()
           end
-
-          process_result(cmd, consoleOutput, archiver[:ERROR_PARSER], "Creating #{aname}", success)
-
-          check_config_file()
         end
       end
       enhance_with_additional_files(res)
-      add_output_dir_dependency(get_task_name, res, true)
-
+      
+      if not Rake.application["clean"].prerequisites.include?(get_task_name+"Clean")
+        cleanTask = task get_task_name+"Clean" do
+          Dir.chdir(@project_dir) do 
+            if (calc_sources_to_build(true).length != 0 or not File.exist?(get_task_name))
+              if (@output_dir_abs)
+                FileUtils.rm_rf(file)
+              else
+                FileUtils.rm_rf(complete_output_dir)
+              end
+            end
+          end
+        end        
+        
+        Rake.application["clean"].enhance([cleanTask])
+      end
+      
       add_grouping_tasks(get_task_name)
 
       setup_rake_dependencies(res, object_multitask)

@@ -166,7 +166,7 @@ module Cxxproject
       end
     end
 
-    def create_object_file_tasks()
+    def calc_sources_to_build(quiet = false)
       sources_to_build = {}
 
       exclude_files = Set.new
@@ -184,8 +184,8 @@ module Cxxproject
 
       source_patterns.each do |p|
         globRes = Dir.glob(p)
-        if (globRes.length == 0)
-          Printer.printWarning "Warning: Source file pattern '#{p}' did not match to any file"
+        if (globRes.length == 0 and RakeFileUtils.verbose and not quiet)
+          Printer.printInfo "Info: Source file pattern '#{p}' did not match to any file"
         end
         globRes.each do |f|
           next if exclude_files.include?(f)
@@ -196,6 +196,11 @@ module Cxxproject
           sources_to_build[f] = t
         end
       end
+      sources_to_build      
+    end
+    
+    def create_object_file_tasks()
+      sources_to_build = calc_sources_to_build
 
       ordered = sources_to_build.keys.sort()
       dirs = []

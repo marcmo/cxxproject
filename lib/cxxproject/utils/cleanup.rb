@@ -14,6 +14,9 @@ module Cxxproject
       task :clean do
         CLEAN.each { |fn| rm_r fn rescue nil }
       end
+      task :clobber => [:clean] do
+        CLOBBER.each { |fn| rm_r fn rescue nil }
+      end      
     end
 
   end
