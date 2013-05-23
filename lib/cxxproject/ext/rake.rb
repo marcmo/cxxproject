@@ -17,12 +17,17 @@ end
 module Rake
 
   class Application
+    attr_writer :raise_exceptions 
     attr_writer :max_parallel_tasks
     attr_writer :check_unnecessary_includes
     attr_writer :deriveIncludes
     attr_writer :preproFlags
     attr_writer :consoleOutput_fullnames
     attr_writer :addEmptyLine
+    def raise_exceptions 
+      @raise_exceptions ||= false
+    end
+    
     def max_parallel_tasks
       @max_parallel_tasks ||= 8
     end
@@ -370,22 +375,26 @@ module Rake
     end
 
     def handle_error(exception, isSysCmd)
-      if not Rake.application.idei.get_abort()
-        if not isSysCmd
-          Cxxproject::Printer.printError "Error for task #{@name}: #{exception.message}"
-          if Rake.application.options.trace
-            exception.backtrace.each do |t|
-              Cxxproject::Printer.printError t
-            end
+       if not application.raise_exceptions
+          if not Rake.application.idei.get_abort()
+             if not isSysCmd
+                Cxxproject::Printer.printError "Error for task #{@name}: #{exception.message}"
+                if Rake.application.options.trace
+                   exception.backtrace.each do |t|
+                      Cxxproject::Printer.printError t
+                   end
+                end
+             end
           end
-        end
-      end
-      begin
-        FileUtils.rm(@name) if File.exists?(@name)
-      rescue Exception => follow_up_exception
-        Cxxproject::Printer.printError "Error: Could not delete #{@name}: #{follow_up_exception.message}"
-      end
-      set_failed
+          begin
+             FileUtils.rm(@name) if File.exists?(@name)
+          rescue Exception => follow_up_exception
+             Cxxproject::Printer.printError "Error: Could not delete #{@name}: #{follow_up_exception.message}"
+          end
+          set_failed
+       else
+          raise exception
+       end
     end
 
     def output(name, to_output)
