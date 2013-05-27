@@ -306,21 +306,25 @@ module Rake
           rescue Cxxproject::ExitHelperException
             raise
           rescue Exception => e
-            if prereq and Rake::Task[n].ignore
-              @prerequisites.delete(n)
-              def self.needed?
-                true
-              end
-              return
-            end
-            Cxxproject::Printer.printError "Error #{name}: #{e.message}"
-            if RakeFileUtils.verbose == true
-              puts e.backtrace
-            end
-            set_failed
-            if e.message.include?('Circular dependency detected')
-              Rake.application.idei.set_abort(true)
-            end
+             if not application.raise_exceptions
+                if prereq and Rake::Task[n].ignore
+                   @prerequisites.delete(n)
+                   def self.needed?
+                      true
+                   end
+                   return
+                end
+                Cxxproject::Printer.printError "Error #{name}: #{e.message}"
+                if RakeFileUtils.verbose == true
+                   puts e.backtrace
+                end
+                set_failed
+                if e.message.include?('Circular dependency detected')
+                   Rake.application.idei.set_abort(true)
+                end
+             else 
+                raise e
+             end
           end
 
         end
