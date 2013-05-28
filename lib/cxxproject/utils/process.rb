@@ -50,7 +50,7 @@ module Cxxproject
     def self.safeExecute
       begin
         consoleOutput = yield
-        [$?.success?, consoleOutput, false]
+        [($?.to_i >> 8) == 0, consoleOutput, false]
       rescue Exception => e
         [false, e.message, true]
       end
