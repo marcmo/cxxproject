@@ -1,7 +1,7 @@
 require 'cxxproject/toolchain/provider'
 require 'cxxproject/utils/utils'
-require 'cxxproject/errorparser/GreenHills_compiler_error_parser'
-require 'cxxproject/errorparser/GreenHills_linker_error_parser'
+require 'cxxproject/errorparser/greenhills_compiler_error_parser'
+require 'cxxproject/errorparser/greenhills_linker_error_parser'
 
 module Cxxproject
   module Toolchain
