@@ -9,36 +9,35 @@ module Cxxproject
     GreenHillsChain = Provider.add("GreenHills")
 
     GreenHillsChain[:COMPILER][:C].update({
-      :COMMAND => "ccppc",
+      :COMMAND => "cxppc",
       :FLAGS => "",
       :DEFINE_FLAG => "-D",
       :OBJECT_FILE_FLAG => "-o ",
       :INCLUDE_PATH_FLAG => "-I",
       :COMPILE_FLAGS => "-c",
-      :DEP_FLAGS => "-Xmake-dependency=6 -Xmake-dependency-savefile=", # -MMD ok, -MF missing?
-      :DEP_FLAGS_SPACE => false,
-      :PREPRO_FLAGS => "-P" # -E (stdout, oder -o ...)? wahrscheinlich aber -P
+      :DEP_FLAGS => "-MMD",
+      :DEP_FLAGS_FILENAME => false,
+      :PREPRO_FLAGS => "-P"
     })
 
     GreenHillsChain[:COMPILER][:CPP] = Utils.deep_copy(GreenHillsChain[:COMPILER][:C])
     GreenHillsChain[:COMPILER][:CPP][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:CPP][:SOURCE_FILE_ENDINGS]
 
     GreenHillsChain[:COMPILER][:ASM] = Utils.deep_copy(GreenHillsChain[:COMPILER][:C])
-    GreenHillsChain[:COMPILER][:ASM][:COMMAND] = "asppc" # ??
-    GreenHillsChain[:COMPILER][:ASM][:COMPILE_FLAGS] = ""
     GreenHillsChain[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS] = Provider.default[:COMPILER][:ASM][:SOURCE_FILE_ENDINGS]
     GreenHillsChain[:COMPILER][:ASM][:PREPRO_FLAGS] = ""
 
-    GreenHillsChain[:ARCHIVER][:COMMAND] = "ccppc" # ??
-    GreenHillsChain[:ARCHIVER][:ARCHIVE_FLAGS] = "-rc" # -archive ??
+    GreenHillsChain[:ARCHIVER][:COMMAND] = "cxppc"
+    GreenHillsChain[:ARCHIVER][:ARCHIVE_FLAGS] = "-archive -o"
 
-    GreenHillsChain[:LINKER][:COMMAND] = "ccppc" # ??
-    GreenHillsChain[:LINKER][:SCRIPT] = "-Wm" # -T file.ld , evtl. -Wl,-T file.ld ???
-    GreenHillsChain[:LINKER][:USER_LIB_FLAG] = "-l:" # ?? does that exist ? 
+    GreenHillsChain[:LINKER][:COMMAND] = "cxppc" # ??
+    GreenHillsChain[:LINKER][:SCRIPT] = "-T" # -T file.ld
+    GreenHillsChain[:LINKER][:USER_LIB_FLAG] = "-l" # user lib not supported? same as lib... 
     GreenHillsChain[:LINKER][:EXE_FLAG] = "-o"
     GreenHillsChain[:LINKER][:LIB_FLAG] = "-l"
     GreenHillsChain[:LINKER][:LIB_PATH_FLAG] = "-L"
-    GreenHillsChain[:LINKER][:MAP_FILE_FLAG] = "-Wl,-m6" # -map=filename  /  -nomap (default) 
+    GreenHillsChain[:LINKER][:MAP_FILE_FLAG] = "-map=" # -map=filename
+    GreenHillsChain[:LINKER][:MAP_FILE_PIPE] = false   
     GreenHillsChain[:LINKER][:OUTPUT_ENDING] = ".elf"
 
     GreenHillsCompilerErrorParser =                   GreenHillsCompilerErrorParser.new

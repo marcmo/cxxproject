@@ -110,7 +110,7 @@ module Cxxproject
     end
 
     def get_dep_file(object)
-      object[0..-3] + ".o.d"
+      object[0..-3] + ".d"
     end
 
     def get_source_type(source)
@@ -260,18 +260,20 @@ module Cxxproject
           cmd += compiler[:COMPILE_FLAGS].split(" ")
           if dep_file
             cmd += depStr.split(" ")
-            if the_tcs[:COMPILER][type][:DEP_FLAGS_SPACE]
-              cmd << dep_file
-            else
-              cmd[cmd.length-1] << dep_file
+            if the_tcs[:COMPILER][type][:DEP_FLAGS_FILENAME]
+              if the_tcs[:COMPILER][type][:DEP_FLAGS_SPACE]
+                cmd << dep_file
+              else
+                cmd[cmd.length-1] << dep_file
+              end
             end
           end
+          cmd += compiler[:PREPRO_FLAGS].split(" ") if Rake::application.preproFlags
           cmd += Cxxproject::Utils::flagSplit(compiler[:FLAGS])
           cmd += i_array
           cmd += d_array
-          cmd += (compiler[:OBJECT_FILE_FLAG] + objectRel).split(" ")
-          cmd += compiler[:PREPRO_FLAGS].split(" ") if Rake::application.preproFlags
           cmd << sourceRel
+          cmd += (compiler[:OBJECT_FILE_FLAG] + objectRel).split(" ")
 
           if Cxxproject::Utils.old_ruby?
             cmd.map! {|c| ((c.include?" ") ? ("\""+c+"\"") : c )}

@@ -79,9 +79,9 @@ module Cxxproject
             end
             
             cmd = [archiver[:COMMAND]] # ar
-            cmd += archiver[:ARCHIVE_FLAGS].split(" ")
             cmd += Cxxproject::Utils::flagSplit(archiver[:FLAGS]) # --all_load
-            cmd << aname # -o debug/x.exe
+            cmd += archiver[:ARCHIVE_FLAGS].split(" ")
+            cmd << aname
             cmd += objs
   
             if Cxxproject::Utils.old_ruby?

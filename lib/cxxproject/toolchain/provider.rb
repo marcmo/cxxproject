@@ -18,7 +18,8 @@ module Cxxproject
             :FLAGS => "",
             :SOURCE_FILE_ENDINGS => [".cxx", ".cpp", ".c++", ".cc", ".C"],
             :DEP_FLAGS => "",
-            :DEP_FLAGS => true,
+            :DEP_FLAGS_SPACE => false,
+            :DEP_FLAGS_FILENAME => true,
             :ERROR_PARSER => nil,
             :PREPRO_FLAGS => ""
           },
@@ -32,6 +33,8 @@ module Cxxproject
             :FLAGS => "",
             :SOURCE_FILE_ENDINGS => [".c"],
             :DEP_FLAGS => "",
+            :DEP_FLAGS_SPACE => false,
+            :DEP_FLAGS_FILENAME => true,
             :ERROR_PARSER => nil,
             :PREPRO_FLAGS => ""
           },
@@ -45,6 +48,8 @@ module Cxxproject
             :FLAGS => "",
             :SOURCE_FILE_ENDINGS => [".asm", ".s", ".S"],
             :DEP_FLAGS => "",
+            :DEP_FLAGS_SPACE => false,
+            :DEP_FLAGS_FILENAME => true,
             :ERROR_PARSER => nil,
             :PREPRO_FLAGS => ""
           }
@@ -71,6 +76,7 @@ module Cxxproject
           :LIB_POSTFIX_FLAGS => "", # "-Wl,--no-whole-archive",
           :FLAGS => "",
           :MAP_FILE_FLAG => "",
+          :MAP_FILE_PIPE => true,
           :OUTPUT_ENDING => ".exe", # or .elf
           :ERROR_PARSER => nil
         },

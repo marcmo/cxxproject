@@ -141,11 +141,14 @@ module Cxxproject
           cmd << linker[:SCRIPT] if @linker_script # -T
           cmd << @linker_script if @linker_script # xy/xy.dld
           cmd << linker[:MAP_FILE_FLAG] if @mapfile # -Wl,-m6
+          if not linker[:MAP_FILE_PIPE]
+            cmd[cmd.length-1] << @mapfile 
+          end
           cmd += Cxxproject::Utils::flagSplit(linker[:LIB_PREFIX_FLAGS]) # "-Wl,--whole-archive "
           cmd += linker_lib_string
           cmd += Cxxproject::Utils::flagSplit(linker[:LIB_POSTFIX_FLAGS]) # "-Wl,--no-whole-archive "
 
-          mapfileStr = @mapfile ? " >#{@mapfile}" : ""
+          mapfileStr = (@mapfile and linker[:MAP_FILE_PIPE]) ? " >#{@mapfile}" : ""
           if Cxxproject::Utils.old_ruby?
             cmd.map! {|c| ((c.include?(" ")) ? ("\""+c+"\"") : c )}
 
@@ -170,7 +173,7 @@ module Cxxproject
             cmdLinePrint = cmd
             printCmd(cmdLinePrint, "Linking #{get_executable_name}", false)
             cmd << {
-             :out=> @mapfile ? "#{@mapfile}" : wr, # > xy.map
+             :out=> (@mapfile and linker[:MAP_FILE_PIPE]) ? "#{@mapfile}" : wr, # > xy.map
              :err=>wr
             }
             
@@ -178,7 +181,7 @@ module Cxxproject
             cmd.pop
 
             # for console print
-            cmd << " >#{@mapfile}" if @mapfile
+            cmd << " >#{@mapfile}" if (@mapfile and linker[:MAP_FILE_PIPE])
           end
 
           process_result(cmdLinePrint, consoleOutput, linker[:ERROR_PARSER], nil, success)
