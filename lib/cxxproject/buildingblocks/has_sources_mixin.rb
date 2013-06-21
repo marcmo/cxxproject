@@ -272,8 +272,8 @@ module Cxxproject
           cmd += Cxxproject::Utils::flagSplit(compiler[:FLAGS])
           cmd += i_array
           cmd += d_array
-          cmd << sourceRel
           cmd += (compiler[:OBJECT_FILE_FLAG] + objectRel).split(" ")
+          cmd << sourceRel
 
           if Cxxproject::Utils.old_ruby?
             cmd.map! {|c| ((c.include?" ") ? ("\""+c+"\"") : c )}
