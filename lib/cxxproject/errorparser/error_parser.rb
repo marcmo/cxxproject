@@ -22,11 +22,11 @@ module Cxxproject
     end
 
     def get_severity(str)
-      if str == "info" || str == "note"
+      if str.downcase == "info" || str.downcase == "note"
         SEVERITY_INFO
-      elsif str == "warning"
+      elsif str.downcase == "warning"
         SEVERITY_WARNING
-      elsif str == "error"
+      elsif str.downcase == "error" 
         SEVERITY_ERROR
       else
         raise "Unknown severity: #{str}"

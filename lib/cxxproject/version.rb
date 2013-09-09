@@ -1,7 +1,7 @@
 module Cxxproject
   class Version
     def self.cxxproject
-      "0.5.67"
+      "0.5.68"
     end
   end
 end

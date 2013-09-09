@@ -78,7 +78,8 @@ module Cxxproject
           :MAP_FILE_FLAG => "",
           :MAP_FILE_PIPE => true,
           :OUTPUT_ENDING => ".exe", # or .elf
-          :ERROR_PARSER => nil
+          :ERROR_PARSER => nil,
+          :LIST_MODE => false
         },
 
         :MAKE =>
@@ -136,3 +137,4 @@ require 'cxxproject/toolchain/gcc'
 require 'cxxproject/toolchain/clang'
 require 'cxxproject/toolchain/ti'
 require 'cxxproject/toolchain/greenhills'
+require 'cxxproject/toolchain/keil'

@@ -79,7 +79,7 @@ module Cxxproject
             end
             
             cmd = [archiver[:COMMAND]] # ar
-            cmd += Cxxproject::Utils::flagSplit(archiver[:FLAGS]) # --all_load
+            cmd += Cxxproject::Utils::flagSplit(archiver[:FLAGS],true) # --all_load
             cmd += archiver[:ARCHIVE_FLAGS].split(" ")
             cmd << aname
             cmd += objs

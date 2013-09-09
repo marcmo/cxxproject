@@ -1,22 +1,31 @@
 module Cxxproject
   module Utils
   
-    def self.flagSplit(str)
+    def self.flagSplit(str, removeQuotes)
       hasQuote = false
       hasDoubleQuote = false
+      hadQuote = false
       ar = []
       s = ""
   
+      #puts str
+      
       str.split("").each do |i|
         hasDoubleQuote = !hasDoubleQuote if !hasQuote and i == '"'
-	    hasQuote = !hasQuote if !hasDoubleQuote and i == '\''
-    	if i == ' '
-	      if not hasDoubleQuote and not hasQuote
-    	    ar << s if s.length > 0
-		    s = ""
-	    	next
-    	  end
-	    end
+        hasQuote = !hasQuote if !hasDoubleQuote and i == '\''
+        hadQuote = true if hasDoubleQuote
+        if i == ' '
+          if not hasDoubleQuote and not hasQuote
+            if hadQuote and removeQuotes
+              ar << s[1..-2] if s.length > 2
+              hadQuote = false
+            else
+              ar << s if s.length > 0
+            end
+            s = ""
+            next
+          end
+        end
         s << i
       end
       ar << s if s.length > 0

@@ -80,9 +80,16 @@ module Cxxproject
     end
 
     def linker_lib_string()
-      @lib_path_set = Set.new
+      @lib_path_set = []
       @dep_set = Set.new
-      calc_linker_lib_string_recursive(self)
+      res = calc_linker_lib_string_recursive(self)
+      return res if (@tcs[:LINKER][:LIST_MODE] == false)
+      
+      res.map { |x| x+"(*.o)"}
+      if not (@lib_path_set.empty?)
+        res << (@tcs[:LINKER][:LIB_PATH_FLAG] + @lib_path_set.join(","));
+      end
+      res
     end
 
     def calc_linker_lib_string_recursive(d)
@@ -108,7 +115,7 @@ module Cxxproject
               tmp, prefix = adaptPath(elem[1], d, prefix)
               if not @lib_path_set.include?tmp
                 @lib_path_set << tmp
-                res << "#{linker[:LIB_PATH_FLAG]}#{tmp}"
+                res << "#{linker[:LIB_PATH_FLAG]}#{tmp}" if linker[:LIST_MODE] == false
               end
             when HasLibraries::DEPENDENCY
               if ALL_BUILDING_BLOCKS.include?elem[1]
@@ -134,19 +141,19 @@ module Cxxproject
 
           cmd = [linker[:COMMAND]] # g++
           cmd += linker[:MUST_FLAGS].split(" ")
-          cmd += Cxxproject::Utils::flagSplit(linker[:FLAGS])
+          cmd += Cxxproject::Utils::flagSplit(linker[:FLAGS],true)
           cmd << linker[:EXE_FLAG]
           cmd << get_executable_name # -o debug/x.exe
           cmd += @objects
           cmd << linker[:SCRIPT] if @linker_script # -T
           cmd << @linker_script if @linker_script # xy/xy.dld
-          cmd << linker[:MAP_FILE_FLAG] if @mapfile # -Wl,-m6
-          if not linker[:MAP_FILE_PIPE]
+          cmd += linker[:MAP_FILE_FLAG].split(" ") if @mapfile # -Wl,-m6
+          if not linker[:MAP_FILE_PIPE] and @mapfile 
             cmd[cmd.length-1] << @mapfile 
           end
-          cmd += Cxxproject::Utils::flagSplit(linker[:LIB_PREFIX_FLAGS]) # "-Wl,--whole-archive "
+          cmd += Cxxproject::Utils::flagSplit(linker[:LIB_PREFIX_FLAGS],true) # "-Wl,--whole-archive "
           cmd += linker_lib_string
-          cmd += Cxxproject::Utils::flagSplit(linker[:LIB_POSTFIX_FLAGS]) # "-Wl,--no-whole-archive "
+          cmd += Cxxproject::Utils::flagSplit(linker[:LIB_POSTFIX_FLAGS],true) # "-Wl,--no-whole-archive "
 
           mapfileStr = (@mapfile and linker[:MAP_FILE_PIPE]) ? " >#{@mapfile}" : ""
           if Cxxproject::Utils.old_ruby?

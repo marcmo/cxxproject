@@ -102,11 +102,13 @@ module Cxxproject
         merged_messages = []
         last_msg = nil
         error_array.each do |msg|
-          if msg.file_name.nil?
-            last_msg.message += "\r\n#{msg.message}" if last_msg
-          else
-            last_msg = msg.dup
-            merged_messages << last_msg
+          if msg.severity != 255
+            if msg.file_name.nil?
+              last_msg.message += "\r\n#{msg.message}" if last_msg
+            else
+              last_msg = msg.dup
+              merged_messages << last_msg
+            end
           end
         end
 
