@@ -26,10 +26,8 @@ module Cxxproject
         SEVERITY_INFO
       elsif str.downcase == "warning"
         SEVERITY_WARNING
-      elsif str.downcase == "error" 
-        SEVERITY_ERROR
       else
-        raise "Unknown severity: #{str}"
+        SEVERITY_ERROR
       end
     end
     
