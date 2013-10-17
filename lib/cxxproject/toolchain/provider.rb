@@ -16,6 +16,7 @@ module Cxxproject
             :OBJECT_FILE_FLAG => "",
             :INCLUDE_PATH_FLAG => "",
             :COMPILE_FLAGS => "",
+            :SHARED_FLAGS => '',
             :DEFINES => [],
             :FLAGS => [],
             :SOURCE_FILE_ENDINGS => [".cxx", ".cpp", ".c++", ".cc", ".C"],

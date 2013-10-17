@@ -120,7 +120,7 @@ module Cxxproject
                 res.push("#{linker[:LIB_FLAG]}#{elem[1]}")
               end
             when HasLibraries::USERLIB
-              res.push("#{linker[:USER_LIB_FLAG]}#{elem[1]}")
+              res.push("#{linker[:USER_LIB_FLAG]}#{elem[1]}") 
             when HasLibraries::LIB_WITH_PATH
               if is_whole_archive(d)
                 res.push(d.get_archive_name)
