@@ -79,8 +79,8 @@ module Cxxproject
           :OUTPUT_PREFIX => {:EXECUTABLE => '', :SHARED_LIBRARY => {:UNIX => 'lib', :OSX => 'lib'} },
           :OUTPUT_SUFFIX => {
             :EXECUTABLE => {
-              :UNIX => '',
-              :OSX => '',
+              :UNIX => '.exe',
+              :OSX => '.exe',
               :WINDOWS => '.exe'
             },
             :SHARED_LIBRARY => {
