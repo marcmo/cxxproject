@@ -18,9 +18,9 @@ require 'cxxproject/buildingblocks/building_blocks'
 require 'frazzle/frazzle'
 registry = Frazzle::Registry.new('cxxproject', '_', '')
 
-toolchain_plugins = registry.get_plugins('toolchain')
-toolchain_plugins.each do |toolchain_plugin|
-  registry.load_plugin(toolchain_plugin, Cxxproject::PluginContext.new(nil, nil, nil))
+plugins = registry.get_all_plugins
+plugins.each do |plugin|
+  registry.load_plugin(plugin, Cxxproject::PluginContext.create_no_args_context())
 end
 
 include Cxxproject::Toolchain

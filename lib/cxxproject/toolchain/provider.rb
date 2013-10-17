@@ -77,11 +77,11 @@ module Cxxproject
           :LIB_POSTFIX_FLAGS => "", # "-Wl,--no-whole-archive",
           :FLAGS => [],
           :MAP_FILE_FLAG => "",
-          :OUTPUT_PREFIX => {:EXECUTABLE => '', :SHARED_LIBRARY => 'lib'},
+          :OUTPUT_PREFIX => {:EXECUTABLE => '', :SHARED_LIBRARY => {:UNIX => 'lib', :OSX => 'lib'} },
           :OUTPUT_SUFFIX => {
             :EXECUTABLE => {
-              :UNIX => '',
-              :OSX => '',
+              :UNIX => '.exe',
+              :OSX => '.exe',
               :WINDOWS => '.exe'
             },
             :SHARED_LIBRARY => {
@@ -108,7 +108,7 @@ module Cxxproject
 
         :ENV =>
         {
-          :LIB_VAR=> {:UNIX => 'LD_LIBRARY_PATH', :OSX => 'DYLD_LIBRARY_PATH', :WINDOWS => ''},
+          :LIB_VAR=> {:UNIX => 'LD_LIBRARY_PATH', :OSX => 'DYLD_LIBRARY_PATH', :WINDOWS => 'PATH'},
         },
         :CONSOLE_HIGHLIGHTER => ColorizingFormatter.new
       }

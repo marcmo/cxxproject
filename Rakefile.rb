@@ -27,7 +27,7 @@ begin
 
   begin
     require 'rdoc'
-    require 'rdoc/task'
+    require 'rdoc/rdoctask'
     RDoc::Task.new do |rd|
       rd.rdoc_files.include(spec.files)
     end

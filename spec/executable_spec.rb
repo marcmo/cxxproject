@@ -8,7 +8,7 @@ describe Cxxproject::Linkable do
   MUSTFLAG1 = '-mustflag1'
   MUSTFLAG2 = '-mustflag2'
   FLAGS = '-flags'
-  EXE_FLAG = 'exeflag'
+  OUTPUT_FLAG = 'exeflag'
   LIB_PREFIX = 'libprefix'
   LIB_POSTFIX = 'libpostfix'
   START_OF_WHOLE_ARCHIVE = {:UNIX => 'startofwholearchive', :OSX => 'startofwholearchiveforosx'}
@@ -18,11 +18,14 @@ describe Cxxproject::Linkable do
   USER_LIB_FLAG = 'userlibflag'
   SHARED_FLAG = '-shared'
   OUTPUT_PREFIX = {:SHARED_LIBRARY => {:OSX => 'lib'}}
-  OUTPUT_SUFFIX = {:EXECUTABLE => '.exe', :SHARED_LIBRARY => {:UNIX => '.so', :OSX => '.dylib'}}
+  OUTPUT_SUFFIX = {:EXECUTABLE => {:UNIX => '.exe', :OSX => '.exe'}, :SHARED_LIBRARY => {:UNIX => '.so', :OSX => '.dylib'}}
   ADDITIONAL_COMMANDS_CONTENT = ['1', '2']
   class DummyCommands
     def calc(linker, bb)
       return ADDITIONAL_COMMANDS_CONTENT
+    end
+    def get_version_suffix(a,b)
+      "version_suffix"
     end
   end
   ADDITIONAL_COMMANDS = DummyCommands.new
@@ -53,7 +56,7 @@ describe Cxxproject::Linkable do
     @linker.stub(:[]).with(:COMMAND).and_return(COMMAND)
     @linker.stub(:[]).with(:MUST_FLAGS).and_return("#{MUSTFLAG1} #{MUSTFLAG2}")
     @linker.stub(:[]).with(:FLAGS).and_return([FLAGS])
-    @linker.stub(:[]).with(:EXE_FLAG).and_return(EXE_FLAG)
+    @linker.stub(:[]).with(:OUTPUT_FLAG).and_return(OUTPUT_FLAG)
     @linker.stub(:[]).with(:LIB_PREFIX_FLAGS).and_return(LIB_PREFIX)
     @linker.stub(:[]).with(:LIB_POSTFIX_FLAGS).and_return(LIB_POSTFIX)
     @linker.stub(:[]).with(:START_OF_WHOLE_ARCHIVE).and_return(START_OF_WHOLE_ARCHIVE)
@@ -78,7 +81,7 @@ describe Cxxproject::Linkable do
       @toolchain.stub(:[]).with(:TARGET_OS).and_return(os)
       @exe.convert_to_rake
       @shared_lib.convert_to_rake
-      @exe.calc_command_line.should eq([COMMAND, MUSTFLAG1, MUSTFLAG2, FLAGS, EXE_FLAG, 'out/test.exe', LIB_PREFIX, START_OF_WHOLE_ARCHIVE[os], @lib1.get_archive_name, END_OF_WHOLE_ARCHIVE[os], LIB_POSTFIX])
+      @exe.calc_command_line.should eq([COMMAND, MUSTFLAG1, MUSTFLAG2, FLAGS, OUTPUT_FLAG, 'out/test.exe', LIB_PREFIX, START_OF_WHOLE_ARCHIVE[os], @lib1.get_archive_name, END_OF_WHOLE_ARCHIVE[os], LIB_POSTFIX])
     end
   end
 
@@ -86,7 +89,7 @@ describe Cxxproject::Linkable do
     @toolchain.stub(:[]).with(:TARGET_OS).and_return(:OSX)
     @exe.convert_to_rake
     @shared_lib.convert_to_rake
-    @shared_lib.calc_command_line.should eq([COMMAND, MUSTFLAG1, MUSTFLAG2, FLAGS, SHARED_FLAG] + ADDITIONAL_COMMANDS_CONTENT + [EXE_FLAG, 'out/libs/libshared_lib.dylib', LIB_PREFIX, LIB_POSTFIX])
+    @shared_lib.calc_command_line.should eq([COMMAND, MUSTFLAG1, MUSTFLAG2, FLAGS, SHARED_FLAG] + ADDITIONAL_COMMANDS_CONTENT + [OUTPUT_FLAG, 'out/libs/libshared_libversion_suffix.dylib', LIB_PREFIX, LIB_POSTFIX])
   end
 
   it 'should be possible to define an executable without sources' do

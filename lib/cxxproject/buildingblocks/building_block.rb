@@ -242,12 +242,11 @@ module Cxxproject
       end
     end
 
-    def typed_file_task(type, *args, &block)
-      t = file *args do
+    def typed_file_task(type, hash, &block)
+      t = file hash do
         block.call
       end
       t.type = type
-      t.progress_count = 1
       return t
     end
 
