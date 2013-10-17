@@ -11,6 +11,17 @@ module Cxxproject
     attr_writer :file_dependencies
     attr_reader :incArray
 
+    def shared(shared)
+      @is_shared = shared
+    end
+    
+    def is_shared
+      if @is_shared == nil
+        false 
+      end
+      @is_shared
+    end
+
     def file_dependencies
       @file_dependencies ||= []
     end
@@ -282,6 +293,9 @@ module Cxxproject
 
       cmd = [compiler[:COMMAND]].flatten
       cmd += compiler[:COMPILE_FLAGS].split(" ")
+      if is_shared
+        cmd += compiler[:SHARED_FLAGS].split(" ")
+      end
       if dep_file
         cmd += depStr.split(" ")
         if toolchain[:COMPILER][type][:DEP_FLAGS_SPACE]

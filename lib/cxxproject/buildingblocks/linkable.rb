@@ -120,7 +120,7 @@ module Cxxproject
                 res.push("#{linker[:LIB_FLAG]}#{elem[1]}")
               end
             when HasLibraries::USERLIB
-              res.push("#{linker[:USER_LIB_FLAG]}#{elem[1]}")
+              res.push("#{linker[:USER_LIB_FLAG]}#{elem[1]}") 
             when HasLibraries::LIB_WITH_PATH
               if is_whole_archive(d)
                 res.push(d.get_archive_name)
@@ -342,7 +342,13 @@ module Cxxproject
         task @name => shared_lib
       end
     end
+    
+    def shared_suffix(linker)
+      linker[:OUTPUT_SUFFIX][:SHARED_LIBRARY][target_os()]
+    end
+    
     private
+    
     # Some symbolic links
     # ln -s libfoo.so libfoo.1.2.so
     # ln -s libfoo.1.so libfoo.1.2.so
@@ -353,8 +359,6 @@ module Cxxproject
       symlink_lib_to soname
     end
 
-    private
-
     def symlink_lib_to(link)
       file = File.basename(executable_name)
       if file !=link 
@@ -362,10 +366,6 @@ module Cxxproject
           symlink(file, link)
         end            
       end
-    end
-
-    def shared_suffix(linker)
-      linker[:OUTPUT_SUFFIX][:SHARED_LIBRARY][target_os()]
     end
 
     def major_suffix()
