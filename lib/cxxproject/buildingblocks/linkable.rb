@@ -106,7 +106,7 @@ module Cxxproject
       end
       libraries
     end
-    
+
     def linker_lib_string(target_os, linker)
       lib_path_set = Set.new
       res = []
@@ -342,13 +342,13 @@ module Cxxproject
         task @name => shared_lib
       end
     end
-    
+
     def shared_suffix(linker)
       linker[:OUTPUT_SUFFIX][:SHARED_LIBRARY][target_os()]
     end
-    
+
     private
-    
+
     # Some symbolic links
     # ln -s libfoo.so libfoo.1.2.so
     # ln -s libfoo.1.so libfoo.1.2.so
@@ -361,10 +361,10 @@ module Cxxproject
 
     def symlink_lib_to(link)
       file = File.basename(executable_name)
-      if file !=link 
+      if file !=link
         cd "#{@output_dir}/libs" do
           symlink(file, link)
-        end            
+        end
       end
     end
 
@@ -373,7 +373,7 @@ module Cxxproject
     end
 
     def major_minor_suffix()
-      "#{major_suffix}#{(major and minor ? '.' : '')}#{(minor ? minor : '')}" 
+      "#{major_suffix}#{(major and minor ? '.' : '')}#{(minor ? minor : '')}"
     end
 
     def post_link_hook(linker)
