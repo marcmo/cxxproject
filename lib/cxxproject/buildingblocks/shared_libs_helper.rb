@@ -71,7 +71,7 @@ module Cxxproject
     end
 
     def calc(linker, bb)
-      return ["-Wl,-soname,#{get_soname(bb,linker)}"]
+      return ["-Wl,-soname,#{get_soname(linker, bb)}"]
     end
 
     # For :major=>1, minor=>2 fullname is 'libfoo.so'
