@@ -1,5 +1,7 @@
 #require 'cxxproject/buildingblocks/static_library'
 
+require 'cxxproject/tasks'
+
 describe Cxxproject::StaticLibrary do
   before(:each) do
     Cxxproject::Utils.cleanup_rake
@@ -31,8 +33,13 @@ describe Cxxproject::StaticLibrary do
   end
 
   def dummy_toolchain
-    {:COMPILER => {:CPP => {:DEFINES => [], :SOURCE_FILE_ENDINGS => {}}, :C => {:DEFINES => [], :SOURCE_FILE_ENDINGS => {}}, :ASM => {:DEFINES => [], :SOURCE_FILE_ENDINGS => {}}}}
+    {:COMPILER =>
+      {
+        :CPP => {:DEFINES => [], :SOURCE_FILE_ENDINGS => ['.cpp'], :COMPILE_FLAGS => "-c -Wall ", :DEP_FLAGS => "-MMD -MF ", :FLAGS => [], :OBJECT_FILE_FLAG => "-o"},
+        :C => {:DEFINES => [], :SOURCE_FILE_ENDINGS => {}},
+        :ASM => {:DEFINES => [], :SOURCE_FILE_ENDINGS => {}}}}
   end
+
   it 'should raise an exception if a filetype is unknown' do
     sh 'touch test.ccc'
     lib1 = Cxxproject::StaticLibrary.new('1').set_tcs(dummy_toolchain).set_sources(["test.ccc"])
@@ -42,6 +49,16 @@ describe Cxxproject::StaticLibrary do
       lib1.create_object_file_tasks
     }.to raise_exception
     sh 'rm test.ccc'
+  end
+
+  it 'should be possible to create tasks for a static lib' do
+    require 'rake/task'
+    lib1 = Cxxproject::StaticLibrary.new('1').set_tcs(dummy_toolchain).set_project_dir('.')
+    lib1.set_sources(["spec/test.cpp"])
+    lib1.output_dir = 'out'
+    lib1.complete_init
+    lib1.convert_to_rake
+    t = Rake::Task[File.absolute_path('out/lib1.a')]
   end
 
 end
