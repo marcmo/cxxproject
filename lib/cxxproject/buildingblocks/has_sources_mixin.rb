@@ -242,6 +242,7 @@ module Cxxproject
       dirs_with_files = calc_dirs_with_files(sources_to_build)
 
       obj_tasks = []
+      @objects = []
       dirs_with_files.each do |dir, files|
         files.reverse.each do |f|
           obj_task = create_object_file_task(f, sources_to_build[f])
