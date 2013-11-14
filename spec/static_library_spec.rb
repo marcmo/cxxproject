@@ -1,7 +1,3 @@
-#require 'cxxproject/buildingblocks/static_library'
-
-require 'cxxproject/tasks'
-
 describe Cxxproject::StaticLibrary do
   before(:each) do
     Cxxproject::Utils.cleanup_rake
