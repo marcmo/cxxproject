@@ -6,7 +6,7 @@ require File.expand_path("lib/#{gem_name}/version")
 Gem::Specification.new do |s|
   s.name = gem_name
   s.version = Cxxproject::VERSION
-  s.license = 'BSD-2'
+  s.license = 'FreeBSD'
 
   s.summary = "Cpp Support for Rake."
   s.description = <<-EOF
