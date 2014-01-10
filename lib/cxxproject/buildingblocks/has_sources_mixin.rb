@@ -150,7 +150,7 @@ module Cxxproject
       if deps.nil?
         return # ok, because next run the source will be recompiled due to invalid depfile
       end
-      expanded_deps = deps.grep(/^(\.deps)/).map do |d|
+      expanded_deps = deps.grep(/^((?!\.deps).)*$/).map do |d|
         tmp = d.gsub(/[\\]/,'/')
         deps_in_depFiles << tmp
         tmp
