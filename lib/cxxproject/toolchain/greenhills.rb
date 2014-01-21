@@ -15,7 +15,7 @@ module Cxxproject
       :OBJECT_FILE_FLAG => "-o ",
       :INCLUDE_PATH_FLAG => "-I",
       :COMPILE_FLAGS => "-c",
-      :DEP_FLAGS => "-MMD",
+      :DEP_FLAGS => "-MD",
       :DEP_FLAGS_FILENAME => false,
       :PREPRO_FLAGS => "-P"
     })
