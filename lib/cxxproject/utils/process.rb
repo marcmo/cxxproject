@@ -1,3 +1,4 @@
+# coding: iso-8859-1
 module Cxxproject
 
   class ProcessHelper
@@ -25,8 +26,6 @@ module Cxxproject
       rd.close
 
       # seems that pipe cannot handle non-ascii characters right on windows (even with correct encoding)
-      consoleOutput.gsub!(/\xE2\x80\x98/,"`") # ÔÇÿ
-      consoleOutput.gsub!(/\xE2\x80\x99/,"'") # ÔÇÖ
 
       consoleOutput
     end

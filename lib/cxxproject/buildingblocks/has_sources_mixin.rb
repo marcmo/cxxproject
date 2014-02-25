@@ -252,6 +252,18 @@ module Cxxproject
       obj_tasks
     end
 
+    def type_to_envvariable(type)
+      return 'CXX' if type == :CPP
+      return 'CC' if type == :C
+      return '__illegal_env_var__'
+    end
+    
+    def get_compiler_command(toolchain, type)
+      compiler = toolchain[:COMPILER][type]
+      default_value = compiler[:COMMAND]
+      return ENV.fetch(type_to_envvariable(type), default_value)
+    end
+    
     def calc_command_line_for_source(source, toolchain)
       if !File.exists?(source)
         raise "File '#{source}' not found"
@@ -281,7 +293,7 @@ module Cxxproject
       i_array = toolchain == @tcs ? @include_string[type] : get_include_string(toolchain, type)
       d_array = toolchain == @tcs ? @define_string[type] : get_define_string(toolchain, type)
 
-      cmd = [compiler[:COMMAND]].flatten
+      cmd = get_compiler_command(toolchain, type)
       cmd += compiler[:COMPILE_FLAGS].split(" ")
       if dep_file
         cmd += depStr.split(" ")
