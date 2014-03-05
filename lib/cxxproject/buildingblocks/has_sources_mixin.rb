@@ -5,6 +5,11 @@ require 'cxxproject/utils/printer'
 
 module Cxxproject
   module HasSources
+    
+    class << self
+      attr_accessor :print_additional_depfile_info
+    end
+
 
     attr_writer :file_dependencies
     attr_reader :incArray
@@ -300,6 +305,13 @@ module Cxxproject
           convert_depfile(dep_file) if dep_file
 
           check_config_file()
+          
+          if Cxxproject::HasSources.print_additional_depfile_info
+            File.open(dep_file+".org","w") do |f|
+              f.write(source+"\n")
+              f.write(Dir.pwd+"\n")
+            end if dep_file
+          end
         end
       end
       enhance_with_additional_files(res)
