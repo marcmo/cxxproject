@@ -2,6 +2,7 @@ require 'cxxproject/utils/utils'
 require 'cxxproject/toolchain/provider'
 require 'cxxproject/errorparser/error_parser'
 require 'cxxproject/errorparser/gcc_compiler_error_parser'
+require 'cxxproject/errorparser/gcc_linker_error_parser'
 
 module Cxxproject
   module Toolchain
@@ -28,6 +29,7 @@ module Cxxproject
 
     CLANG_CHAIN[:ARCHIVER][:COMMAND] = "ar"
     CLANG_CHAIN[:ARCHIVER][:ARCHIVE_FLAGS] = "r"
+    CLANG_CHAIN[:ARCHIVER][:ERROR_PARSER] = gccCompilerErrorParser
 
     CLANG_CHAIN[:LINKER][:COMMAND] = "llvm-g++"
     CLANG_CHAIN[:LINKER][:SCRIPT] = "-T"
@@ -35,5 +37,7 @@ module Cxxproject
     CLANG_CHAIN[:LINKER][:EXE_FLAG] = "-o"
     CLANG_CHAIN[:LINKER][:LIB_FLAG] = "-l"
     CLANG_CHAIN[:LINKER][:LIB_PATH_FLAG] = "-L"
+      
+    CLANG_CHAIN[:LINKER][:ERROR_PARSER] = GCCLinkerErrorParser.new      
   end
 end

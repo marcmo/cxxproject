@@ -361,6 +361,8 @@ module Cxxproject
             puts "Original output:"
             puts console_output
           end
+        else
+          puts console_output # fallback
         end
       end
       ret
