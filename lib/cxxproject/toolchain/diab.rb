@@ -15,7 +15,7 @@ module Cxxproject
       :OBJECT_FILE_FLAG => "-o ",
       :INCLUDE_PATH_FLAG => "-I",
       :COMPILE_FLAGS => "-c",
-      :DEP_FLAGS => "-Xmake-dependency=6 -Xmake-dependency-savefile=",
+      :DEP_FLAGS => "-Xmake-dependency=5 -Xmake-dependency-savefile=",
       :DEP_FLAGS_SPACE => false,
       :PREPRO_FLAGS => "-P"
     })

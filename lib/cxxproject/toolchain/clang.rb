@@ -15,7 +15,7 @@ module Cxxproject
       :OBJECT_FILE_FLAG => "-o",
       :INCLUDE_PATH_FLAG => "-I",
       :COMPILE_FLAGS => "-c ",
-      :DEP_FLAGS => "-MMD -MF ", # empty space at the end is important!
+      :DEP_FLAGS => "-MD -MF ", # empty space at the end is important!
       :ERROR_PARSER => gccCompilerErrorParser
     })
 
