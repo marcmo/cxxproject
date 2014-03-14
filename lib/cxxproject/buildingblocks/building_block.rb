@@ -182,7 +182,7 @@ module Cxxproject
     def process_result(cmd, console_output, error_parser, alternate, success)
       hasError = (success == false)
       if (cmd != @lastCommand) or (@printedCmdAlternate and hasError)
-        printCmd(cmd, alternate, hasError)
+        printCmd(cmd, alternate, hasError && Rake::application.options.lint == false)
       end
       errorPrinted = process_console_output(console_output, error_parser)
 
@@ -192,7 +192,7 @@ module Cxxproject
           res = ErrorDesc.new
           res.file_name = @project_dir
           res.line_number = 0
-          res.message = "Unknown error, see log output. Maybe the lake error parser has to be updated..."
+          res.message = "Unknown error, see log output. Maybe the bake error parser has to be updated..."
           res.severity = ErrorParser::SEVERITY_ERROR
           Rake.application.idei.set_errors([res])
         end

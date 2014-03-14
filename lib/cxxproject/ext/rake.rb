@@ -24,9 +24,14 @@ module Rake
     attr_writer :consoleOutput_fullnames
     attr_writer :consoleOutput_visualStudio
     attr_writer :addEmptyLine
+    attr_writer :debug
     def max_parallel_tasks
       @max_parallel_tasks ||= 8
     end
+    
+    def debug
+      @debug ||= false
+    end    
     
     def addEmptyLine
       @addEmptyLine ||= false
@@ -245,6 +250,7 @@ module Rake
     RUN         = 0x0800 #
     CUSTOM      = 0x1000 # x
     COMMANDLINE = 0x2000 # x
+    LINT        = 0x4000 #
 
     STANDARD    = 0x371A # x above means included in STANDARD
     attr_reader :ignore
@@ -305,7 +311,7 @@ module Rake
             Cxxproject::Printer.printError "Error #{name}: #{e.message}"
             if RakeFileUtils.verbose
               puts e.backtrace
-            end            
+            end       
             set_failed
             if e.message.include?"Circular dependency detected"
               Rake.application.idei.set_abort(true)
@@ -367,6 +373,7 @@ module Rake
       if not Rake.application.idei.get_abort()
         if not isSysCmd
           Cxxproject::Printer.printError "Error for task #{@name}: #{ex1.message}"
+          Cxxproject::Printer.printError(ex1.backtrace) if Rake.application.debug
         end
       end
       begin

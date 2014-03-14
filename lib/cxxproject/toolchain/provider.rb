@@ -91,7 +91,9 @@ module Cxxproject
           :CLEAN => "clean"
         },
         
-        :CONSOLE_HIGHLIGHTER => ColorizingFormatter.new
+        :CONSOLE_HIGHLIGHTER => ColorizingFormatter.new,
+        
+        :LINT_POLICY => []
       }
 
       def self.add(name, basedOn = nil)
@@ -124,7 +126,7 @@ module Cxxproject
       end
 
       def self.list
-        return @@settings
+        return @@settings.delete_if {|x| x.include?"_Lint" }
       end
 
     end
@@ -134,6 +136,7 @@ end
 
 require 'cxxproject/toolchain/diab'
 require 'cxxproject/toolchain/gcc'
+require 'cxxproject/toolchain/gcc_lint'
 require 'cxxproject/toolchain/clang'
 require 'cxxproject/toolchain/ti'
 require 'cxxproject/toolchain/greenhills'

@@ -345,7 +345,11 @@ module Cxxproject
               console_output = console_output_VS
             end
 
-            ret = error_descs.any? { |e| e.severity == ErrorParser::SEVERITY_ERROR }
+            if Cxxproject::GCCLintErrorParser === error_parser # hack: need to know if lint is enabled...
+              ret = error_descs.any? { |e| e.severity != ErrorParser::SEVERITY_OK }
+            else
+              ret = error_descs.any? { |e| e.severity == ErrorParser::SEVERITY_ERROR }
+            end
 
             console_output.gsub!(/[\r]/, "")
             highlighter = @tcs[:CONSOLE_HIGHLIGHTER]
@@ -358,6 +362,7 @@ module Cxxproject
             Rake.application.idei.set_errors(error_descs)
           rescue Exception => e
             Printer.printWarning "Parsing output failed (maybe language not set to English?): " + e.message
+            puts e.backtrace
             puts "Original output:"
             puts console_output
           end
