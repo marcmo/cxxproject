@@ -164,7 +164,7 @@ module Cxxproject
       if showPath or RakeFileUtils.verbose or (alternate.nil? and not Rake::application.options.silent)
         @printedCmdAlternate = false
         exedIn = ""
-        exedIn = " (executed in '#{@project_dir}')" if (showPath or RakeFileUtils.verbose)
+        exedIn = "\n(executed in '#{@project_dir}')" if (showPath or RakeFileUtils.verbose)
         puts "" if Rake::application.addEmptyLine
         if cmd.is_a?(Array)
           puts cmd.join(' ') + exedIn

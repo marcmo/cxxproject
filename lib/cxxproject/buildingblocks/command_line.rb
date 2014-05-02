@@ -47,7 +47,7 @@ module Cxxproject
         Dir.chdir(@project_dir) do
           check_config_file
           cmd = get_command_line
-          puts cmd + (RakeFileUtils.verbose ? " (executed in '#{@project_dir}')" : "")
+          puts cmd + (RakeFileUtils.verbose ? "\n(executed in '#{@project_dir}')" : "")
           cmd_result = false
           begin
             rd, wr = IO.pipe
@@ -69,7 +69,7 @@ module Cxxproject
               err_res.message = "Command \"#{get_command_line}\" failed"
               Rake.application.idei.set_errors([err_res])
             end
-            Printer.printError "Error: command \"#{get_command_line}\" failed" + (RakeFileUtils.verbose ? "" : " (executed in '#{@project_dir}')")
+            Printer.printError "Error: command \"#{get_command_line}\" failed" + (RakeFileUtils.verbose ? "" : "\n(executed in '#{@project_dir}')")
             raise SystemCommandFailed.new
           end
         end

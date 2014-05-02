@@ -1,6 +1,7 @@
 require 'rake'
 require 'rake/clean'
 require 'cxxproject/ext/filelist'
+require 'fileutils'
 
 module Cxxproject
   module Utils
@@ -12,10 +13,10 @@ module Cxxproject
       CLEAN.pending_add.clear
       CLEAN.items.clear
       task :clean do
-        CLEAN.each { |fn| rm_r fn rescue nil }
+        CLEAN.each { |fn| FileUtils.rm_rf fn rescue nil }
       end
       task :clobber => [:clean] do
-        CLOBBER.each { |fn| rm_r fn rescue nil }
+        CLOBBER.each { |fn| FileUtils.rm_rf fn rescue nil }
       end      
     end
 

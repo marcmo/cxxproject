@@ -74,7 +74,7 @@ module Cxxproject
     def executeCmd(cmd)
         Dir.chdir(@project_dir) do
           check_config_file
-          puts cmd + (RakeFileUtils.verbose ? " (executed in '#{@project_dir}')" : "")
+          puts cmd + (RakeFileUtils.verbose ? "\n(executed in '#{@project_dir}')" : "")
           cmd_result = false
           begin
             cmd_result = ProcessHelper.spawnProcess(cmd + " 2>&1")
@@ -93,7 +93,7 @@ module Cxxproject
               end
               Rake.application.idei.set_errors([err_res])
             end
-            Printer.printError "Error: command \"#{cmd}\" failed" + (RakeFileUtils.verbose ? "" : " (executed in '#{@project_dir}')")
+            Printer.printError "Error: command \"#{cmd}\" failed" + (RakeFileUtils.verbose ? "" : "\n(executed in '#{@project_dir}')")
             raise SystemCommandFailed.new
           end
         end

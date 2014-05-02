@@ -27,7 +27,7 @@ describe Cxxproject::IDEInterface do
     packet = ide.create_error_packet(error)
     
     if not Cxxproject::Utils.old_ruby? # in Ruby 1.8.6 there is no bytes methods...    
-      e = packet.bytes
+      e = packet.bytes.to_enum
       e.next.should eq(1)
       check_long(e, 22)
       check_long(e, 8)
