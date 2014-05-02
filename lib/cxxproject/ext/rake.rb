@@ -25,13 +25,14 @@ module Rake
     attr_writer :consoleOutput_visualStudio
     attr_writer :addEmptyLine
     attr_writer :debug
+    attr_writer :lint
     def max_parallel_tasks
       @max_parallel_tasks ||= 8
     end
     
     def debug
       @debug ||= false
-    end    
+    end
     
     def addEmptyLine
       @addEmptyLine ||= false
@@ -77,6 +78,10 @@ module Rake
     
     def consoleOutput_visualStudio
       @consoleOutput_visualStudio ||= false
+    end
+    
+    def lint
+      @lint ||= false
     end
     
   end

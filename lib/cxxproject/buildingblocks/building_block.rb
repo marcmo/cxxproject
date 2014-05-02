@@ -182,7 +182,7 @@ module Cxxproject
     def process_result(cmd, console_output, error_parser, alternate, success)
       hasError = (success == false)
       if (cmd != @lastCommand) or (@printedCmdAlternate and hasError)
-        printCmd(cmd, alternate, hasError && Rake::application.options.lint == false)
+        printCmd(cmd, alternate, hasError && Rake::application.lint == false)
       end
       errorPrinted = process_console_output(console_output, error_parser)
 
