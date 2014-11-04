@@ -20,14 +20,7 @@ module Cxxproject
     end
     
     def get_task_name()
-      return @task_name if @task_name
-
-      parts = [@output_dir]
-      parts << 'lint' if @output_dir_abs
-      parts << "#{@name}_lint"
-      @task_name = File.join(parts)
-      @task_name = @project_dir + "/" + @task_name unless @output_dir_abs
-      @task_name
+      @task_name ||= File.join([@output_dir, "#{@name}_lint"])
     end    
     
     def convert_to_rake()

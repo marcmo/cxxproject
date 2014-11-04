@@ -42,8 +42,8 @@ describe Cxxproject::BuildingBlock do
     cxx.prepare_block(lib1)
     cxx.prepare_block(lib2)
 
-    lib1.complete_output_dir.should eq(File.join(Dir.pwd, 'build'))
-    lib2.complete_output_dir.should eq(File.join(Dir.pwd, 'lib2', 'build2'))
+    lib1.output_dir.should eq(File.join(Dir.pwd, 'build'))
+    lib2.output_dir.should eq(File.join(Dir.pwd, 'lib2', 'build2'))
   end
 
   it 'should raise exception if building block cannot be resolved' do

@@ -103,14 +103,7 @@ module Cxxproject
     end
 
     def get_object_file(sourceRel)
-      parts = [@output_dir]
-      if @output_dir_abs
-        parts = [@output_dir_relPath] if @output_dir_relPath
-        parts << 'objects'
-        parts << @name
-      end
-
-      parts << sourceRel.chomp(File.extname(sourceRel)).gsub(/\.\./, "##")
+      parts = [@output_dir_relPath, sourceRel.chomp(File.extname(sourceRel)).gsub(/\.\./, "##")]
       File.join(parts) + (Rake::application.preproFlags ? ".i" : ".o")
     end
 
@@ -374,10 +367,6 @@ module Cxxproject
     end
 
     def prepare_tasks_for_objects
-      if (@output_dir_abs)
-        CLEAN.include(@output_dir + "/objects/" + @name)
-      end
-
       @objects = []
       t = multitask get_sources_task_name
       t.type = Rake::Task::SOURCEMULTI

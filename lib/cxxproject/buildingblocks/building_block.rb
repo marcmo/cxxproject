@@ -25,8 +25,8 @@ module Cxxproject
 
     attr_reader :project_dir
     attr_accessor :output_dir
+    attr_accessor :output_dir_relPath
     attr_accessor :pre_step
-    attr_reader :output_dir_abs
 
     def set_name(x)
       @name = x
@@ -55,34 +55,25 @@ module Cxxproject
 
     def set_project_dir(x)
       @project_dir = File.expand_path(x)
-      if @output_dir_abs
-        @output_dir_relPath = File.rel_from_to_project(@project_dir, @output_dir)
-      end
       self
     end
 
-    # if output dir is absolute, -L and -l is used for linker ("linux mode")
     def set_output_dir(x)
       return self if @output_dir
-
-      @output_dir = x
-      @output_dir_abs = File.is_absolute?(@output_dir)
-      if @project_dir
-        @output_dir_relPath = File.rel_from_to_project(@project_dir, @output_dir)
+      
+      if not @project_dir
+        raise "Error: set project dir before output dir!"
       end
-      self
-    end
 
-    def complete_output_dir
-      @complete_output_dir ||= calc_complete_output_dir
-    end
-
-    def calc_complete_output_dir
-      if @output_dir_abs
-        @output_dir
+      if File.is_absolute?(x)
+        @output_dir = x
+        @output_dir_relPath = File.rel_from_to_project(@project_dir, x)
       else
-        File.join(@project_dir,  @output_dir)
+        @output_dir = File.join(@project_dir,  x)
+        @output_dir_relPath = x
       end
+      
+      self
     end
 
     def initialize(name)
@@ -93,8 +84,6 @@ module Cxxproject
       @project_dir = nil
       @tcs = nil
       @output_dir = nil
-      @output_dir_abs = false
-      @complete_output_dir = nil
       @pre_step = nil
       @printedCmdAlternate = false
       @lastCommand = nil
@@ -151,11 +140,7 @@ module Cxxproject
       taskOfFile.enhance([d])
 
       if addDirToCleanTask
-        if (@output_dir_abs)
-          CLEAN.include(file)
-        else
-          CLEAN.include(complete_output_dir)
-        end
+        CLEAN.include(@output_dir)
       end
     end
 

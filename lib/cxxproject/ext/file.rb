@@ -12,6 +12,7 @@ class File
     end
   end
 
+  # seems both are rel or both are abs in all cases
   def self.rel_from_to_project(from,to,endWithSlash = true)
     return nil if from.nil? or to.nil?
     
@@ -25,15 +26,24 @@ class File
 	i = 0
 
 	# path letter in windows may be case different
+  toIsWindowsAbs = false
 	if toSplitted[0].length > 1 and fromSplitted[0].length > 1
       if Cxxproject::Utils.old_ruby?
-        i = 1 if toSplitted[0][1] == 58 and fromSplitted[0][1] == 58 and toSplitted[0].swapcase[0] == fromSplitted[0][0] 
+        toIsWindowsAbs = toSplitted[0][1] == 58
+        i = 1 if toIsWindowsAbs and fromSplitted[0][1] == 58 and toSplitted[0][0].downcase == fromSplitted[0][0].downcase 
       else
-        i = 1  if toSplitted[0][1] == ':' and fromSplitted[0][1] == ':' and toSplitted[0].swapcase[0] == fromSplitted[0][0]
+        toIsWindowsAbs = toSplitted[0][1] == ':'
+        i = 1  if toIsWindowsAbs and fromSplitted[0][1] == ':' and toSplitted[0][0].downcase == fromSplitted[0][0].downcase
       end	
 	end
 	
-	while i < max
+  if (toIsWindowsAbs and i==0)
+    res = to
+    res += "/" if endWithSlash 
+    return res	  
+  end
+	
+  while i < max
       break if toSplitted[i] != fromSplitted[i] 
 	  i += 1
 	end

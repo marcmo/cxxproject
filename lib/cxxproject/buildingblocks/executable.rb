@@ -38,23 +38,12 @@ module Cxxproject
       @exe_name = name
     end
 
-    def get_executable_name() # relative path
-      return @exe_name if @exe_name
-
-      parts = [@output_dir]
-
-      if @output_dir_abs
-        parts = [@output_dir_relPath] if @output_dir_relPath
-      end
-
-      parts << "#{@name}#{@tcs[:LINKER][:OUTPUT_ENDING]}"
-
-      @exe_name = File.join(parts)
-      @exe_name
+    def get_executable_name() # maybe relative path
+      @exe_name ||= File.join([@output_dir_relPath, "#{@name}#{@tcs[:LINKER][:OUTPUT_ENDING]}"])
     end
 
     def get_task_name() # full path
-      @project_dir + "/" + get_executable_name
+      @task_name ||= File.join([@output_dir, "#{@name}#{@tcs[:LINKER][:OUTPUT_ENDING]}"])
     end
 
     def collect_unique(array, set)
@@ -133,7 +122,6 @@ module Cxxproject
     #
     def convert_to_rake()
       object_multitask = prepare_tasks_for_objects()
-
       linker = @tcs[:LINKER]
 
       res = typed_file_task Rake::Task::EXECUTABLE, get_task_name => object_multitask do
@@ -196,6 +184,7 @@ module Cxxproject
           check_config_file()
         end
       end
+      
       res.immediate_output = true
       res.enhance(@config_files)
       res.enhance([@project_dir + "/" + @linker_script]) if @linker_script
