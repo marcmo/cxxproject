@@ -25,8 +25,6 @@ module Cxxproject
     
     def convert_to_rake()
       compiler = @tcs[:COMPILER][:CPP]
-      lintParam = @tcs[:LINT_PARAM]
-      lintParam.init_vars
       
       res = typed_file_task Rake::Task::LINT, get_task_name do
         dir = @project_dir
@@ -50,9 +48,6 @@ module Cxxproject
 
           cmd = [compiler[:COMMAND]]
           cmd += compiler[:COMPILE_FLAGS]
-            
-          cmd += lintParam.internalIncludes
-            cmd += lintParam.internalDefines
             
           cmd += @include_string[:CPP]
           cmd += @define_string[:CPP]
