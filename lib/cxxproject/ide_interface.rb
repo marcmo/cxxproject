@@ -20,10 +20,7 @@ module Cxxproject
       @socket = nil
       @abort = false
       @thread = nil
-    end
-
-    def mutex
-      @mutex ||= Mutex.new
+      @mutex = Mutex.new
     end
 
     def connect(port)
@@ -114,7 +111,7 @@ module Cxxproject
           msg.message.rstrip!
           packet = create_error_packet(msg)
           begin
-            mutex.synchronize { @socket.write(packet) }
+            @mutex.synchronize { @socket.write(packet) }
           rescue Exception => e
             Printer.printError "Error: #{e.message}"
             set_abort(true)
@@ -162,7 +159,7 @@ module Cxxproject
       write_long(packet, num >=0 ? num : 0)
 
       begin
-        mutex.synchronize { @socket.write(packet) if @socket }
+        @mutex.synchronize { @socket.write(packet) if @socket }
       rescue Exception => e
         Printer.printError "Error: #{e.message}"
         set_abort(true)
